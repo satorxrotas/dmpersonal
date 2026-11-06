@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>David Maxwell</title>
   <style>
+    /* Airbnb Cereal: Bold for wordmark, body and footer; Medium for small UI text */
+    @font-face {
+      font-family: "Airbnb Cereal"; font-weight: 700; font-style: normal; font-display: swap;
+      src: url("../fonts/AirbnbCereal-Bold.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Airbnb Cereal"; font-weight: 500; font-style: normal; font-display: swap;
+      src: url("../fonts/AirbnbCereal-Medium.woff2") format("woff2");
+    }
     /* Druk Wide: drop the licensed files into /fonts and they take over.
        Until then it falls back to Archivo at its widest, heaviest setting. */
     @font-face {
@@ -17,7 +26,7 @@
     :root {
       --orange: #f8931d;
       --ink: #000;
-      --helv: "Helvetica Neue", "HelveticaNeue", Helvetica, Arial, sans-serif;
+      --helv: "Airbnb Cereal", "Helvetica Neue", Helvetica, Arial, sans-serif;
       --druk: "Druk Wide", "Archivo", "Arial Black", sans-serif;
       --pad-x: 2.6vw;
       --pad-y: 3.2vw;
@@ -138,7 +147,7 @@
       animation: spin 8s linear infinite;   /* slow, clockwise */
     }
     #loader p {
-      font: 600 11px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
+      font: 500 11px/1 var(--helv); letter-spacing: .3em; color: #000;
       padding-left: .3em; /* balance trailing letter-spacing */
     }
     #loader .dots span { animation: dot 1.4s infinite both; }
@@ -177,6 +186,8 @@
       .lightbox .frame { transition: opacity .3s ease; transform: none; }
     }
   </style>
+  <link rel="preload" href="../fonts/AirbnbCereal-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/AirbnbCereal-Medium.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&display=swap" rel="stylesheet">
