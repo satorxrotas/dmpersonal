@@ -396,23 +396,34 @@
     const INTRO_MS = 2000;
     const easeOut = (x) => 1 - Math.pow(1 - x, 4);
 
+    // --- Busts: load, chrome them, and cycle through with a glitch -------
+    const dbg = new URLSearchParams(location.search);
+    const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb'];
+    const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1000;
+    const slots = BUSTS.map(() => null);   // wrap groups, filled as they load
+    let current = 0;
+
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
-    loader.load(new URLSearchParams(location.search).get('m') || 'bust.glb', (gltf) => {
-      const model = gltf.scene;
-      const dbg = new URLSearchParams(location.search);
-      model.traverse(o => { if (o.isMesh) { o.material = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome; } });
-      if (dbg.has('rot')) model.rotation.y = +dbg.get('rot') * Math.PI / 180;
 
-      // center + normalize size
+    function prepare(gltf) {
+      const model = gltf.scene;
+      model.traverse(o => { if (o.isMesh) o.material = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome; });
+      // centre it and scale every bust to the same height (and a max width)
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      model.position.sub(center);
-      const s = 3.2 / Math.max(size.x, size.y, size.z);
+      model.position.sub(box.getCenter(new THREE.Vector3()));
       const wrap = new THREE.Group();
-      wrap.add(model); wrap.scale.setScalar(s);
+      wrap.add(model);
+      wrap.scale.setScalar(Math.min(3.1 / size.y, 3.3 / size.x));
+      wrap.visible = false;
       intro.add(wrap);
+      return wrap;
+    }
+
+    loader.load(BUSTS[0], (gltf) => {
+      slots[0] = prepare(gltf);
+      slots[0].visible = true;
 
       // keep the wheel up for at least a beat so it doesn't just flash
       const wait = Math.max(0, 900 - performance.now());
@@ -420,9 +431,15 @@
         const el = document.getElementById('loader');
         el.classList.add('done');
         introStart = performance.now();
+        nextSwapAt = introStart + INTRO_MS + HOLD_MS;
         revealText();
         el.addEventListener('transitionend', () => el.remove(), { once: true });
       }, wait);
+
+      // the rest load quietly in the background, in order
+      if (!dbg.has('m')) BUSTS.slice(1).reduce((chain, url, i) => chain.then(() =>
+        loader.loadAsync(url).then(g => { slots[i + 1] = prepare(g); }).catch(console.error)
+      ), Promise.resolve());
     }, undefined, (e) => {
       const el = document.getElementById('loader');
       el.querySelector('img').style.animationPlayState = 'paused';
@@ -430,6 +447,77 @@
       revealText();
       console.error(e);
     });
+
+    // --- Glitch pass: scene renders to a texture, then gets pixelated,
+    // sliced and RGB-split while a swap is happening ---------------------
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    const post = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        blending: THREE.NoBlending, depthTest: false, depthWrite: false,
+        uniforms: { tDiffuse: { value: rt.texture }, amt: { value: 0 }, seed: { value: 0 }, res: { value: new THREE.Vector2(1, 1) } },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
+        fragmentShader: `
+          uniform sampler2D tDiffuse; uniform float amt, seed; uniform vec2 res; varying vec2 vUv;
+          float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 43.17) * 43758.5453); }
+          void main(){
+            vec2 uv = vUv;
+            vec4 c;
+            if (amt > .001) {
+              // shove random horizontal bands sideways
+              float row = floor(uv.y * 22.);
+              if (h(vec2(row, 1.)) < amt * .7) uv.x += (h(vec2(row, 2.)) - .5) * .3 * amt;
+              // chunky pixels that grow with the glitch
+              float px = mix(2., 44., amt * amt);
+              vec2 blocks = res / px;
+              uv = (floor(uv * blocks) + .5) / blocks;
+              // RGB split
+              float sh = .018 * amt;
+              vec4 cr = texture2D(tDiffuse, uv + vec2(sh, 0.));
+              vec4 cg = texture2D(tDiffuse, uv);
+              vec4 cb = texture2D(tDiffuse, uv - vec2(sh, 0.));
+              c = vec4(cr.r, cg.g, cb.b, max(cg.a, max(cr.a, cb.a)));
+              // random blocks drop out
+              if (h(floor(vUv * vec2(26., 15.)) + 3.) < amt * .22) c = vec4(0.);
+            } else {
+              c = texture2D(tDiffuse, uv);
+            }
+            gl_FragColor = c;
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
+          }`
+      })
+    );
+    post.frustumCulled = false;
+    const postScene = new THREE.Scene(); postScene.add(post);
+    const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    let nextSwapAt = Infinity, swapStart = null, swapTo = -1, swapped = false;
+    function nextLoaded() {
+      for (let k = 1; k < slots.length; k++) {
+        const i = (current + k) % slots.length;
+        if (slots[i]) return i;
+      }
+      return -1;
+    }
+    function updateSwap(now) {
+      if (swapStart === null) {
+        if (now < nextSwapAt) return 0;
+        swapTo = nextLoaded();
+        if (swapTo < 0) { nextSwapAt = now + 1000; return 0; }   // others still loading
+        swapStart = now; swapped = false;
+      }
+      const p = Math.min(1, (now - swapStart) / SWAP_MS);
+      if (!swapped && (p >= .5 || reduced)) {
+        slots[current].visible = false;
+        slots[swapTo].visible = true;
+        current = swapTo; swapped = true;
+      }
+      if (p >= 1 || reduced) { swapStart = null; nextSwapAt = now + HOLD_MS; return 0; }
+      // re-roll the noise ~14x a second so it stutters rather than flows
+      post.material.uniforms.seed.value = Math.floor(now / 70) % 97;
+      return Math.pow(Math.sin(Math.PI * p), .6);
+    }
 
     // --- Interaction: head eases toward the cursor, sways when idle -------
     const target = { x: 0, y: 0 };
@@ -451,6 +539,9 @@
       // close enough to fill the height, but back off if the width would clip
       camera.position.z = Math.max(mobileMQ.matches ? 6.6 : 9, 7 / camera.aspect);
       camera.updateProjectionMatrix();
+      const dpr = renderer.getPixelRatio();
+      rt.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      post.material.uniforms.res.value.set(w * dpr, h * dpr);
     }
     new ResizeObserver(resize).observe(bustBox); resize();
 
@@ -490,7 +581,14 @@
         if (x >= 1) introStart = null;
       }
       if (!reduced) updateEnv(t);
+      post.material.uniforms.amt.value = updateSwap(performance.now());
+      if (dbg.has('glitch')) { post.material.uniforms.amt.value = +dbg.get('glitch'); post.material.uniforms.seed.value = 7; }
+      renderer.setRenderTarget(rt);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
       renderer.render(scene, camera);
+      renderer.setRenderTarget(null);
+      renderer.render(postScene, postCam);
     });
   </script>
 </body>
