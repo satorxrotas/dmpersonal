@@ -448,41 +448,83 @@
       console.error(e);
     });
 
-    // --- Glitch pass: scene renders to a texture, then gets pixelated,
-    // sliced and RGB-split while a swap is happening ---------------------
-    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    // --- Swap pass: "two objects spawning into the same spot" -------------
+    // The outgoing (A) and incoming (B) busts render to separate textures.
+    // A shader then deletes A block-by-block from the top while B is built
+    // in behind it; where both exist they z-fight and flicker, the fronts
+    // flash white, bands tear sideways, and it all goes black & white.
+    const rtOpts = { type: THREE.HalfFloatType, samples: 4 };
+    const rtA = new THREE.WebGLRenderTarget(1, 1, rtOpts);
+    const rtB = new THREE.WebGLRenderTarget(1, 1, rtOpts);
     const post = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
       new THREE.ShaderMaterial({
         blending: THREE.NoBlending, depthTest: false, depthWrite: false,
-        uniforms: { tDiffuse: { value: rt.texture }, amt: { value: 0 }, seed: { value: 0 }, res: { value: new THREE.Vector2(1, 1) } },
+        uniforms: {
+          tA: { value: rtA.texture }, tB: { value: rtB.texture },
+          p: { value: 0 }, seed: { value: 0 }, dpr: { value: 1 },
+          res: { value: new THREE.Vector2(1, 1) }
+        },
         vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
         fragmentShader: `
-          uniform sampler2D tDiffuse; uniform float amt, seed; uniform vec2 res; varying vec2 vUv;
-          float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 43.17) * 43758.5453); }
+          uniform sampler2D tA, tB; uniform float p, seed, dpr; uniform vec2 res; varying vec2 vUv;
+          float h(vec2 q, float s){ return fract(sin(dot(q, vec2(127.1, 311.7)) + s * 43.17) * 43758.5453); }
+          // high-contrast greyscale that respects premultiplied alpha
+          vec4 mono(vec4 c){
+            float l = dot(c.rgb, vec3(.299, .587, .114)) / max(c.a, 1e-4);
+            return vec4(vec3(smoothstep(.03, .85, l) * c.a), c.a);
+          }
           void main(){
-            vec2 uv = vUv;
-            vec4 c;
-            if (amt > .001) {
-              // shove random horizontal bands sideways
-              float row = floor(uv.y * 22.);
-              if (h(vec2(row, 1.)) < amt * .7) uv.x += (h(vec2(row, 2.)) - .5) * .3 * amt;
-              // chunky pixels that grow with the glitch
-              float px = mix(2., 44., amt * amt);
-              vec2 blocks = res / px;
-              uv = (floor(uv * blocks) + .5) / blocks;
-              // RGB split
-              float sh = .018 * amt;
-              vec4 cr = texture2D(tDiffuse, uv + vec2(sh, 0.));
-              vec4 cg = texture2D(tDiffuse, uv);
-              vec4 cb = texture2D(tDiffuse, uv - vec2(sh, 0.));
-              c = vec4(cr.r, cg.g, cb.b, max(cg.a, max(cr.a, cb.a)));
-              // random blocks drop out
-              if (h(floor(vUv * vec2(26., 15.)) + 3.) < amt * .22) c = vec4(0.);
+            if (p <= 0.) {
+              gl_FragColor = texture2D(tA, vUv);
             } else {
-              c = texture2D(tDiffuse, uv);
+              float amt = sin(3.14159 * p);
+              vec2 px = vUv * res;
+
+              // horizontal tearing on random bands
+              float band = floor(px.y / (12. * dpr));
+              if (h(vec2(band, 0.), seed) > 1. - amt * .4)
+                px.x += (h(vec2(band, 1.), seed) - .5) * 110. * dpr * amt;
+
+              // stable block noise (coarse + fine) drives the delete/build order
+              vec2 coarse = floor(px / (28. * dpr));
+              vec2 fine = floor(px / (7. * dpr));
+              // each bust gets its own pattern so they interleave and collide
+              float yk = (1. - vUv.y) * .4;                    // top goes first
+              float keyA = mix(h(coarse, 1.), h(fine, 2.), .4) * .6 + yk;
+              float keyB = mix(h(coarse, 3.), h(fine, 4.), .4) * .6 + yk;
+              float pA = smoothstep(0., .85, p) * 1.1 - .05;   // delete front
+              float pB = smoothstep(.1, .95, p) * 1.1 - .05;   // build front, overlapping it
+
+              // pixelate hard around both fronts
+              float nearA = clamp(1. - abs(keyA - pA) * 7., 0., 1.);
+              float nearB = clamp(1. - abs(keyB - pB) * 7., 0., 1.);
+              float bs = mix(1., 11., max(nearA, nearB) * amt) * dpr;
+              vec2 q = (floor(px / bs) + .5) * bs / res;
+
+              float monoAmt = clamp(amt * 5., 0., 1.);
+              vec4 a = mix(texture2D(tA, q), mono(texture2D(tA, q)), monoAmt);
+              vec4 b = mix(texture2D(tB, q), mono(texture2D(tB, q)), monoAmt);
+              bool hasA = keyA > pA && a.a > .02;
+              bool hasB = keyB < pB && b.a > .02;
+
+              vec4 col = vec4(0.);
+              if (hasA) col = a;
+              if (hasB) {
+                // incoming bust is still "rendering in": hologram scanlines
+                float scan = .72 + .28 * step(.5, fract(px.y / (3. * dpr)));
+                vec4 bb = vec4(b.rgb * mix(1., scan, nearB + .3 * amt), b.a);
+                // both occupy the same space: z-fighting flicker per block
+                col = hasA ? (h(fine, seed) > .5 ? bb : a) : bb;
+              }
+              // fronts flash white as blocks are deleted / spawned
+              if (hasA && keyA - pA < .028) col = vec4(1.);
+              if (hasB && pB - keyB < .022) col = vec4(vec3(.92), 1.);
+              // stray white bits inside either silhouette
+              if ((a.a > .3 || b.a > .3) && h(fine, seed + 9.) < .035 * amt) col = vec4(1.);
+
+              gl_FragColor = col;
             }
-            gl_FragColor = c;
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
           }`
@@ -492,7 +534,7 @@
     const postScene = new THREE.Scene(); postScene.add(post);
     const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    let nextSwapAt = Infinity, swapStart = null, swapTo = -1, swapped = false;
+    let nextSwapAt = Infinity, swapStart = null, swapTo = -1;
     function nextLoaded() {
       for (let k = 1; k < slots.length; k++) {
         const i = (current + k) % slots.length;
@@ -500,23 +542,29 @@
       }
       return -1;
     }
+    // returns swap progress 0..1 (0 = no swap running)
     function updateSwap(now) {
       if (swapStart === null) {
         if (now < nextSwapAt) return 0;
         swapTo = nextLoaded();
         if (swapTo < 0) { nextSwapAt = now + 1000; return 0; }   // others still loading
-        swapStart = now; swapped = false;
+        swapStart = now;
       }
-      const p = Math.min(1, (now - swapStart) / SWAP_MS);
-      if (!swapped && (p >= .5 || reduced)) {
-        slots[current].visible = false;
-        slots[swapTo].visible = true;
-        current = swapTo; swapped = true;
+      const p = reduced ? 1 : Math.min(1, (now - swapStart) / SWAP_MS);
+      if (p >= 1) {
+        current = swapTo; swapStart = null; nextSwapAt = now + HOLD_MS;
+        return 0;
       }
-      if (p >= 1 || reduced) { swapStart = null; nextSwapAt = now + HOLD_MS; return 0; }
       // re-roll the noise ~14x a second so it stutters rather than flows
       post.material.uniforms.seed.value = Math.floor(now / 70) % 97;
-      return Math.pow(Math.sin(Math.PI * p), .6);
+      return p;
+    }
+    function renderBust(i, target) {
+      slots.forEach((w, k) => { if (w) w.visible = k === i; });
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+      renderer.render(scene, camera);
     }
 
     // --- Interaction: head eases toward the cursor, sways when idle -------
@@ -540,8 +588,10 @@
       camera.position.z = Math.max(mobileMQ.matches ? 6.6 : 9, 7 / camera.aspect);
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
-      rt.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      rtB.setSize(Math.round(w * dpr), Math.round(h * dpr));
       post.material.uniforms.res.value.set(w * dpr, h * dpr);
+      post.material.uniforms.dpr.value = dpr;
     }
     new ResizeObserver(resize).observe(bustBox); resize();
 
@@ -581,12 +631,11 @@
         if (x >= 1) introStart = null;
       }
       if (!reduced) updateEnv(t);
-      post.material.uniforms.amt.value = updateSwap(performance.now());
-      if (dbg.has('glitch')) { post.material.uniforms.amt.value = +dbg.get('glitch'); post.material.uniforms.seed.value = 7; }
-      renderer.setRenderTarget(rt);
-      renderer.setClearColor(0x000000, 0);
-      renderer.clear();
-      renderer.render(scene, camera);
+      let sp = updateSwap(performance.now()), from = current, to = swapTo;
+      if (dbg.has('glitch') && slots[1]) { sp = +dbg.get('glitch'); from = 0; to = 1; post.material.uniforms.seed.value = 7; }
+      post.material.uniforms.p.value = sp;
+      if (slots[from]) renderBust(from, rtA);
+      if (sp > 0) renderBust(to, rtB);
       renderer.setRenderTarget(null);
       renderer.render(postScene, postCam);
     });
