@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>David Maxwell — Bust Test</title>
+  <style>
+    :root { --orange: #f8931d; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; background: var(--orange); overflow: hidden; }
+    #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #loader {
+      position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      font: 500 12px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
+      transition: opacity .4s;
+    }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div id="loader">LOADING</div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+    const ORANGE = 0xf8931d;
+    const canvas = document.getElementById('stage');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 0, 9);
+
+    // --- Studio environment for the chrome to reflect ---------------------
+    // Chrome is only as good as what it reflects: a warm orange room so it
+    // sits in the page, plus a few hard white softboxes for crisp highlights
+    // and a dark band so the form reads with contrast.
+    function buildEnv() {
+      const env = new THREE.Scene();
+      const room = new THREE.Mesh(
+        new THREE.SphereGeometry(20, 64, 32),
+        new THREE.ShaderMaterial({
+          side: THREE.BackSide,
+          uniforms: {
+            top:    { value: new THREE.Color(0xdcdcdc) },
+            mid:    { value: new THREE.Color(0x3a3634) },
+            bottom: { value: new THREE.Color(0x050505) }
+          },
+          vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+          fragmentShader: `uniform vec3 top, mid, bottom; varying vec3 vP;
+            void main(){
+              float y = vP.y;
+              vec3 c = y > 0. ? mix(mid, top, smoothstep(0.,.9,y)) : mix(mid, bottom, smoothstep(0.,.55,-y));
+              gl_FragColor = vec4(c,1.);
+            }`
+        })
+      );
+      env.add(room);
+      const box = (w, h, pos, intensity = 6) => {
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(1,1,1).multiplyScalar(intensity), side: THREE.DoubleSide }));
+        m.position.copy(pos); m.lookAt(0, 0, 0); env.add(m);
+      };
+      box(6, 14, new THREE.Vector3(-9, 3, 6));      // key strip, front-left
+      box(3, 12, new THREE.Vector3(10, 2, -2), 4);  // rim, right
+      box(14, 2, new THREE.Vector3(0, 12, 2), 5);   // overhead bar
+      box(4, 4, new THREE.Vector3(3, -2, 12), 2);   // soft fill, front
+      // orange bounce from the page itself, low and to the sides
+      const bounce = (pos) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(14, 5),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(ORANGE).multiplyScalar(1.4), side: THREE.DoubleSide }));
+        m.position.copy(pos); m.lookAt(0,0,0); env.add(m); };
+      bounce(new THREE.Vector3(-8, -5, 8)); bounce(new THREE.Vector3(9, -4, 4));
+      // dark card on the left-back for contrast in reflections
+      const card = new THREE.Mesh(new THREE.PlaneGeometry(10, 16), new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide }));
+      card.position.set(-10, 0, -8); card.lookAt(0,0,0); env.add(card);
+      return env;
+    }
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(buildEnv(), 0.02).texture;
+
+    const chrome = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      metalness: 1,
+      roughness: 0.06,
+      clearcoat: 1,
+      clearcoatRoughness: 0.04,
+      envMapIntensity: 1.15
+    });
+
+    // --- Model -------------------------------------------------------------
+    const pivot = new THREE.Group();   // receives cursor/idle rotation
+    scene.add(pivot);
+
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    loader.load('bust.glb', (gltf) => {
+      const model = gltf.scene;
+      const dbg = new URLSearchParams(location.search);
+      model.traverse(o => { if (o.isMesh) { o.material = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome; } });
+      if (dbg.has('rot')) model.rotation.y = +dbg.get('rot') * Math.PI / 180;
+
+      // center + normalize size
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+      const s = 3.2 / Math.max(size.x, size.y, size.z);
+      const wrap = new THREE.Group();
+      wrap.add(model); wrap.scale.setScalar(s);
+      pivot.add(wrap);
+
+      document.getElementById('loader').style.opacity = 0;
+    }, undefined, (e) => {
+      document.getElementById('loader').textContent = 'COULD NOT LOAD MODEL';
+      console.error(e);
+    });
+
+    // --- Interaction: head eases toward the cursor, sways when idle -------
+    const target = { x: 0, y: 0 };
+    let lastMove = -Infinity;
+    addEventListener('pointermove', (e) => {
+      target.x = (e.clientX / innerWidth) * 2 - 1;
+      target.y = (e.clientY / innerHeight) * 2 - 1;
+      lastMove = performance.now();
+    });
+    // touch devices: gentle device-tilt-free fallback is the idle sway
+
+    function resize() {
+      const w = innerWidth, h = innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      // pull the camera back on narrow screens so the bust fits
+      camera.position.z = w / h < 0.8 ? 15 : 9;
+      camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize); resize();
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const clock = new THREE.Clock();
+    renderer.setAnimationLoop(() => {
+      const t = clock.getElapsedTime();
+      const idle = performance.now() - lastMove > 2500;
+      const tx = idle ? Math.sin(t * 0.4) * 0.45 : target.x * 0.6;
+      const ty = idle ? Math.sin(t * 0.3) * 0.06 : target.y * 0.25;
+      const k = reduced ? 0 : 0.05;
+      pivot.rotation.y += (tx - pivot.rotation.y) * k;
+      pivot.rotation.x += (ty - pivot.rotation.x) * k;
+      renderer.render(scene, camera);
+    });
+  </script>
+</body>
+</html>
