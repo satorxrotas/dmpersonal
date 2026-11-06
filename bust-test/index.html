@@ -10,10 +10,19 @@
     html, body { height: 100%; background: var(--orange); overflow: hidden; }
     #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
     #loader {
-      position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      font: 500 12px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
-      transition: opacity .4s;
+      position: fixed; inset: 0; display: grid; place-items: center;
+      pointer-events: none; transition: opacity .6s ease;
     }
+    #loader.done { opacity: 0; }
+    #loader img {
+      width: min(180px, 40vw); height: auto;
+      animation: spin 8s linear infinite;   /* slow, clockwise */
+    }
+    #loader p {
+      position: absolute; top: calc(50% + min(110px, 25vw));
+      font: 500 11px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
   <script type="importmap">
     { "imports": {
@@ -24,7 +33,7 @@
 </head>
 <body>
   <canvas id="stage"></canvas>
-  <div id="loader">LOADING</div>
+  <div id="loader"><img src="dm-logo-black.png" alt="Loading" width="400" height="400"></div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -120,9 +129,17 @@
       wrap.add(model); wrap.scale.setScalar(s);
       pivot.add(wrap);
 
-      document.getElementById('loader').style.opacity = 0;
+      // keep the wheel up for at least a beat so it doesn't just flash
+      const wait = Math.max(0, 900 - performance.now());
+      setTimeout(() => {
+        const el = document.getElementById('loader');
+        el.classList.add('done');
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
+      }, wait);
     }, undefined, (e) => {
-      document.getElementById('loader').textContent = 'COULD NOT LOAD MODEL';
+      const el = document.getElementById('loader');
+      el.querySelector('img').style.animationPlayState = 'paused';
+      el.insertAdjacentHTML('beforeend', '<p>COULD NOT LOAD MODEL</p>');
       console.error(e);
     });
 
