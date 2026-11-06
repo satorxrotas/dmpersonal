@@ -129,6 +129,36 @@
     #loader .dots span:nth-child(3) { animation-delay: .4s; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes dot { 0%, 20% { opacity: 0; } 40%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ---- Reel lightbox ---- */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 20;
+      display: grid; place-items: center;
+      background: rgba(0, 0, 0, .92);
+      opacity: 0; visibility: hidden;
+      transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .lightbox.open { opacity: 1; visibility: visible; transition: opacity .45s ease, visibility 0s; }
+    .lightbox .frame {
+      width: min(90vw, calc(82svh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      background: #000;
+      transform: scale(.08); opacity: 0;
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
+    }
+    .lightbox.open .frame { transform: none; opacity: 1; }
+    .lightbox video { width: 100%; height: 100%; display: block; }
+    .lightbox .close {
+      position: absolute; top: var(--pad-y); right: var(--pad-x);
+      background: none; border: 0; cursor: pointer;
+      color: var(--orange); font-family: var(--druk); font-weight: 700;
+      font-variation-settings: "wdth" 125;
+      font-size: var(--action); letter-spacing: .02em;
+    }
+    .lightbox .close:hover { opacity: .6; }
+    @media (prefers-reduced-motion: reduce) {
+      .lightbox .frame { transition: opacity .3s ease; transform: none; }
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,7 +181,7 @@
       <p>He also founded DRGNFLEYE, a multimedia studio.</p>
     </div>
 
-    <a class="action reel" href="#reel">REEL</a>
+    <a class="action reel" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
     <a class="action studio" href="#" target="_blank" rel="noopener">STUDIO WORK
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M5.5 3H13v7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg>
     </a>
@@ -162,6 +192,53 @@
 
     <div class="bust"><canvas id="stage"></canvas></div>
   </main>
+
+  <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
+    <button class="close" type="button" aria-label="Close reel">CLOSE</button>
+    <div class="frame">
+      <video src="../reel/dm-reel.mp4" poster="../reel/dm-reel-poster.jpg" controls playsinline preload="none"></video>
+    </div>
+  </div>
+
+  <script>
+    // Reel lightbox: grows out of the REEL link, plays with sound, closes on
+    // the button, a click outside the video, or Esc.
+    (() => {
+      const link = document.querySelector('.reel');
+      const box = document.getElementById('reel');
+      const frame = box.querySelector('.frame');
+      const video = box.querySelector('video');
+      const closeBtn = box.querySelector('.close');
+
+      function originFromLink() {
+        const r = link.getBoundingClientRect();
+        // frame is centred; express the link's centre in the frame's own coords
+        const left = (innerWidth - frame.offsetWidth) / 2, top = (innerHeight - frame.offsetHeight) / 2;
+        frame.style.transformOrigin = `${r.left + r.width / 2 - left}px ${r.top + r.height / 2 - top}px`;
+      }
+      function open(e) {
+        e.preventDefault();
+        originFromLink();
+        box.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        video.currentTime = 0;
+        video.play().catch(() => {});
+        closeBtn.focus({ preventScroll: true });
+      }
+      function close() {
+        if (!box.classList.contains('open')) return;
+        originFromLink();
+        box.classList.remove('open');
+        document.body.style.overflow = '';
+        video.pause();
+        link.focus({ preventScroll: true });
+      }
+      link.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      box.addEventListener('click', (e) => { if (!frame.contains(e.target)) close(); });
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    })();
+  </script>
   <div id="loader" role="status">
     <img src="dm-logo-black.png" alt="" width="400" height="400">
     <p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
