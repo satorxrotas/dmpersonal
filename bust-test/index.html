@@ -10,19 +10,24 @@
     html, body { height: 100%; background: var(--orange); overflow: hidden; }
     #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
     #loader {
-      position: fixed; inset: 0; display: grid; place-items: center;
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 22px;
       pointer-events: none; transition: opacity .6s ease;
     }
     #loader.done { opacity: 0; }
     #loader img {
-      width: min(180px, 40vw); height: auto;
+      width: min(96px, 26vw); height: auto;
       animation: spin 8s linear infinite;   /* slow, clockwise */
     }
     #loader p {
-      position: absolute; top: calc(50% + min(110px, 25vw));
-      font: 500 11px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
+      font: 600 11px/1 system-ui, sans-serif; letter-spacing: .3em; color: #000;
+      padding-left: .3em; /* balance trailing letter-spacing */
     }
+    #loader .dots span { animation: dot 1.4s infinite both; }
+    #loader .dots span:nth-child(2) { animation-delay: .2s; }
+    #loader .dots span:nth-child(3) { animation-delay: .4s; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes dot { 0%, 20% { opacity: 0; } 40%, 70% { opacity: 1; } 100% { opacity: 0; } }
   </style>
   <script type="importmap">
     { "imports": {
@@ -33,7 +38,10 @@
 </head>
 <body>
   <canvas id="stage"></canvas>
-  <div id="loader"><img src="dm-logo-black.png" alt="Loading" width="400" height="400"></div>
+  <div id="loader" role="status">
+    <img src="dm-logo-black.png" alt="" width="400" height="400">
+    <p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
+  </div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -110,6 +118,13 @@
     // --- Model -------------------------------------------------------------
     const pivot = new THREE.Group();   // receives cursor/idle rotation
     scene.add(pivot);
+    // entrance: bust turns in from the side, rises and fades up
+    const intro = new THREE.Group();
+    intro.visible = false;
+    pivot.add(intro);
+    let introStart = null;
+    const INTRO_MS = 2000;
+    const easeOut = (x) => 1 - Math.pow(1 - x, 4);
 
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
@@ -127,19 +142,20 @@
       const s = 3.2 / Math.max(size.x, size.y, size.z);
       const wrap = new THREE.Group();
       wrap.add(model); wrap.scale.setScalar(s);
-      pivot.add(wrap);
+      intro.add(wrap);
 
       // keep the wheel up for at least a beat so it doesn't just flash
       const wait = Math.max(0, 900 - performance.now());
       setTimeout(() => {
         const el = document.getElementById('loader');
         el.classList.add('done');
+        introStart = performance.now();
         el.addEventListener('transitionend', () => el.remove(), { once: true });
       }, wait);
     }, undefined, (e) => {
       const el = document.getElementById('loader');
       el.querySelector('img').style.animationPlayState = 'paused';
-      el.insertAdjacentHTML('beforeend', '<p>COULD NOT LOAD MODEL</p>');
+      el.querySelector('p').textContent = 'COULD NOT LOAD MODEL';
       console.error(e);
     });
 
@@ -173,6 +189,19 @@
       const k = reduced ? 0 : 0.05;
       pivot.rotation.y += (tx - pivot.rotation.y) * k;
       pivot.rotation.x += (ty - pivot.rotation.x) * k;
+
+      if (introStart !== null) {
+        const x = reduced ? 1 : Math.min(1, (performance.now() - introStart) / INTRO_MS);
+        const e = easeOut(x);
+        intro.visible = true;
+        intro.rotation.y = (1 - e) * -Math.PI * 0.75;   // swings round to face you
+        intro.position.y = (1 - e) * -0.9;              // rises into place
+        intro.scale.setScalar(0.82 + 0.18 * e);
+        const fade = Math.min(1, x * 2.2);
+        chrome.transparent = fade < 1;
+        chrome.opacity = fade;
+        if (x >= 1) introStart = null;
+      }
       renderer.render(scene, camera);
     });
   </script>
