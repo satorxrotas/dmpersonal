@@ -252,7 +252,7 @@
 
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
-    loader.load('bust.glb', (gltf) => {
+    loader.load(new URLSearchParams(location.search).get('m') || 'bust.glb', (gltf) => {
       const model = gltf.scene;
       const dbg = new URLSearchParams(location.search);
       model.traverse(o => { if (o.isMesh) { o.material = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome; } });
