@@ -151,10 +151,10 @@
     .lightbox .close {
       position: absolute; top: var(--pad-y); right: var(--pad-x);
       background: none; border: 0; cursor: pointer;
-      color: var(--orange); font-family: var(--druk); font-weight: 700;
-      font-variation-settings: "wdth" 125;
-      font-size: var(--action); letter-spacing: .02em;
+      color: var(--orange); padding: 6px; line-height: 0;
+      transition: opacity .2s;
     }
+    .lightbox .close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
     .lightbox .close:hover { opacity: .6; }
     @media (prefers-reduced-motion: reduce) {
       .lightbox .frame { transition: opacity .3s ease; transform: none; }
@@ -194,7 +194,7 @@
   </main>
 
   <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
-    <button class="close" type="button" aria-label="Close reel">CLOSE</button>
+    <button class="close" type="button" aria-label="Close reel"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
     <div class="frame">
       <video src="../reel/dm-reel.mp4" poster="../reel/dm-reel-poster.jpg" controls playsinline preload="none"></video>
     </div>
