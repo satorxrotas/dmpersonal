@@ -276,16 +276,18 @@
     // ---- Work strip content ------------------------------------------------
     // Placeholders for now. To add real work, give an item an `img` (thumbnail
     // and lightbox image) and optionally a `full` (bigger lightbox image) or a
-    // `video` (mp4 that plays in the lightbox). `ar` is width / height.
+    // `video` (mp4 that plays in the lightbox).
+    // Every tile shares one crop — set it here to match the supplied images.
+    const STRIP_AR = 16 / 9;   // width / height
     const STRIP = [
-      { title: 'Project 01', c: '#1b1b1d', ar: 16 / 9 },
-      { title: 'Project 02', c: '#b8321f', ar: 1 },
-      { title: 'Project 03', c: '#1f5fa8', ar: 4 / 5 },
-      { title: 'Project 04', c: '#2f8f84', ar: 16 / 9 },
-      { title: 'Project 05', c: '#d9b44a', ar: 4 / 3 },
-      { title: 'Project 06', c: '#5b2d7a', ar: 16 / 9 },
-      { title: 'Project 07', c: '#3d3d3d', ar: 1 },
-      { title: 'Project 08', c: '#8a1538', ar: 16 / 9 },
+      { title: 'Project 01', c: '#1b1b1d' },
+      { title: 'Project 02', c: '#b8321f' },
+      { title: 'Project 03', c: '#1f5fa8' },
+      { title: 'Project 04', c: '#2f8f84' },
+      { title: 'Project 05', c: '#d9b44a' },
+      { title: 'Project 06', c: '#5b2d7a' },
+      { title: 'Project 07', c: '#3d3d3d' },
+      { title: 'Project 08', c: '#8a1538' },
     ];
 
     // ---- Lightbox (reel + strip items) --------------------------------------
@@ -343,7 +345,7 @@
       const make = (item, dupe) => {
         const b = document.createElement('button');
         b.className = 'tile'; b.type = 'button';
-        b.style.setProperty('--ar', item.ar || 16 / 9);
+        b.style.setProperty('--ar', STRIP_AR);
         b.style.setProperty('--c', item.c || '#222');
         b.setAttribute('aria-label', 'Open ' + item.title);
         if (dupe) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); }
@@ -363,7 +365,7 @@
             node.style.setProperty('--c', item.c);
             node.innerHTML = `${item.title.toUpperCase()}<br>IMAGE COMING SOON`;
           }
-          Lightbox.open(b, node, item.ar || 16 / 9, item.title);
+          Lightbox.open(b, node, STRIP_AR, item.title);
         });
         return b;
       };
