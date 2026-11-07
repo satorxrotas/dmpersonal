@@ -110,6 +110,37 @@
     /* bust sits on top of the type (it overlaps the wordmark in the mockup)
        but lets clicks fall through to the links underneath */
     .bust { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+    /* ---- Work strip: bottom right, bleeds off the edge, runs left → right ---- */
+    .strip {
+      position: absolute; z-index: 1;
+      left: 28.9vw; right: 0; bottom: 3vw;
+      height: clamp(64px, 6.7vw, 150px);
+      overflow: hidden;
+    }
+    .strip .track {
+      display: flex; height: 100%; width: max-content;
+      animation: strip-run var(--dur, 40s) linear infinite;
+    }
+    .strip:hover .track, .strip:focus-within .track { animation-play-state: paused; }
+    @keyframes strip-run { from { transform: translateX(-50%); } to { transform: none; } }
+    .tile {
+      flex: none; height: 100%; aspect-ratio: var(--ar, 16 / 9);
+      border: 0; padding: 0; cursor: pointer;
+      background: var(--c, #222) center / cover no-repeat;
+      color: rgba(255, 255, 255, .55);
+      font: 700 11px/1 var(--helv); letter-spacing: .15em;
+      display: grid; place-items: center;
+      transition: filter .25s;
+    }
+    .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .strip:hover .tile { filter: brightness(.55); }
+    .strip:hover .tile:hover { filter: none; }
+    .tile:focus-visible { outline: 2px solid #000; outline-offset: -2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .strip { overflow-x: auto; }
+      .strip .track { animation: none; }
+    }
     #stage { width: 100%; height: 100%; display: block; }
 
     /* ---- Mobile: stack and scroll ---- */
@@ -125,6 +156,7 @@
           "bio     bio"
           "clients clients"
           "reel    studio"
+          "strip   strip"
           "foot    foot";
         row-gap: 0;
       }
@@ -133,6 +165,8 @@
       .action, .studio { margin-top: 36px; }
       .studio { align-self: start; }
       .foot { margin-top: 40px; }
+      .strip { position: relative; left: auto; right: auto; bottom: auto; grid-area: strip;
+               height: 96px; margin: 36px calc(var(--pad-x) * -1) 0; }
     }
 
     #loader {
@@ -166,14 +200,20 @@
     }
     .lightbox.open { opacity: 1; visibility: visible; transition: opacity .45s ease, visibility 0s; }
     .lightbox .frame {
-      width: min(90vw, calc(82svh * 16 / 9));
-      aspect-ratio: 16 / 9;
+      width: min(90vw, calc(82svh * var(--ar, 16 / 9)));
+      aspect-ratio: var(--ar, 16 / 9);
       background: #000;
       transform: scale(.08); opacity: 0;
       transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
     }
     .lightbox.open .frame { transform: none; opacity: 1; }
-    .lightbox video { width: 100%; height: 100%; display: block; }
+    .lightbox video, .lightbox .frame img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    .lightbox .placeholder {
+      width: 100%; height: 100%; background: var(--c);
+      display: grid; place-items: center;
+      color: rgba(255, 255, 255, .6); font: 700 clamp(12px, 1vw, 16px)/1.6 var(--helv);
+      letter-spacing: .2em; text-align: center;
+    }
     .lightbox .close {
       position: absolute; top: var(--pad-y); right: var(--pad-x);
       background: none; border: 0; cursor: pointer;
@@ -218,53 +258,122 @@
       <a href="#">Email</a><span>|</span><a href="#" target="_blank" rel="noopener">Instagram</a><span>|</span><a href="#" target="_blank" rel="noopener">LinkedIn</a>
     </nav>
 
+    <section class="strip" data-in="right" style="--d:1.1s" aria-label="Selected work">
+      <div class="track"></div>
+    </section>
+
     <div class="bust"><canvas id="stage"></canvas></div>
   </main>
 
   <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
-    <button class="close" type="button" aria-label="Close reel"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <button class="close" type="button" aria-label="Close"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
     <div class="frame">
       <video src="../reel/dm-reel.mp4" poster="../reel/dm-reel-poster.jpg" controls playsinline preload="none"></video>
     </div>
   </div>
 
   <script>
-    // Reel lightbox: grows out of the REEL link, plays with sound, closes on
-    // the button, a click outside the video, or Esc.
-    (() => {
-      const link = document.querySelector('.reel');
+    // ---- Work strip content ------------------------------------------------
+    // Placeholders for now. To add real work, give an item an `img` (thumbnail
+    // and lightbox image) and optionally a `full` (bigger lightbox image) or a
+    // `video` (mp4 that plays in the lightbox). `ar` is width / height.
+    const STRIP = [
+      { title: 'Project 01', c: '#1b1b1d', ar: 16 / 9 },
+      { title: 'Project 02', c: '#b8321f', ar: 1 },
+      { title: 'Project 03', c: '#1f5fa8', ar: 4 / 5 },
+      { title: 'Project 04', c: '#2f8f84', ar: 16 / 9 },
+      { title: 'Project 05', c: '#d9b44a', ar: 4 / 3 },
+      { title: 'Project 06', c: '#5b2d7a', ar: 16 / 9 },
+      { title: 'Project 07', c: '#3d3d3d', ar: 1 },
+      { title: 'Project 08', c: '#8a1538', ar: 16 / 9 },
+    ];
+
+    // ---- Lightbox (reel + strip items) --------------------------------------
+    // Grows out of whatever was clicked; closes on the X, a click outside the
+    // content, or Esc.
+    const Lightbox = (() => {
       const box = document.getElementById('reel');
       const frame = box.querySelector('.frame');
-      const video = box.querySelector('video');
       const closeBtn = box.querySelector('.close');
+      let trigger = null;
 
-      function originFromLink() {
-        const r = link.getBoundingClientRect();
-        // frame is centred; express the link's centre in the frame's own coords
+      function originFrom(el) {
+        const r = el.getBoundingClientRect();
+        // frame is centred; express the trigger's centre in the frame's own coords
         const left = (innerWidth - frame.offsetWidth) / 2, top = (innerHeight - frame.offsetHeight) / 2;
         frame.style.transformOrigin = `${r.left + r.width / 2 - left}px ${r.top + r.height / 2 - top}px`;
       }
-      function open(e) {
-        e.preventDefault();
-        originFromLink();
+      function open(from, node, ar = 16 / 9, label = '') {
+        trigger = from;
+        frame.style.setProperty('--ar', ar);
+        frame.replaceChildren(node);
+        box.setAttribute('aria-label', label);
+        originFrom(from);
         box.classList.add('open');
         document.body.style.overflow = 'hidden';
-        video.currentTime = 0;
-        video.play().catch(() => {});
+        const v = frame.querySelector('video');
+        if (v) { v.currentTime = 0; v.play().catch(() => {}); }
         closeBtn.focus({ preventScroll: true });
       }
       function close() {
         if (!box.classList.contains('open')) return;
-        originFromLink();
+        if (trigger) originFrom(trigger);
         box.classList.remove('open');
         document.body.style.overflow = '';
-        video.pause();
-        link.focus({ preventScroll: true });
+        frame.querySelectorAll('video').forEach(v => v.pause());
+        trigger?.focus({ preventScroll: true });
       }
-      link.addEventListener('click', open);
       closeBtn.addEventListener('click', close);
       box.addEventListener('click', (e) => { if (!frame.contains(e.target)) close(); });
       addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      return { open, close };
+    })();
+
+    // REEL
+    (() => {
+      const link = document.querySelector('.reel');
+      const video = document.querySelector('#reel video');   // keep one element so it stays buffered
+      link.addEventListener('click', (e) => { e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel'); });
+    })();
+
+    // Strip: build tiles (twice, for a seamless loop) and wire them to the lightbox
+    (() => {
+      const strip = document.querySelector('.strip');
+      const track = strip.querySelector('.track');
+      const make = (item, dupe) => {
+        const b = document.createElement('button');
+        b.className = 'tile'; b.type = 'button';
+        b.style.setProperty('--ar', item.ar || 16 / 9);
+        b.style.setProperty('--c', item.c || '#222');
+        b.setAttribute('aria-label', 'Open ' + item.title);
+        if (dupe) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); }
+        if (item.img) { const i = new Image(); i.src = item.img; i.alt = ''; i.loading = 'lazy'; b.append(i); }
+        else b.textContent = item.title.toUpperCase();
+        b.addEventListener('click', () => {
+          let node;
+          if (item.video) {
+            node = document.createElement('video');
+            Object.assign(node, { src: item.video, controls: true, playsInline: true });
+            if (item.img) node.poster = item.img;
+          } else if (item.img) {
+            node = new Image(); node.src = item.full || item.img; node.alt = item.title;
+          } else {
+            node = document.createElement('div');
+            node.className = 'placeholder';
+            node.style.setProperty('--c', item.c);
+            node.innerHTML = `${item.title.toUpperCase()}<br>IMAGE COMING SOON`;
+          }
+          Lightbox.open(b, node, item.ar || 16 / 9, item.title);
+        });
+        return b;
+      };
+      // one "half" must be at least as wide as the strip, then it's doubled
+      STRIP.forEach(it => track.append(make(it, false)));
+      for (let n = 0; track.scrollWidth < strip.clientWidth && n < 6; n++) STRIP.forEach(it => track.append(make(it, true)));
+      [...track.children].forEach(t => { const c = t.cloneNode(true); c.tabIndex = -1; c.setAttribute('aria-hidden', 'true'); c.onclick = () => t.click(); track.append(c); });
+      // constant speed (~45px/s) whatever the screen size
+      const setSpeed = () => track.style.setProperty('--dur', (track.scrollWidth / 2 / 45) + 's');
+      setSpeed(); addEventListener('resize', setSpeed);
     })();
   </script>
   <div id="loader" role="status">
