@@ -409,9 +409,9 @@
 
     // --- Busts: load, chrome them, and cycle through with a glitch -------
     const dbg = new URLSearchParams(location.search);
-    const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb'];
+    const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb', 'bust6.glb', 'bust7.glb', 'bust8.glb', 'bust9.glb'];
     // per-bust size tweak on top of the shared normalisation
-    const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15 };
+    const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15, 'bust6.glb': 1.15, 'bust7.glb': 1.15, 'bust8.glb': 1.15, 'bust9.glb': 1.15 };
     const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1000;
     const slots = BUSTS.map(() => null);   // wrap groups, filled as they load
     let current = 0;
