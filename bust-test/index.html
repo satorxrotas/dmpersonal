@@ -410,6 +410,8 @@
     // --- Busts: load, chrome them, and cycle through with a glitch -------
     const dbg = new URLSearchParams(location.search);
     const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb'];
+    // per-bust size tweak on top of the shared normalisation
+    const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15 };
     const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1000;
     const slots = BUSTS.map(() => null);   // wrap groups, filled as they load
     let current = 0;
@@ -417,7 +419,7 @@
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
 
-    function prepare(gltf) {
+    function prepare(gltf, url) {
       const model = gltf.scene;
       model.traverse(o => { if (o.isMesh) o.material = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome; });
       // centre it and scale every bust to the same height (and a max width)
@@ -426,14 +428,14 @@
       model.position.sub(box.getCenter(new THREE.Vector3()));
       const wrap = new THREE.Group();
       wrap.add(model);
-      wrap.scale.setScalar(Math.min(3.35 / size.y, 3.56 / size.x));   // +8%
+      wrap.scale.setScalar(Math.min(3.35 / size.y, 3.56 / size.x) * (BUST_SCALE[url] || 1));
       wrap.visible = false;
       intro.add(wrap);
       return wrap;
     }
 
     loader.load(BUSTS[0], (gltf) => {
-      slots[0] = prepare(gltf);
+      slots[0] = prepare(gltf, BUSTS[0]);
       slots[0].visible = true;
 
       // keep the wheel up for at least a beat so it doesn't just flash
@@ -449,7 +451,7 @@
 
       // the rest load quietly in the background, in order
       if (!dbg.has('m')) BUSTS.slice(1).reduce((chain, url, i) => chain.then(() =>
-        loader.loadAsync(url).then(g => { slots[i + 1] = prepare(g); }).catch(console.error)
+        loader.loadAsync(url).then(g => { slots[i + 1] = prepare(g, url); }).catch(console.error)
       ), Promise.resolve());
     }, undefined, (e) => {
       const el = document.getElementById('loader');
