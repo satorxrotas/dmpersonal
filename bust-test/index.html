@@ -364,7 +364,8 @@
 
     // STUDIO WORK → the DRGNFLEYE project index, inside the lightbox
     (() => {
-      const STUDIO_URL = 'https://satorxrotas.github.io/drgnfleyetest/?embed&view=index';
+      // bump v= after changing the DRGNFLEYE embed so browsers can't serve an old cached copy
+      const STUDIO_URL = 'https://satorxrotas.github.io/drgnfleyetest/?embed&view=index&v=2';
       const link = document.querySelector('.studio');
       link.addEventListener('click', (e) => {
         e.preventDefault();
