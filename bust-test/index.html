@@ -208,6 +208,27 @@
     }
     .lightbox.open .frame { transform: none; opacity: 1; }
     .lightbox video, .lightbox .frame img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    /* Studio Work: a whole page (the DRGNFLEYE index) instead of a picture */
+    .lightbox .frame.is-site { width: min(88vw, 1700px); height: 84svh; aspect-ratio: auto; position: relative; }
+    .lightbox .frame.is-site iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
+      background: #000; opacity: 0; transition: opacity .5s ease;
+    }
+    .lightbox .frame.is-site iframe.ready { opacity: 1; }
+    .site-loading {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 22px; color: #fff;
+      transition: opacity .4s ease; pointer-events: none;
+    }
+    .site-loading img { width: 48px; height: auto; animation: spin 8s linear infinite; }
+    .site-loading p { font: 500 11px/1 var(--helv); letter-spacing: .3em; padding-left: .3em; }
+    .site-loading .dots span { animation: dot 1.4s infinite both; }
+    .site-loading .dots span:nth-child(2) { animation-delay: .2s; }
+    .site-loading .dots span:nth-child(3) { animation-delay: .4s; }
+    .is-site iframe.ready + .site-loading { opacity: 0; }
+    @media (max-width: 760px) {
+      .lightbox .frame.is-site { width: 100vw; height: calc(100svh - 64px); align-self: end; }
+    }
     .lightbox .placeholder {
       width: 100%; height: 100%; background: var(--c);
       display: grid; place-items: center;
@@ -250,7 +271,7 @@
     </div>
 
     <a class="action reel" data-in="left" style="--d:.75s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
-    <a class="action studio" data-in="right" style="--d:.85s" href="#" target="_blank" rel="noopener">STUDIO WORK
+    <a class="action studio" data-in="right" style="--d:.85s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">STUDIO WORK
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M5.5 3H13v7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg>
     </a>
 
@@ -305,13 +326,15 @@
         const left = (innerWidth - frame.offsetWidth) / 2, top = (innerHeight - frame.offsetHeight) / 2;
         frame.style.transformOrigin = `${r.left + r.width / 2 - left}px ${r.top + r.height / 2 - top}px`;
       }
-      function open(from, node, ar = 16 / 9, label = '') {
+      function open(from, node, ar = 16 / 9, label = '', mode = '') {
         trigger = from;
+        frame.classList.toggle('is-site', mode === 'site');
         frame.style.setProperty('--ar', ar);
         frame.replaceChildren(node);
         box.setAttribute('aria-label', label);
         originFrom(from);
         box.classList.add('open');
+        document.body.classList.add('lb-open');   // the bust render loop pauses while this is set
         document.body.style.overflow = 'hidden';
         const v = frame.querySelector('video');
         if (v) { v.currentTime = 0; v.play().catch(() => {}); }
@@ -321,14 +344,42 @@
         if (!box.classList.contains('open')) return;
         if (trigger) originFrom(trigger);
         box.classList.remove('open');
+        document.body.classList.remove('lb-open');
         document.body.style.overflow = '';
         frame.querySelectorAll('video').forEach(v => v.pause());
+        // embedded pages are unloaded once the lightbox has faded, so they stop running
+        setTimeout(() => { if (!box.classList.contains('open')) frame.querySelectorAll('iframe').forEach(f => f.remove()); }, 500);
         trigger?.focus({ preventScroll: true });
       }
       closeBtn.addEventListener('click', close);
       box.addEventListener('click', (e) => { if (!frame.contains(e.target)) close(); });
       addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      // an embedded page (DRGNFLEYE) can ask to be closed
+      addEventListener('message', (e) => {
+        const f = frame.querySelector('iframe');
+        if (f && e.source === f.contentWindow && e.data && e.data.type === 'drg-embed-close') close();
+      });
       return { open, close };
+    })();
+
+    // STUDIO WORK → the DRGNFLEYE project index, inside the lightbox
+    (() => {
+      const STUDIO_URL = 'https://satorxrotas.github.io/drgnfleyetest/?embed&view=index';
+      const link = document.querySelector('.studio');
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const wrap = document.createDocumentFragment();
+        const f = document.createElement('iframe');
+        f.title = 'DRGNFLEYE — project index';
+        f.src = STUDIO_URL;
+        f.allow = 'autoplay; fullscreen';
+        f.addEventListener('load', () => setTimeout(() => f.classList.add('ready'), 250));
+        const spin = document.createElement('div');
+        spin.className = 'site-loading';
+        spin.innerHTML = '<img src="dm-logo-white.png" alt=""><p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>';
+        wrap.append(f, spin);
+        Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE studio work', 'site');
+      });
     })();
 
     // REEL
@@ -734,6 +785,7 @@
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const clock = new THREE.Clock();
     renderer.setAnimationLoop(() => {
+      if (document.body.classList.contains('lb-open')) return;   // hidden behind a lightbox
       const t = clock.getElapsedTime();
       const idle = performance.now() - lastMove > 2500;
       const tx = idle ? Math.sin(t * 0.4) * 0.45 : target.x * 0.6;
