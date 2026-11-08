@@ -169,25 +169,30 @@
                height: 96px; margin: 36px calc(var(--pad-x) * -1) 0; }
     }
 
-    #loader {
-      z-index: 10; background: var(--orange);
-      position: fixed; inset: 0; display: flex; flex-direction: column;
+    /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
+       (black on orange) and the Studio Work loader (white on black) ---- */
+    .lockup {
+      display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 22px;
-      pointer-events: none; transition: opacity .6s ease;
+      pointer-events: none;
     }
-    #loader.done { opacity: 0; }
-    #loader img {
-      width: min(48px, 13vw); height: auto;
-      animation: spin 8s linear infinite;   /* slow, clockwise */
+    .lockup .lockup-logo {
+      width: min(48px, 13vw); height: auto; display: block;
+      will-change: transform;          /* spun by spinUp() — it keeps accelerating */
     }
-    #loader p {
-      font: 500 11px/1 var(--helv); letter-spacing: .3em; color: #000;
+    .lockup p {
+      font: 500 11px/1 var(--helv); letter-spacing: .3em; color: inherit;
       padding-left: .3em; /* balance trailing letter-spacing */
     }
-    #loader .dots span { animation: dot 1.4s infinite both; }
-    #loader .dots span:nth-child(2) { animation-delay: .2s; }
-    #loader .dots span:nth-child(3) { animation-delay: .4s; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .lockup .dots span { animation: dot 1.4s infinite both; }
+    .lockup .dots span:nth-child(2) { animation-delay: .2s; }
+    .lockup .dots span:nth-child(3) { animation-delay: .4s; }
+
+    #loader {
+      z-index: 10; background: var(--orange); color: #000;
+      position: fixed; inset: 0; transition: opacity .6s ease;
+    }
+    #loader.done { opacity: 0; }
     @keyframes dot { 0%, 20% { opacity: 0; } 40%, 70% { opacity: 1; } 100% { opacity: 0; } }
 
     /* ---- Reel lightbox ---- */
@@ -207,7 +212,7 @@
       transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
     }
     .lightbox.open .frame { transform: none; opacity: 1; }
-    .lightbox video, .lightbox .frame img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    .lightbox video, .lightbox .frame > img { width: 100%; height: 100%; display: block; object-fit: contain; }
     /* Studio Work: a whole page (the DRGNFLEYE index) instead of a picture */
     .lightbox .frame.is-site { width: min(88vw, 1700px); height: 84svh; aspect-ratio: auto; position: relative; }
     .lightbox .frame.is-site iframe {
@@ -215,16 +220,7 @@
       background: #000; opacity: 0; transition: opacity .5s ease;
     }
     .lightbox .frame.is-site iframe.ready { opacity: 1; }
-    .site-loading {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 22px; color: #fff;
-      transition: opacity .4s ease; pointer-events: none;
-    }
-    .site-loading img { width: 48px; height: auto; animation: spin 8s linear infinite; }
-    .site-loading p { font: 500 11px/1 var(--helv); letter-spacing: .3em; padding-left: .3em; }
-    .site-loading .dots span { animation: dot 1.4s infinite both; }
-    .site-loading .dots span:nth-child(2) { animation-delay: .2s; }
-    .site-loading .dots span:nth-child(3) { animation-delay: .4s; }
+    .site-loading { position: absolute; inset: 0; color: #fff; transition: opacity .4s ease; }
     .is-site iframe.ready + .site-loading { opacity: 0; }
     @media (max-width: 760px) {
       .lightbox .frame.is-site { width: 100vw; height: calc(100svh - 64px); align-self: end; }
@@ -294,6 +290,25 @@
   </div>
 
   <script>
+    // ---- Loading spinner that never stops speeding up ---------------------
+    // Starts at the old pace (one turn per 8s) and doubles its speed every
+    // 0.8s, up to a silly 60 turns a second. Stops once the logo leaves the page.
+    function spinUp(el) {
+      if (!el) return;
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const t0 = performance.now();
+      let last = t0, angle = 0;
+      (function tick(now) {
+        if (!el.isConnected) return;
+        const t = (now - t0) / 1000;
+        const turnsPerSec = calm ? 0.125 : Math.min(60, 0.125 * Math.pow(2, t / 0.8));
+        angle = (angle + turnsPerSec * 360 * (now - last) / 1000) % 360;
+        last = now;
+        el.style.transform = `rotate(${angle}deg)`;
+        requestAnimationFrame(tick);
+      })(t0);
+    }
+
     // ---- Work strip content ------------------------------------------------
     // Placeholders for now. To add real work, give an item an `img` (thumbnail
     // and lightbox image) and optionally a `full` (bigger lightbox image) or a
@@ -376,10 +391,11 @@
         f.allow = 'autoplay; fullscreen';
         f.addEventListener('load', () => setTimeout(() => f.classList.add('ready'), 250));
         const spin = document.createElement('div');
-        spin.className = 'site-loading';
-        spin.innerHTML = '<img src="dm-logo-white.png" alt=""><p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>';
+        spin.className = 'site-loading lockup';
+        spin.innerHTML = '<img class="lockup-logo" src="dm-logo-white.png" alt=""><p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>';
         wrap.append(f, spin);
         Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE studio work', 'site');
+        spinUp(spin.querySelector('.lockup-logo'));
       });
     })();
 
@@ -430,10 +446,11 @@
       setSpeed(); addEventListener('resize', setSpeed);
     })();
   </script>
-  <div id="loader" role="status">
-    <img src="dm-logo-black.png" alt="" width="400" height="400">
+  <div id="loader" class="lockup" role="status">
+    <img class="lockup-logo" src="dm-logo-black.png" alt="" width="400" height="400">
     <p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
   </div>
+  <script>spinUp(document.querySelector('#loader .lockup-logo'));</script>
 
   <script>
     // swaps the hidden state for the entrance animation (called when the bust
@@ -618,7 +635,7 @@
       ), Promise.resolve());
     }, undefined, (e) => {
       const el = document.getElementById('loader');
-      el.querySelector('img').style.animationPlayState = 'paused';
+      const logo = el.querySelector('img'); logo.replaceWith(logo.cloneNode());   // stop the spin where it is
       el.querySelector('p').textContent = 'COULD NOT LOAD MODEL';
       revealText();
       console.error(e);
