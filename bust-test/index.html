@@ -523,7 +523,7 @@
     const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb', 'bust6.glb', 'bust7.glb', 'bust8.glb', 'bust9.glb'];
     // per-bust size tweak on top of the shared normalisation
     const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15, 'bust6.glb': 1.15, 'bust7.glb': 1.15, 'bust8.glb': 1.15, 'bust9.glb': 1.15 };
-    const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1000;
+    const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1600;
     const slots = BUSTS.map(() => null);   // wrap groups, filled as they load
     let current = 0;
 
@@ -607,45 +607,44 @@
 
               // horizontal tearing on random bands
               float band = floor(px.y / (12. * dpr));
-              if (h(vec2(band, 0.), seed) > 1. - amt * .4)
-                px.x += (h(vec2(band, 1.), seed) - .5) * 110. * dpr * amt;
+              if (h(vec2(band, 0.), seed) > 1. - amt * .12)
+                px.x += (h(vec2(band, 1.), seed) - .5) * 16. * dpr * amt;
 
-              // stable block noise (coarse + fine) drives the delete/build order
-              vec2 coarse = floor(px / (28. * dpr));
-              vec2 fine = floor(px / (7. * dpr));
-              // each bust gets its own pattern so they interleave and collide
+              // stable block noise (coarse + fine) drives the dissolve order
+              vec2 coarse = floor(px / (14. * dpr));
+              vec2 fine = floor(px / (4. * dpr));
+              // each bust gets its own pattern so they interleave
               float yk = (1. - vUv.y) * .4;                    // top goes first
-              float keyA = mix(h(coarse, 1.), h(fine, 2.), .4) * .6 + yk;
-              float keyB = mix(h(coarse, 3.), h(fine, 4.), .4) * .6 + yk;
-              float pA = smoothstep(0., .85, p) * 1.1 - .05;   // delete front
-              float pB = smoothstep(.1, .95, p) * 1.1 - .05;   // build front, overlapping it
+              float keyA = mix(h(coarse, 1.), h(fine, 2.), .45) * .6 + yk;
+              float keyB = mix(h(coarse, 3.), h(fine, 4.), .45) * .6 + yk;
+              float pA = smoothstep(.1, 1., p) * 1.24 - .1;   // old one dissolving out
+              float pB = smoothstep(0., .85, p) * 1.25 - .05;  // new one forms slightly ahead, so it never empties
 
-              // pixelate hard around both fronts
-              float nearA = clamp(1. - abs(keyA - pA) * 7., 0., 1.);
-              float nearB = clamp(1. - abs(keyB - pB) * 7., 0., 1.);
-              float bs = mix(1., 11., max(nearA, nearB) * amt) * dpr;
+              // light pixelation around the dissolve fronts
+              float nearA = clamp(1. - abs(keyA - pA) * 6., 0., 1.);
+              float nearB = clamp(1. - abs(keyB - pB) * 6., 0., 1.);
+              float bs = mix(1., 4., max(nearA, nearB) * amt) * dpr;
               vec2 q = (floor(px / bs) + .5) * bs / res;
 
-              float monoAmt = clamp(amt * 5., 0., 1.);
+              float monoAmt = clamp(amt * 2., 0., 1.) * .7;
               vec4 a = mix(texture2D(tA, q), mono(texture2D(tA, q)), monoAmt);
               vec4 b = mix(texture2D(tB, q), mono(texture2D(tB, q)), monoAmt);
-              bool hasA = keyA > pA && a.a > .02;
-              bool hasB = keyB < pB && b.a > .02;
 
-              vec4 col = vec4(0.);
-              if (hasA) col = a;
-              if (hasB) {
-                // incoming bust is still "rendering in": hologram scanlines
-                float scan = .72 + .28 * step(.5, fract(px.y / (3. * dpr)));
-                vec4 bb = vec4(b.rgb * mix(1., scan, nearB + .3 * amt), b.a);
-                // both occupy the same space: z-fighting flicker per block
-                col = hasA ? (h(fine, seed) > .5 ? bb : a) : bb;
-              }
-              // fronts flash white as blocks are deleted / spawned
-              if (hasA && keyA - pA < .028) col = vec4(1.);
-              if (hasB && pB - keyB < .022) col = vec4(vec3(.92), 1.);
-              // stray white bits inside either silhouette
-              if ((a.a > .3 || b.a > .3) && h(fine, seed + 9.) < .035 * amt) col = vec4(1.);
+              // blocks fade rather than pop
+              float visA = smoothstep(pA, pA + .12, keyA);
+              float visB = 1. - smoothstep(pB - .12, pB, keyB);
+
+              // incoming bust gets faint hologram scanlines while it forms
+              float scan = .88 + .12 * step(.5, fract(px.y / (3. * dpr)));
+              b.rgb *= mix(1., scan, (1. - visB) * .8 + .2 * amt);
+
+              // new over old, both partly see-through where they overlap
+              vec4 col = a * visA;
+              col = col * (1. - b.a * visB * .85) + b * visB;
+              // soft glow on the dissolving edges
+              col.rgb += (nearA * a.a * visA + nearB * b.a * visB) * .12 * amt;
+              // the odd stray pixel
+              if ((a.a > .3 || b.a > .3) && h(fine, seed + 9.) < .004 * amt) col = vec4(vec3(.8), 1.);
 
               gl_FragColor = col;
             }
@@ -674,13 +673,14 @@
         if (swapTo < 0) { nextSwapAt = now + 1000; return 0; }   // others still loading
         swapStart = now;
       }
-      const p = reduced ? 1 : Math.min(1, (now - swapStart) / SWAP_MS);
-      if (p >= 1) {
+      const lin = reduced ? 1 : Math.min(1, (now - swapStart) / SWAP_MS);
+      const p = lin * lin * (3 - 2 * lin);   // ease in and out
+      if (lin >= 1) {
         current = swapTo; swapStart = null; nextSwapAt = now + HOLD_MS;
         return 0;
       }
       // re-roll the noise ~14x a second so it stutters rather than flows
-      post.material.uniforms.seed.value = Math.floor(now / 70) % 97;
+      post.material.uniforms.seed.value = Math.floor(now / 140) % 97;
       return p;
     }
     function renderBust(i, target) {
