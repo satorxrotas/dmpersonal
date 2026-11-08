@@ -160,7 +160,8 @@
           "foot    foot";
         row-gap: 0;
       }
-      .bust { position: relative; inset: auto; grid-area: bust; height: 50svh; margin: 0 calc(var(--pad-x) * -1); }
+      .bust { position: relative; inset: auto; grid-area: bust; height: 50svh; margin: 0 calc(var(--pad-x) * -1);
+              pointer-events: auto; touch-action: none; }   /* swipe up/down on the bust turns the wheel */
       .bio, .clients { margin-top: 24px; }
       .action, .studio { margin-top: 36px; }
       .studio { align-self: start; }
@@ -597,7 +598,7 @@
     // The earlier glitch dissolve is archived — open the page with ?fx=glitch to see it.
     const FX = dbg.get('fx') === 'glitch' ? 'glitch' : 'wheel';
     const WHEEL = {
-      R: 4.6,          // wheel radius (scene units; a bust is ~3.4 tall)
+      R: 8.5,          // wheel radius — recalculated every frame so the neighbours sit just out of view
       tilt: 0.35,      // how much a car leans with the wheel (0 = stays perfectly upright)
       perScroll: 0.0022, // busts advanced per pixel of scroll
       pos: 0, target: 0, dragging: null, snapT: 0
@@ -805,15 +806,17 @@
         wheelInput();
       }, { passive: true });
       addEventListener('pointerdown', (e) => {
-        if (lbOpen() || e.pointerType === 'touch' || e.button) return;
+        if (lbOpen() || e.button) return;
+        if (e.pointerType === 'touch' && !e.target.closest('.bust')) return;   // phones: only swipes on the bust
         if (e.target.closest('a, button, .strip, .lightbox, p, h1')) return;
-        WHEEL.dragging = { y0: e.clientY, t0: WHEEL.target };
+        WHEEL.dragging = { y0: e.clientY, t0: WHEEL.target, span: e.pointerType === 'touch' ? bustBox.clientHeight * 0.6 : innerHeight * 0.5 };
       });
       addEventListener('pointermove', (e) => {
         if (!WHEEL.dragging) return;
-        WHEEL.target = WHEEL.dragging.t0 - (e.clientY - WHEEL.dragging.y0) / (innerHeight * 0.5);
+        WHEEL.target = WHEEL.dragging.t0 - (e.clientY - WHEEL.dragging.y0) / WHEEL.dragging.span;
         wheelInput();
       });
+      addEventListener('pointercancel', () => { WHEEL.dragging = null; WHEEL.target = Math.round(WHEEL.target); });
       addEventListener('pointerup', () => { if (WHEEL.dragging) { WHEEL.dragging = null; WHEEL.target = Math.round(WHEEL.target); } });
       addEventListener('keydown', (e) => {
         if (lbOpen()) return;
@@ -822,14 +825,14 @@
       });
     }
     function updateWheel(now, dt, yaw, pitch) {
-      // auto-advance after a quiet spell
-      if (now >= nextSwapAt && !WHEEL.dragging) {
-        WHEEL.target = Math.round(WHEEL.target) + 1;
-        nextSwapAt = now + HOLD_MS + 1400;
-      }
+      // only moves when someone scrolls / drags / swipes — no auto-advance
       WHEEL.pos += (WHEEL.target - WHEEL.pos) * (reduced ? 1 : 1 - Math.exp(-dt * 3.2));
       if (dbg.has('wheelpos')) WHEEL.pos = WHEEL.target = +dbg.get('wheelpos');   // debug: freeze the wheel
       const N = BUSTS.length, STEP = Math.PI * 2 / N;
+      // big enough that the next/previous bust (one STEP round) sits fully outside the frame:
+      // its near edge (centre ± ~2.3 units) must clear the visible half-height at its depth
+      const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+      WHEEL.R = 1.08 * (2.3 + tanHalf * camera.position.z) / (Math.sin(STEP) - tanHalf * (1 - Math.cos(STEP)));
       slots.forEach((wrap, i) => {
         if (!wrap) return;
         const { car, mat } = wrap.userData;
@@ -838,10 +841,9 @@
         car.position.set(0, -WHEEL.R * Math.sin(th), -WHEEL.R * (1 - Math.cos(th)));
         car.rotation.x = th * WHEEL.tilt + pitch;
         wrap.rotation.y = yaw;
-        const deg = Math.abs(th) * 180 / Math.PI;
-        const o = Math.max(0, Math.min(1, 1 - (deg - 18) / 62)) * introFade;
-        mat.opacity = o; mat.transparent = o < 0.999; mat.depthWrite = o > 0.5;
-        car.visible = o > 0.01;
+        // solid all the way; cars on the far side of the wheel (well off screen) are skipped
+        mat.opacity = introFade; mat.transparent = introFade < 0.999;
+        car.visible = Math.abs(th) < Math.PI * 0.55;
       });
       current = ((Math.round(WHEEL.pos) % N) + N) % N;
     }
