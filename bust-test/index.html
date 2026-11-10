@@ -215,7 +215,8 @@
     .lightbox.open .frame { transform: none; opacity: 1; }
     .lightbox video, .lightbox .frame > img { width: 100%; height: 100%; display: block; object-fit: contain; }
     /* Studio Work: a whole page (the DRGNFLEYE index) instead of a picture */
-    .lightbox .frame.is-site { width: min(88vw, 1700px); height: 84svh; aspect-ratio: auto; position: relative; }
+    /* full screen; the X floats on top of it */
+    .lightbox .frame.is-site { width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; position: relative; }
     .lightbox .frame.is-site iframe {
       position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
       background: #000; opacity: 0; transition: opacity .5s ease;
@@ -223,9 +224,6 @@
     .lightbox .frame.is-site iframe.ready { opacity: 1; }
     .site-loading { position: absolute; inset: 0; color: #fff; transition: opacity .4s ease; }
     .is-site iframe.ready + .site-loading { opacity: 0; }
-    @media (max-width: 760px) {
-      .lightbox .frame.is-site { width: 100vw; height: calc(100svh - 64px); align-self: end; }
-    }
     .lightbox .placeholder {
       width: 100%; height: 100%; background: var(--c);
       display: grid; place-items: center;
@@ -236,6 +234,7 @@
       position: absolute; top: var(--pad-y); right: var(--pad-x);
       background: none; border: 0; cursor: pointer;
       color: var(--orange); padding: 6px; line-height: 0;
+      z-index: 3;   /* stays above full-screen content */
       transition: opacity .2s;
     }
     .lightbox .close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
