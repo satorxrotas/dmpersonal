@@ -215,8 +215,8 @@
     .lightbox.open .frame { transform: none; opacity: 1; }
     .lightbox video, .lightbox .frame > img { width: 100%; height: 100%; display: block; object-fit: contain; }
     /* Studio Work: a whole page (the DRGNFLEYE index) instead of a picture */
-    /* full screen; the X floats on top of it */
-    .lightbox .frame.is-site { width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; position: relative; }
+    /* full screen (Studio Work + reel); the X floats on top */
+    .lightbox .frame.is-full { width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; position: relative; }
     .lightbox .frame.is-site iframe {
       position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
       background: #000; opacity: 0; transition: opacity .5s ease;
@@ -344,6 +344,7 @@
       function open(from, node, ar = 16 / 9, label = '', mode = '') {
         trigger = from;
         frame.classList.toggle('is-site', mode === 'site');
+        frame.classList.toggle('is-full', mode === 'site' || mode === 'full');
         frame.style.setProperty('--ar', ar);
         frame.replaceChildren(node);
         box.setAttribute('aria-label', label);
@@ -403,7 +404,7 @@
     (() => {
       const link = document.querySelector('.reel');
       const video = document.querySelector('#reel video');   // keep one element so it stays buffered
-      link.addEventListener('click', (e) => { e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel'); });
+      link.addEventListener('click', (e) => { e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel', 'full'); });
     })();
 
     // Strip: build tiles (twice, for a seamless loop) and wire them to the lightbox
