@@ -24,8 +24,12 @@
       font-display: swap;
     }
     :root {
-      --orange: #f8931d;
-      --ink: #000;
+      --red: #ee4137;
+      --orange: var(--red);   /* legacy name, kept so older rules follow the new colour */
+      --ink: var(--red);
+      /* layout unit: the desktop composition is drawn on a 100u × ~56u board that
+         fits the screen (1u = 1% of the width, or less on short/wide screens) */
+      --u: min(1vw, 1.75svh);
       --helv: "Airbnb Cereal", "Helvetica Neue", Helvetica, Arial, sans-serif;
       --druk: "Druk Wide", "Archivo", "Arial Black", sans-serif;
       --pad-x: 2.6vw;
@@ -34,7 +38,7 @@
       --action: clamp(17px, 1.6vw, 32px);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { background: var(--orange); color: var(--ink); overflow-x: clip; }
+    html, body { background: #000; color: var(--red); overflow-x: clip; }
 
     /* ---- Text entrance: slides in from its own side as the bust arrives ---- */
     .intro-pending [data-in] { opacity: 0; }
@@ -55,57 +59,36 @@
     body { font-family: var(--helv); -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
 
-    /* ---- Desktop: one locked screen, like the mockup ---- */
-    .page {
-      position: relative;
-      height: 100svh; min-height: 560px;
-      overflow: hidden;
-      padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) * 1.1);
-      display: grid;
-      grid-template-columns: 31vw 1fr 33vw;
-      grid-template-rows: auto auto auto 1fr auto;
-      grid-template-areas:
-        "word word    word"
-        "bio  .       clients"
-        "reel .       studio"
-        ".    .       ."
-        "foot .       .";
-    }
+    /* ---- Desktop: one locked screen, laid out on the 100u board ---- */
+    .page { position: relative; height: 100svh; min-height: calc(56 * var(--u)); overflow: hidden; }
+    .stage { position: relative; width: calc(100 * var(--u)); height: 100%; margin: 0 auto; }
     .wordmark {
-      grid-area: word;
-      width: max-content; justify-self: start;
-      display: flex; align-items: center; gap: .12em;
-      font-family: var(--helv); font-weight: 700;
-      line-height: .78; letter-spacing: -0.02em;
-      white-space: nowrap;
-      font-size: 9vw;               /* refined by fitWordmark() */
+      position: absolute; left: calc(1.2 * var(--u)); top: calc(1.6 * var(--u));
+      width: calc(97.6 * var(--u)); line-height: 0;
     }
-    .wordmark .mark { display: inline-block; width: .95em; height: .8em; flex: none; } /* slot for the smiley mark */
-    .bio, .clients {
-      font-size: var(--body); font-weight: 700; line-height: 1.32;
-      margin-top: 8.2vw;
-    }
-    .bio { grid-area: bio; }
-    .clients { grid-area: clients; }
-    .clients p + p { margin-top: 1.32em; }
+    .wordmark svg { width: 100%; height: auto; display: block; fill: currentColor; }
     .action {
-      font-family: var(--druk); font-weight: 700;
-      font-variation-settings: "wdth" 125;
-      font-size: var(--action); letter-spacing: .02em; line-height: 1;
-      margin-top: 6.4vw;
-      display: inline-flex; align-items: center; gap: .3em;
+      position: absolute; top: calc(45 * var(--u));
+      font-family: var(--helv); font-weight: 700;
+      font-size: calc(7.1 * var(--u)); line-height: .8; letter-spacing: -0.01em;
+      display: inline-flex; align-items: flex-end; gap: .14em;
       transition: opacity .2s;
     }
     .action:hover { opacity: .6; }
-    .reel { grid-area: reel; justify-self: start; }
-    .studio { grid-area: studio; justify-self: end; margin-top: 7.4vw; }
-    .studio svg { width: .8em; height: .8em; }
-    .foot {
-      grid-area: foot;
-      font-size: var(--body); font-weight: 700; text-transform: uppercase;
+    .reel { left: calc(1.2 * var(--u)); }
+    .studio { left: calc(50.3 * var(--u)); }
+    .studio svg { width: .42em; height: .42em; flex: none; margin-bottom: .03em; }
+    .bio, .clients {
+      position: absolute; top: calc(51.6 * var(--u)); width: calc(31 * var(--u));
+      font-size: max(11px, calc(.86 * var(--u))); font-weight: 700; line-height: 1.3;
     }
-    .foot a:hover { text-decoration: underline; }
-    .foot span { margin: 0 .25em; }
+    .bio { left: calc(5.6 * var(--u)); }
+    /* stacking: logo < bust < REEL / CAMPAIGNS + copy (as in the mockup) */
+    .action, .bio, .clients { z-index: 3; }
+    .clients { left: calc(51 * var(--u)); }
+    .clients p + p { margin-top: 1.3em; }
+    /* archived for this direction (not in the mockup) — remove these lines to bring them back */
+    .foot, .strip { display: none !important; }
 
     /* bust sits on top of the type (it overlaps the wordmark in the mockup)
        but lets clicks fall through to the links underneath */
@@ -145,29 +128,16 @@
 
     /* ---- Mobile: stack and scroll ---- */
     @media (max-width: 760px) {
-      :root { --pad-x: 16px; --pad-y: 20px; --body: 15px; --action: 20px; }
-      .page {
-        height: auto; min-height: 0; overflow: visible;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: none;
-        grid-template-areas:
-          "word    word"
-          "bust    bust"
-          "bio     bio"
-          "clients clients"
-          "reel    studio"
-          "strip   strip"
-          "foot    foot";
-        row-gap: 0;
-      }
-      .bust { position: relative; inset: auto; grid-area: bust; height: 50svh; margin: 0 calc(var(--pad-x) * -1);
+      .page { height: auto; min-height: 0; overflow: visible; padding: 16px 16px 48px; }
+      .stage { width: auto; height: auto; display: flex; flex-direction: column; align-items: flex-start; }
+      .wordmark, .action, .bio, .clients { position: static; width: auto; }
+      .wordmark { align-self: stretch; }
+      .bust { position: relative; inset: auto; order: 1; align-self: stretch; height: 52svh; margin: 0 -16px;
               pointer-events: auto; touch-action: none; }   /* swipe up/down on the bust turns the wheel */
-      .bio, .clients { margin-top: 24px; }
-      .action, .studio { margin-top: 36px; }
-      .studio { align-self: start; }
-      .foot { margin-top: 40px; }
-      .strip { position: relative; left: auto; right: auto; bottom: auto; grid-area: strip;
-               height: 96px; margin: 36px calc(var(--pad-x) * -1) 0; }
+      .reel    { order: 2; font-size: 12.5vw; margin-top: 16px; }
+      .bio     { order: 3; font-size: 14px; margin-top: 14px; }
+      .studio  { order: 4; font-size: 12.5vw; margin-top: 36px; }
+      .clients { order: 5; font-size: 14px; margin-top: 14px; }
     }
 
     /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
@@ -190,7 +160,7 @@
     .lockup .dots span:nth-child(3) { animation-delay: .4s; }
 
     #loader {
-      z-index: 10; background: var(--orange); color: #000;
+      z-index: 10; background: #000; color: var(--red);
       position: fixed; inset: 0; transition: opacity .6s ease;
     }
     #loader.done { opacity: 0; }
@@ -257,29 +227,28 @@
 </head>
 <body class="intro-pending">
   <main class="page">
-    <h1 class="wordmark" data-in="left" style="--d:.15s" aria-label="David Maxwell"><span class="name">DAVID MAXWELL</span><span class="mark" aria-hidden="true"></span></h1>
+    <div class="stage">
+      <h1 class="wordmark" data-in="left" style="--d:.15s" aria-label="David Maxwell"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 974.42 415.79"><path d="M126.52,230.37c39.02-7.14,73.81-32.02,88.9-69.11,1.69.05-.19,17.72,2.41,22.13,1.4,2.38,8.57,4.98,10.77,7.95,2.23,3.03,3.58,9.51,6.29,13.66,15.09,23.16,38.5,36.49,67.01,34.38,5.45-.4,11.7-3.28,16.74-3.34,4.87-.06,9.62,2.95,14.55,1.43,4.2-1.29,5.63-8.04,8.37-10.81,4.16-4.19,14.61-9.19,20.19-13.9,4.02-3.39,17.61-18.96,20.35-19.66,2.91-.74,13.41,4.01,18.14,4.57,21.84,2.58,48.1-.61,59.17-21.96,5.83-11.24,9.38-24.56,2.8-35.83-11.05.65-22.51-3.78-33.5-1.51-15.84,3.27-29.81,24.04-41.11,34.54,5.15-11.34,12.24-22.22,14.21-34.83,1.38-8.86-.92-22.08,1.09-28.84,1.95-6.55,18.99-15.85,22.19-32.69,6.63-34.94-16.08-58.98-50-61.56-8.24-.63-15.15,1.75-21.66,1.69-5.59-.05-9-5.22-16.22-3.06-4.75,1.42-7.87,10.31-11.18,13.8-3.69,3.91-10.18,6.79-14.21,10.74-33.69,33.01-19.8,89.44,31.35,81.58,7.86-8.48-.82-18.75-10.45-14.17-5.64,2.68-2.34,8.43-13.15,3.13-30.78-15.08-13.98-62.91,11.9-74.18,4.57-1.99,11.01-1.37,15.04-3.32,4.24-2.05,1.98-5.26,11.97-6.25,15.73-1.55,37.01-.09,47.39,13.26l-46.57,15.03,5.01,18.26c14.43-4.16,6.47.79,3.51,7.67-5.59,12.96-10.39,26.01-13.36,39.85l-83.35,29.79-1.41,2.98,3.1,9.47c-11.23-2.69-1.04,14.16-1.67,14.95l-8.32,1.7,1.68,6.62-8.16,1.83,4.86,21.47c8.41-4.89,10.26,1.63,10.91,1.66,11.6.6,29.44,1.05,40.58-2.55,22.36-7.23,34.17-29.03,41.69-49.78,6.02-16.61,2.32-31.21,24.08-35.78,1.22,6.08,1.17,12.97.88,19.17-.24,5.19-1.36,19.95-2.66,23.95-6.54,20.21-21.46,4.35-28.97,19.16,1.19,8.42,6.78,8.37,13.96,7.39,2-.27,13.14-5.79,10.94-.71-1.53,3.53-32.13,28.23-36.09,28.82-2.82.42-5.22-1.65-8.83-.7-4.68,1.23-10.23,8.57-14.87,10.22-26.28,9.32-68.79-9.63-75.48-37.82-2.1-8.82,2.33-11.14,2.35-18.78.03-7.58-4.01-20.01-2.81-27.46,2.07-12.91,22.13-29.15,34.27-32.4,10.25-2.74,4.33,2.08,10.01,6.65,12.1,9.74,23.4-13.44,7.12-17.08-24.25-5.42-57.79,22.05-62.26,45.95l-6.41.23C240.22,78.54,192.66,7.31,120.6,0H0v232.77h112.28c1.75,0,11.39-1.88,14.24-2.4ZM397.51,175.37c7.62-9.07,25.94-27.65,37.63-28.92,12.49-1.35,7.94,2.11,13.02,8.34,1.49,1.82,5.14,2.72,5.59,3.5,3.88,6.59-5.13,18.93-10.46,22.93-14.7,11.04-35.65,8.43-52.38,4.99-1.51-1.41,5.32-9.31,6.6-10.84ZM412.51,44.9c9.24,19.25,4.14,40.85-13.27,53.2-2.94-18.82.89-38.29,13.27-53.2ZM319.94,192.59c-25.04,16.91-38.12-8.75-25.83-30.8,11.41-20.46,36.81-23.34,56.85-30.44-4.66,20.11-13.08,49.12-31.03,61.24ZM376.89,111.42l-10.92,4.97c-2.11-2.75,9.11-35.34,14.94-38.24l-4.02,33.27ZM67.37,174.58l-2.5-2.49V58.19h44.08c5.92,0,22.45,8.25,27.46,12.45,36.96,31.05,17.84,103.93-34.12,103.93h-34.93ZM949,41.55c-15.89-18.95-53.14-41.55-78.2-41.55h-120.6v232.77h112.28c94.54,0,146-120.26,86.52-191.22ZM817.57,174.58l-2.5-2.49V58.19h44.08c3.03,0,16.32,5.13,19.67,6.94,45.68,24.72,30.94,109.44-26.32,109.44h-34.93ZM503.12,232.88L414.19,0h73.19l49.92,159.61L591.34,0h69.03l-86.69,232.57-70.57.31ZM442.47,271.01h-44.91l-21.6,38.24-20.81-38.24h-44.08l42.67,67.33-42.69,65.67-53.99-131.39c-1.3-1.67-3.11-1.49-4.95-1.7-6.31-.75-31.05-1.01-36.71.07-1.96.37-3.21.71-3.83,2.82l-53.53,138.53h41.59l7.67-25.04,53.65.34,9.64,24.78c9.34.08,18.73-.31,28.08-.15,6.98.11,12.85.11,19.83,0,10.46-.17,20.96.54,31.4-.19,2.76-.95,20.3-35.21,24-40.8.78-1.17-.5-2.88,2.86-2.18l24.14,43.24h46.58l-47.97-74.29,42.98-67.04ZM217.91,355.81l14.99-43.23c2.36.19,2.62,2.44,3.37,4.09,5.58,12.18,8.19,26.65,13.24,39.13h-31.6ZM115.61,271.01h39.09v141.32h-38.26v-76.48l-22.48,44.87c-3.13,5.27-26.98,4.35-29.94,1.71-7.71-6.86-13.78-38.71-24.1-46.58v76.48H1.66v-141.32h40.75l36.6,71.51,36.6-71.51ZM730.24,232.77h-66.54V0h66.54v232.77ZM634.51,377.33c-41.18,6.99-52.75-49.62-22.26-70.46,18.41-12.58,22.36,14.73,7.47,12.42-4.65-.72-5.34-7.32-10.4-2.87-12.18,10.72-11.64,38.37.59,49.09,33.43,29.3,66.68-42.39,38.9-70.47-13.85-14-38.73-7.61-51.62,5.07-3.02,2.97-19.97,27.63-19.97,29.91v52.37h-28.28v14.97c-14.82-3.22-13.62,6.2-20.73,13.34-7.07,7.1-11.74,2.23-20.86,3.27v-31.59h6.67s-.03-9.99-.03-9.99l6.68.02-.03-13.32,6.68.02c-.12-4.14.15-8.35-.01-12.5-.08-2.01,1.25-6.18-1.64-5.78-4.85,12.39-12.08,25.21-19.29,36.43-4.93,7.66-24.47,36.4-31.81,38.03-4.44.99-9.28.11-13.79.35v-26.6l10.56-.26,2.75-2.23v-50.71h6.65v-33.25h-23.29l-.74-8.4c-14.45-6.75-17.87,15.23-15.54,25.51,1.48,6.53,9.85,10.62,9.62,17.8-29.05-9.48-21.99-55.26,6.49-60.04l.17-6.47c16.29-.98,26.38-1.44,37.44,11.64l1.73-5.1,20.72.12v23.28h-18.31s1.67,61.53,1.67,61.53c2.87-.25,5.96,1.12,8.48-1.08,2.09-1.83,9.85-18.69,11.78-22.74,9.3-19.54,14.22-41.24,31.3-55.99-2.96,9.51-7.47,17.11-8.36,27.38-1.57,18.22,5.59,36.47,1.73,54.08,7.27,1.44,8.76-3.64,11.92-8.86,17.64-29.2,29.82-81.68,75.45-75.97,46.96,5.88,36.14,92.18,1.53,98.05ZM705.29,379.08h59.88v33.25h-98.14v-141.32h94.81v33.25h-56.56v19.95h49.9v31.59h-49.9v23.28ZM916.54,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41ZM815.07,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41Z"/></svg></h1>
 
-    <p class="bio" data-in="left" style="--d:.45s">Director and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently working at Amazon and previously working for TikTok. His work spans film, campaigns, and visual storytelling.</p>
+      <a class="action reel" data-in="left" style="--d:.55s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
+      <p class="bio" data-in="left" style="--d:.7s">Director and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently working at Amazon and previously working for TikTok. His work spans film, campaigns, and visual storytelling.</p>
 
-    <div class="clients" data-in="right" style="--d:.55s">
-      <p>Selected Clients: Warner, Disney, Airbnb, Nike, DreamWorks, Red Bull and others.</p>
-      <p>Founder of DRGNFLEYE, a multimedia studio.</p>
+      <a class="action studio" data-in="right" style="--d:.65s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">CAMPAIGNS<svg viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg></a>
+      <div class="clients" data-in="right" style="--d:.8s">
+        <p>Selected Clients: Warner, Disney, Airbnb, Nike, DreamWorks, Red Bull and others.</p>
+        <p>Founder of DRGNFLEYE, a multimedia studio.</p>
+      </div>
+
+      <div class="bust"><canvas id="stage"></canvas></div>
     </div>
 
-    <a class="action reel" data-in="left" style="--d:.75s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
-    <a class="action studio" data-in="right" style="--d:.85s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">STUDIO WORK
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M5.5 3H13v7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg>
-    </a>
-
-    <nav class="foot" data-in="left" style="--d:1.0s" aria-label="Contact">
+    <!-- archived for this direction (hidden in CSS) -->
+    <nav class="foot" aria-label="Contact">
       <a href="#">Email</a><span>|</span><a href="#" target="_blank" rel="noopener">Instagram</a><span>|</span><a href="#" target="_blank" rel="noopener">LinkedIn</a>
     </nav>
-
-    <section class="strip" data-in="right" style="--d:1.1s" aria-label="Selected work">
+    <section class="strip" aria-label="Selected work">
       <div class="track"></div>
     </section>
-
-    <div class="bust"><canvas id="stage"></canvas></div>
   </main>
 
   <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
@@ -395,7 +364,7 @@
         spin.className = 'site-loading lockup';
         spin.innerHTML = '<img class="lockup-logo" src="dm-logo-white.png" alt=""><p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>';
         wrap.append(f, spin);
-        Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE studio work', 'site');
+        Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE campaigns', 'site');
         spinUp(spin.querySelector('.lockup-logo'));
       });
     })();
@@ -448,7 +417,7 @@
     })();
   </script>
   <div id="loader" class="lockup" role="status">
-    <img class="lockup-logo" src="dm-logo-black.png" alt="" width="400" height="400">
+    <img class="lockup-logo" src="dm-logo-red.png" alt="" width="400" height="400">
     <p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
   </div>
   <script>spinUp(document.querySelector('#loader .lockup-logo'));</script>
@@ -466,11 +435,14 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
-    const ORANGE = 0xf8931d;
+    const ORANGE = 0xee4137;   // page colour (used for the faint bounce light)
     const canvas = document.getElementById('stage');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // ?look=chrome → black chrome, ?look=studio → silver chrome; default is the red satin of the new direction
+    const LOOK = { chrome: 'dark', studio: 'studio' }[new URLSearchParams(location.search).get('look')] || 'red';
+    const ENV = LOOK === 'studio' ? 'studio' : 'dark';
+    renderer.toneMapping = LOOK === 'red' ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;   // keep the red true
     renderer.toneMappingExposure = 1.0;
 
     const scene = new THREE.Scene();
@@ -482,7 +454,6 @@
     // A mostly black room with a few bright softboxes gives the high-contrast
     // "black chrome" look; the softboxes drift so highlights slide across it.
     // ?look=studio brings back the earlier, brighter silver version.
-    const LOOK = new URLSearchParams(location.search).get('look') === 'studio' ? 'studio' : 'dark';
     const envScene = new THREE.Scene();
     const movers = [];   // { group, update(t) }
 
@@ -490,7 +461,7 @@
       new THREE.SphereGeometry(20, 64, 32),
       new THREE.ShaderMaterial({
         side: THREE.BackSide,
-        uniforms: LOOK === 'dark' ? {
+        uniforms: ENV === 'dark' ? {
           top:    { value: new THREE.Color(0x111111) },
           mid:    { value: new THREE.Color(0x020202) },
           bottom: { value: new THREE.Color(0x000000) }
@@ -531,7 +502,7 @@
       return g;
     }
 
-    if (LOOK === 'dark') {
+    if (ENV === 'dark') {
       // big soft overhead dome, slowly swinging front-to-back
       softbox({ w: 16, h: 16, intensity: 5, round: true, pos: new THREE.Vector3(0, 14, 3),
         orbit: (g, t) => { g.rotation.x = Math.sin(t * 0.21) * 0.35; g.rotation.z = Math.sin(t * 0.13) * 0.2; } });
@@ -568,14 +539,29 @@
     updateEnv(0);
     scene.environment = envRT.texture;
 
-    const chrome = new THREE.MeshPhysicalMaterial({
+    let chrome = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 1,
       roughness: 0.06,
       clearcoat: 1,
       clearcoatRoughness: 0.04,
-      envMapIntensity: LOOK === 'dark' ? 1.3 : 1.15
+      envMapIntensity: ENV === 'dark' ? 1.3 : 1.15
     });
+    // red satin: the page red, shaded darker by a slowly circling key light, with a soft
+    // sheen from the same moving softboxes the chrome used
+    const redLights = [];
+    if (LOOK === 'red') {
+      chrome = new THREE.MeshStandardMaterial({ color: 0xd0202a, roughness: 0.85, metalness: 0, envMapIntensity: 0.04 });
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x6a1a1a, 0.6));
+      const key = new THREE.DirectionalLight(0xffffff, 0.75);
+      const rim = new THREE.DirectionalLight(0xffffff, 0.3);
+      scene.add(key, rim);
+      redLights.push((t) => {
+        key.position.set(Math.sin(t * 0.25) * 6 - 2, 5 + Math.sin(t * 0.17) * 2, 6);
+        rim.position.set(6 + Math.sin(t * 0.2) * 2, 2, -4);
+      });
+      redLights.forEach(f => f(0));
+    }
 
     // --- Model -------------------------------------------------------------
     const pivot = new THREE.Group();   // receives cursor/idle rotation
@@ -590,7 +576,8 @@
 
     // --- Busts: load, chrome them, and cycle through with a glitch -------
     const dbg = new URLSearchParams(location.search);
-    const BUSTS = [dbg.get('m') || 'bust.glb', 'bust2.glb', 'bust3.glb', 'bust4.glb', 'bust6.glb', 'bust7.glb', 'bust8.glb', 'bust9.glb'];
+    // raw/ = the scans without smoothing (the smoothed set is still alongside: bust.glb, bust2.glb …)
+    const BUSTS = [dbg.get('m') || 'raw/bust1.glb', 'raw/bust2.glb', 'raw/bust3.glb', 'raw/bust4.glb', 'raw/bust6.glb', 'raw/bust7.glb', 'raw/bust8.glb', 'raw/bust9.glb'];
     // per-bust size tweak on top of the shared normalisation
     const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15, 'bust6.glb': 1.15, 'bust7.glb': 1.15, 'bust8.glb': 1.15, 'bust9.glb': 1.15 };
     const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1600;
@@ -619,7 +606,7 @@
       model.position.sub(box.getCenter(new THREE.Vector3()));
       const wrap = new THREE.Group();
       wrap.add(model);
-      wrap.scale.setScalar(Math.min(3.35 / size.y, 3.56 / size.x) * (BUST_SCALE[url] || 1));
+      wrap.scale.setScalar(Math.min(3.35 / size.y, 3.56 / size.x) * (BUST_SCALE[url.split('/').pop()] || 1));
       wrap.visible = false;
       const car = new THREE.Group();   // the wheel moves the car; the cursor turns the wrap
       car.add(wrap);
@@ -866,17 +853,7 @@
     }
     new ResizeObserver(resize).observe(bustBox); resize();
 
-    // stretch DAVID MAXWELL (+ mark slot) to the full content width
-    const wm = document.querySelector('.wordmark');
-    function fitWordmark() {
-      wm.style.fontSize = '100px';
-      const cs = getComputedStyle(wm.parentElement);
-      const avail = wm.parentElement.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      wm.style.fontSize = (100 * avail / wm.scrollWidth) + 'px';
-    }
-    fitWordmark();
-    addEventListener('resize', fitWordmark);
-    document.fonts.ready.then(fitWordmark);
+
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const clock = new THREE.Clock();
@@ -904,7 +881,7 @@
         if (FX === 'glitch') slots.forEach(w => { if (w) { w.userData.mat.opacity = introFade; w.userData.mat.transparent = introFade < 1; } });
         if (x >= 1) introStart = null;
       }
-      if (!reduced) updateEnv(t);
+      if (!reduced) { updateEnv(t); redLights.forEach(f => f(t)); }
       const now = performance.now(), dt = Math.min(0.1, (now - (lastFrame || now)) / 1000); lastFrame = now;
       if (FX === 'wheel') {
         if (introStart === null && introFade < 1) introFade = 1;
