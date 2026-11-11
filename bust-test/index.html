@@ -82,7 +82,7 @@
       position: absolute; top: calc(51.6 * var(--u)); width: calc(31 * var(--u));
       font-size: max(11px, calc(.86 * var(--u))); font-weight: 700; line-height: 1.3;
     }
-    .bio { left: calc(5.6 * var(--u)); }
+    .bio { left: calc(5.6 * var(--u)); text-align: right; }
     /* stacking: logo < bust < REEL / CAMPAIGNS + copy (as in the mockup) */
     .action, .bio, .clients { z-index: 3; }
     .clients { left: calc(51 * var(--u)); }
@@ -135,7 +135,7 @@
       .bust { position: relative; inset: auto; order: 1; align-self: stretch; height: 52svh; margin: 0 -16px;
               pointer-events: auto; touch-action: none; }   /* swipe up/down on the bust turns the wheel */
       .reel    { order: 2; font-size: 12.5vw; margin-top: 16px; }
-      .bio     { order: 3; font-size: 14px; margin-top: 14px; }
+      .bio     { order: 3; font-size: 14px; margin-top: 14px; text-align: left; }
       .studio  { order: 4; font-size: 12.5vw; margin-top: 36px; }
       .clients { order: 5; font-size: 14px; margin-top: 14px; }
     }
@@ -551,7 +551,12 @@
     // sheen from the same moving softboxes the chrome used
     const redLights = [];
     if (LOOK === 'red') {
-      chrome = new THREE.MeshStandardMaterial({ color: 0xd0202a, roughness: 0.85, metalness: 0, envMapIntensity: 0.04 });
+      chrome = new THREE.MeshPhysicalMaterial({
+        color: 0xd0202a,
+        metalness: 0.55, roughness: 0.3,        // part chrome: darker body, glossy highlights
+        clearcoat: 0.6, clearcoatRoughness: 0.12,
+        envMapIntensity: 1.1                     // picks up the moving softboxes
+      });
       scene.add(new THREE.HemisphereLight(0xffffff, 0x6a1a1a, 0.6));
       const key = new THREE.DirectionalLight(0xffffff, 0.75);
       const rim = new THREE.DirectionalLight(0xffffff, 0.3);
