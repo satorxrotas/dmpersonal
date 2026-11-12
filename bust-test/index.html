@@ -132,8 +132,7 @@
       .stage { width: auto; height: auto; display: flex; flex-direction: column; align-items: flex-start; }
       .wordmark, .action, .bio, .clients { position: static; width: auto; }
       .wordmark { align-self: stretch; }
-      .bust { position: relative; inset: auto; order: 1; align-self: stretch; height: 52svh; margin: 0 -16px;
-              pointer-events: auto; touch-action: none; }   /* swipe up/down on the bust turns the wheel */
+      .bust { position: relative; inset: auto; order: 1; align-self: stretch; height: 52svh; margin: 0 -16px; }
       .reel    { order: 2; font-size: 12.5vw; margin-top: 16px; }
       .bio     { order: 3; font-size: 14px; margin-top: 14px; }
       .studio  { order: 4; font-size: 12.5vw; margin-top: 36px; }
@@ -620,9 +619,33 @@
       return wrap;
     }
 
-    loader.load(BUSTS[0], (gltf) => {
-      slots[0] = prepare(gltf, BUSTS[0]);
-      slots[0].visible = true;
+    // Which bust a visitor sees: the first ever visit gets bust 1, each later visit the next
+    // one in order (counted once per browser session, so refreshing doesn't skip ahead).
+    // If the page stays open, the wheel turns to the next bust every AUTO_MS.
+    const AUTO_MS = +(dbg.get('every') || 10 * 60 * 1000);
+    const START = FX !== 'wheel' ? 0 : (() => {
+      if (dbg.has('start')) return (+dbg.get('start')) % BUSTS.length;
+      try {
+        let v = sessionStorage.getItem('dm_bust');
+        if (v === null) {
+          const visits = +(localStorage.getItem('dm_visits') || 0);
+          localStorage.setItem('dm_visits', visits + 1);
+          v = String(visits % BUSTS.length);
+          sessionStorage.setItem('dm_bust', v);
+        }
+        return +v || 0;
+      } catch (e) { return 0; }   // storage blocked (private mode etc.): always bust 1
+    })();
+    const loading = {};
+    function preload(i) {
+      if (slots[i] || loading[i]) return;
+      loading[i] = loader.loadAsync(BUSTS[i]).then(g => { slots[i] = prepare(g, BUSTS[i]); }).catch(console.error);
+    }
+    WHEEL.pos = WHEEL.target = START; current = START;
+
+    loader.load(BUSTS[START], (gltf) => {
+      slots[START] = prepare(gltf, BUSTS[START]);
+      slots[START].visible = true;
 
       // keep the wheel up for at least a beat so it doesn't just flash
       const wait = Math.max(0, 900 - performance.now());
@@ -630,13 +653,14 @@
         const el = document.getElementById('loader');
         el.classList.add('done');
         introStart = performance.now();
-        nextSwapAt = introStart + INTRO_MS + HOLD_MS;
+        nextSwapAt = introStart + INTRO_MS + (FX === 'wheel' ? AUTO_MS : HOLD_MS);
         revealText();
         el.addEventListener('transitionend', () => el.remove(), { once: true });
       }, wait);
 
-      // the rest load quietly in the background, in order
-      if (!dbg.has('m')) BUSTS.slice(1).reduce((chain, url, i) => chain.then(() =>
+      // wheel: only the next bust is fetched ahead of time. glitch (archived): all of them, in order
+      if (FX === 'wheel') preload((START + 1) % BUSTS.length);
+      else if (!dbg.has('m')) BUSTS.slice(1).reduce((chain, url, i) => chain.then(() =>
         loader.loadAsync(url).then(g => { slots[i + 1] = prepare(g, url); }).catch(console.error)
       ), Promise.resolve());
     }, undefined, (e) => {
@@ -783,41 +807,19 @@
     });
     // touch devices: gentle device-tilt-free fallback is the idle sway
 
-    // --- Ferris wheel input: scroll wheel / trackpad, mouse drag, arrow keys --
-    const lbOpen = () => document.body.classList.contains('lb-open');
-    function wheelInput() {
-      nextSwapAt = performance.now() + HOLD_MS;          // pause auto-advance while someone's driving
-      clearTimeout(WHEEL.snapT);
-      WHEEL.snapT = setTimeout(() => { if (!WHEEL.dragging) WHEEL.target = Math.round(WHEEL.target); }, 160);
-    }
-    if (FX === 'wheel') {
-      addEventListener('wheel', (e) => {
-        if (lbOpen() || mobileMQ.matches) return;
-        const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-        WHEEL.target += dy * WHEEL.perScroll;
-        wheelInput();
-      }, { passive: true });
-      addEventListener('pointerdown', (e) => {
-        if (lbOpen() || e.button) return;
-        if (e.pointerType === 'touch' && !e.target.closest('.bust')) return;   // phones: only swipes on the bust
-        if (e.target.closest('a, button, .strip, .lightbox, p, h1')) return;
-        WHEEL.dragging = { y0: e.clientY, t0: WHEEL.target, span: e.pointerType === 'touch' ? bustBox.clientHeight * 0.6 : innerHeight * 0.5 };
-      });
-      addEventListener('pointermove', (e) => {
-        if (!WHEEL.dragging) return;
-        WHEEL.target = WHEEL.dragging.t0 - (e.clientY - WHEEL.dragging.y0) / WHEEL.dragging.span;
-        wheelInput();
-      });
-      addEventListener('pointercancel', () => { WHEEL.dragging = null; WHEEL.target = Math.round(WHEEL.target); });
-      addEventListener('pointerup', () => { if (WHEEL.dragging) { WHEEL.dragging = null; WHEEL.target = Math.round(WHEEL.target); } });
-      addEventListener('keydown', (e) => {
-        if (lbOpen()) return;
-        if (e.key === 'ArrowDown') { WHEEL.target = Math.round(WHEEL.target) + 1; wheelInput(); }
-        if (e.key === 'ArrowUp')   { WHEEL.target = Math.round(WHEEL.target) - 1; wheelInput(); }
-      });
-    }
+    // (the wheel used to take scroll / drag / arrow-key input — removed; it now only turns on its own timer)
     function updateWheel(now, dt, yaw, pitch) {
-      // only moves when someone scrolls / drags / swipes — no auto-advance
+      // turns to the next bust once the page has been open AUTO_MS (10 min), then every AUTO_MS after
+      const N0 = BUSTS.length;
+      if (now >= nextSwapAt) {
+        const nxt = ((Math.round(WHEEL.target) + 1) % N0 + N0) % N0;
+        if (slots[nxt]) {
+          WHEEL.target = Math.round(WHEEL.target) + 1;
+          nextSwapAt = now + AUTO_MS;
+          try { sessionStorage.setItem('dm_bust', String(nxt)); } catch (e) {}
+          preload((nxt + 1) % N0);
+        } else { preload(nxt); nextSwapAt = now + 2000; }   // not downloaded yet: check again shortly
+      }
       WHEEL.pos += (WHEEL.target - WHEEL.pos) * (reduced ? 1 : 1 - Math.exp(-dt * 3.2));
       if (dbg.has('wheelpos')) WHEEL.pos = WHEEL.target = +dbg.get('wheelpos');   // debug: freeze the wheel
       const N = BUSTS.length, STEP = Math.PI * 2 / N;
