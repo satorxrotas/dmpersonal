@@ -167,17 +167,27 @@
     }
     #stage { width: 100%; height: 100%; display: block; }
 
-    /* ---- Mobile: stack and scroll ---- */
+    .tagline { display: none; }
+
+    /* ---- Phones: everything on one screen, no scrolling, any aspect ratio ----
+       logo · two short lines · bust + ring (takes whatever height is left) · REEL / CAMPAIGNS */
     @media (max-width: 760px) {
-      .page { height: auto; min-height: 0; overflow: visible; padding: 16px 16px 48px; }
-      .stage { width: auto; height: auto; display: flex; flex-direction: column; align-items: flex-start; }
-      .wordmark, .action, .bio, .clients { position: static; width: auto; }
-      .wordmark { align-self: stretch; }
-      .bust { position: relative; inset: auto; order: 1; align-self: stretch; height: 52svh; margin: 0 -16px; }
-      .reel    { order: 2; font-size: 12.5vw; margin-top: 16px; }
-      .bio     { order: 3; font-size: 14px; margin-top: 14px; }
-      .studio  { order: 4; font-size: 12.5vw; margin-top: 36px; }
-      .clients { order: 5; font-size: 14px; margin-top: 14px; }
+      html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+      .page { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding: 14px 14px max(22px, env(safe-area-inset-bottom)); }
+      .stage { width: auto; height: 100%; display: flex; flex-direction: column; align-items: center; }
+      .wordmark, .action, .bio, .clients, .tagline { position: static; width: auto; }
+      .wordmark { align-self: stretch; flex: none; }
+      .tagline {
+        display: block; order: 1; flex: none; margin-top: clamp(14px, 4.5vh, 48px);
+        font-size: clamp(10px, 2.9vw, 13px); font-weight: 700; line-height: 1.25; text-align: center;
+      }
+      .bust { position: relative; inset: auto; order: 2; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px; }
+      .reel, .studio {
+        order: 3; flex: none; align-self: center; justify-content: center;
+        font-size: clamp(28px, 9vw, 52px); margin-top: clamp(6px, 1.6vh, 16px);
+      }
+      .studio { order: 4; }
+      .bio, .clients { display: none; }
     }
 
     /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
@@ -269,6 +279,8 @@
   <main class="page">
     <div class="stage">
       <h1 class="wordmark" data-in="left" style="--d:.15s" aria-label="David Maxwell"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 974.42 415.79"><path d="M126.52,230.37c39.02-7.14,73.81-32.02,88.9-69.11,1.69.05-.19,17.72,2.41,22.13,1.4,2.38,8.57,4.98,10.77,7.95,2.23,3.03,3.58,9.51,6.29,13.66,15.09,23.16,38.5,36.49,67.01,34.38,5.45-.4,11.7-3.28,16.74-3.34,4.87-.06,9.62,2.95,14.55,1.43,4.2-1.29,5.63-8.04,8.37-10.81,4.16-4.19,14.61-9.19,20.19-13.9,4.02-3.39,17.61-18.96,20.35-19.66,2.91-.74,13.41,4.01,18.14,4.57,21.84,2.58,48.1-.61,59.17-21.96,5.83-11.24,9.38-24.56,2.8-35.83-11.05.65-22.51-3.78-33.5-1.51-15.84,3.27-29.81,24.04-41.11,34.54,5.15-11.34,12.24-22.22,14.21-34.83,1.38-8.86-.92-22.08,1.09-28.84,1.95-6.55,18.99-15.85,22.19-32.69,6.63-34.94-16.08-58.98-50-61.56-8.24-.63-15.15,1.75-21.66,1.69-5.59-.05-9-5.22-16.22-3.06-4.75,1.42-7.87,10.31-11.18,13.8-3.69,3.91-10.18,6.79-14.21,10.74-33.69,33.01-19.8,89.44,31.35,81.58,7.86-8.48-.82-18.75-10.45-14.17-5.64,2.68-2.34,8.43-13.15,3.13-30.78-15.08-13.98-62.91,11.9-74.18,4.57-1.99,11.01-1.37,15.04-3.32,4.24-2.05,1.98-5.26,11.97-6.25,15.73-1.55,37.01-.09,47.39,13.26l-46.57,15.03,5.01,18.26c14.43-4.16,6.47.79,3.51,7.67-5.59,12.96-10.39,26.01-13.36,39.85l-83.35,29.79-1.41,2.98,3.1,9.47c-11.23-2.69-1.04,14.16-1.67,14.95l-8.32,1.7,1.68,6.62-8.16,1.83,4.86,21.47c8.41-4.89,10.26,1.63,10.91,1.66,11.6.6,29.44,1.05,40.58-2.55,22.36-7.23,34.17-29.03,41.69-49.78,6.02-16.61,2.32-31.21,24.08-35.78,1.22,6.08,1.17,12.97.88,19.17-.24,5.19-1.36,19.95-2.66,23.95-6.54,20.21-21.46,4.35-28.97,19.16,1.19,8.42,6.78,8.37,13.96,7.39,2-.27,13.14-5.79,10.94-.71-1.53,3.53-32.13,28.23-36.09,28.82-2.82.42-5.22-1.65-8.83-.7-4.68,1.23-10.23,8.57-14.87,10.22-26.28,9.32-68.79-9.63-75.48-37.82-2.1-8.82,2.33-11.14,2.35-18.78.03-7.58-4.01-20.01-2.81-27.46,2.07-12.91,22.13-29.15,34.27-32.4,10.25-2.74,4.33,2.08,10.01,6.65,12.1,9.74,23.4-13.44,7.12-17.08-24.25-5.42-57.79,22.05-62.26,45.95l-6.41.23C240.22,78.54,192.66,7.31,120.6,0H0v232.77h112.28c1.75,0,11.39-1.88,14.24-2.4ZM397.51,175.37c7.62-9.07,25.94-27.65,37.63-28.92,12.49-1.35,7.94,2.11,13.02,8.34,1.49,1.82,5.14,2.72,5.59,3.5,3.88,6.59-5.13,18.93-10.46,22.93-14.7,11.04-35.65,8.43-52.38,4.99-1.51-1.41,5.32-9.31,6.6-10.84ZM412.51,44.9c9.24,19.25,4.14,40.85-13.27,53.2-2.94-18.82.89-38.29,13.27-53.2ZM319.94,192.59c-25.04,16.91-38.12-8.75-25.83-30.8,11.41-20.46,36.81-23.34,56.85-30.44-4.66,20.11-13.08,49.12-31.03,61.24ZM376.89,111.42l-10.92,4.97c-2.11-2.75,9.11-35.34,14.94-38.24l-4.02,33.27ZM67.37,174.58l-2.5-2.49V58.19h44.08c5.92,0,22.45,8.25,27.46,12.45,36.96,31.05,17.84,103.93-34.12,103.93h-34.93ZM949,41.55c-15.89-18.95-53.14-41.55-78.2-41.55h-120.6v232.77h112.28c94.54,0,146-120.26,86.52-191.22ZM817.57,174.58l-2.5-2.49V58.19h44.08c3.03,0,16.32,5.13,19.67,6.94,45.68,24.72,30.94,109.44-26.32,109.44h-34.93ZM503.12,232.88L414.19,0h73.19l49.92,159.61L591.34,0h69.03l-86.69,232.57-70.57.31ZM442.47,271.01h-44.91l-21.6,38.24-20.81-38.24h-44.08l42.67,67.33-42.69,65.67-53.99-131.39c-1.3-1.67-3.11-1.49-4.95-1.7-6.31-.75-31.05-1.01-36.71.07-1.96.37-3.21.71-3.83,2.82l-53.53,138.53h41.59l7.67-25.04,53.65.34,9.64,24.78c9.34.08,18.73-.31,28.08-.15,6.98.11,12.85.11,19.83,0,10.46-.17,20.96.54,31.4-.19,2.76-.95,20.3-35.21,24-40.8.78-1.17-.5-2.88,2.86-2.18l24.14,43.24h46.58l-47.97-74.29,42.98-67.04ZM217.91,355.81l14.99-43.23c2.36.19,2.62,2.44,3.37,4.09,5.58,12.18,8.19,26.65,13.24,39.13h-31.6ZM115.61,271.01h39.09v141.32h-38.26v-76.48l-22.48,44.87c-3.13,5.27-26.98,4.35-29.94,1.71-7.71-6.86-13.78-38.71-24.1-46.58v76.48H1.66v-141.32h40.75l36.6,71.51,36.6-71.51ZM730.24,232.77h-66.54V0h66.54v232.77ZM634.51,377.33c-41.18,6.99-52.75-49.62-22.26-70.46,18.41-12.58,22.36,14.73,7.47,12.42-4.65-.72-5.34-7.32-10.4-2.87-12.18,10.72-11.64,38.37.59,49.09,33.43,29.3,66.68-42.39,38.9-70.47-13.85-14-38.73-7.61-51.62,5.07-3.02,2.97-19.97,27.63-19.97,29.91v52.37h-28.28v14.97c-14.82-3.22-13.62,6.2-20.73,13.34-7.07,7.1-11.74,2.23-20.86,3.27v-31.59h6.67s-.03-9.99-.03-9.99l6.68.02-.03-13.32,6.68.02c-.12-4.14.15-8.35-.01-12.5-.08-2.01,1.25-6.18-1.64-5.78-4.85,12.39-12.08,25.21-19.29,36.43-4.93,7.66-24.47,36.4-31.81,38.03-4.44.99-9.28.11-13.79.35v-26.6l10.56-.26,2.75-2.23v-50.71h6.65v-33.25h-23.29l-.74-8.4c-14.45-6.75-17.87,15.23-15.54,25.51,1.48,6.53,9.85,10.62,9.62,17.8-29.05-9.48-21.99-55.26,6.49-60.04l.17-6.47c16.29-.98,26.38-1.44,37.44,11.64l1.73-5.1,20.72.12v23.28h-18.31s1.67,61.53,1.67,61.53c2.87-.25,5.96,1.12,8.48-1.08,2.09-1.83,9.85-18.69,11.78-22.74,9.3-19.54,14.22-41.24,31.3-55.99-2.96,9.51-7.47,17.11-8.36,27.38-1.57,18.22,5.59,36.47,1.73,54.08,7.27,1.44,8.76-3.64,11.92-8.86,17.64-29.2,29.82-81.68,75.45-75.97,46.96,5.88,36.14,92.18,1.53,98.05ZM705.29,379.08h59.88v33.25h-98.14v-141.32h94.81v33.25h-56.56v19.95h49.9v31.59h-49.9v23.28ZM916.54,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41ZM815.07,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41Z"/></svg></h1>
+
+      <p class="tagline" data-in="left" style="--d:.35s">Director / Creative Director / Designer<br><br>Paris → Los Angeles</p>
 
       <a class="action reel" data-in="left" style="--d:.55s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
       <p class="bio" data-in="left" style="--d:.7s">Director and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently working at Amazon and previously working for TikTok. His work spans film, campaigns, and visual storytelling.</p>
@@ -703,6 +715,7 @@
         const el = document.getElementById('loader');
         el.classList.add('done');
         introStart = performance.now();
+        startGallery();                                      // images tornado in as the page animates in
         nextSwapAt = introStart + INTRO_MS + (FX === 'wheel' ? AUTO_MS : HOLD_MS);
         revealText();
         el.addEventListener('transitionend', () => el.remove(), { once: true });
@@ -717,6 +730,7 @@
       const el = document.getElementById('loader');
       const logo = el.querySelector('img'); logo.replaceWith(logo.cloneNode());   // stop the spin where it is
       el.querySelector('p').textContent = 'COULD NOT LOAD MODEL';
+      startGallery();
       revealText();
       console.error(e);
     });
@@ -887,7 +901,9 @@
         wrap.rotation.y = yaw;
         // solid all the way; cars on the far side of the wheel (well off screen) are skipped
         mat.opacity = introFade; mat.transparent = introFade < 0.999;
-        car.visible = Math.abs(th) < Math.PI * 0.55;
+        // only the current bust, except while the wheel is actually turning to the next one
+        const turning = Math.abs(WHEEL.target - WHEEL.pos) > 0.002;
+        car.visible = turning ? Math.abs(th) < Math.PI * 0.55 : i === current;
       });
       current = ((Math.round(WHEEL.pos) % N) + N) % N;
     }
@@ -902,7 +918,7 @@
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
       if (!document.body.classList.contains('gallery-open') || !camZ)
-        camZ = Math.max(mobileMQ.matches ? 6.6 : 9, 7 / camera.aspect);   // (frozen while the gallery is full-screen)
+        camZ = mobileMQ.matches ? Math.max(10.5, 9.5 / camera.aspect) : Math.max(9, 7 / camera.aspect);
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
       rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
@@ -953,8 +969,11 @@
       return list[i];
     }
 
-    const RING = { R: 4.4, H: 1.25, gap: 0.26, rowGap: 1.6, y: -0.55, spinSpeed: 0.09, TORNADO_MS: 2800, OUT_MS: 1300 };
-    const G = { state: 'off', t0: 0, spin: 0, vel: 0, cam: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
+    const PHONE = mobileMQ.matches;
+    const RING = PHONE
+      ? { R: 3.5, H: 1.1, gap: 0.22, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, spinSpeed: 0.09, TORNADO_MS: 2800 }
+      : { R: 3.15, H: 0.74, gap: 0.16, rowGap: 0.95, y: -0.15, lift: 0.55, lookY: -0.1, spinSpeed: 0.09, TORNADO_MS: 2800 };
+    const G = { state: 'off', p: 0, anim: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
     G.group.visible = false;
     scene.add(G.group);
 
@@ -989,36 +1008,33 @@
       for (let k = 0; k < 18; k++) make(k % GAL.length, false, 0, k);   // extra debris that only swirls, then leaves
     }
 
-    function openGallery() {
-      if (!GAL.length || G.state === 'in' || G.state === 'on') return;
+    // The ring is part of the homepage: it tornadoes in with the page, then settles.
+    // Clicking a photo whirls the ring back up into the tornado, then opens the viewer;
+    // closing the viewer lets it settle back into the ring.
+    function animateTo(to, dur, done) { G.anim = { from: G.p, to, t0: performance.now(), dur: reduced ? 1 : dur, done }; }
+    function startGallery() {
+      if (!GAL.length || G.state !== 'off') return;
       buildGallery();
-      G.state = 'in'; G.t0 = performance.now(); G.vel = 0;
-      G.group.visible = true;
-      document.body.classList.add('gallery-open');
-      document.documentElement.classList.remove('bust-hover');
+      G.group.visible = true; G.p = 0; G.state = 'in';
+      animateTo(1, RING.TORNADO_MS, () => { G.state = 'on'; });
     }
-    function closeGallery() {
-      if (G.state !== 'in' && G.state !== 'on') return;
-      G.state = 'out'; G.t0 = performance.now();
-      document.body.classList.remove('gallery-open');
+    function burst(img) {
+      if (G.state !== 'on') return;
+      G.state = 'busy'; G.hover = null;
       document.documentElement.classList.remove('bust-hover');
-      G.hover = null;
+      animateTo(0.3, 950, () => Viewer.open(img, () => animateTo(1, 2200, () => { G.state = 'on'; })));
     }
-    document.querySelector('.g-close').addEventListener('click', closeGallery);
 
     function updateGallery(now, dt) {
-      const want = (G.state === 'in' || G.state === 'on') ? 1 : 0;
-      G.cam += (want - G.cam) * (1 - Math.exp(-dt * (want ? 1.6 : 2.4)));
       if (G.state === 'off') return;
-      let p;
-      if (G.state === 'out') {
-        p = 1 - clamp01((now - G.t0) / RING.OUT_MS);
-        if (p <= 0) { G.state = 'off'; G.group.visible = false; return; }
-      } else {
-        p = reduced ? 1 : clamp01((now - G.t0) / RING.TORNADO_MS);
-        if (dbg.has('gp')) p = +dbg.get('gp');                 // debug: freeze the tornado at a point
-        if (p >= 1) G.state = 'on';
+      if (G.anim) {
+        const A = G.anim, t = clamp01((now - A.t0) / A.dur);
+        const k = A.to < A.from ? t * t * (3 - 2 * t) : t;     // whirling up eases in and out
+        G.p = A.from + (A.to - A.from) * k;
+        if (t >= 1) { G.anim = null; A.done && A.done(); }
       }
+      let p = G.p;
+      if (dbg.has('gp')) p = +dbg.get('gp');                   // debug: freeze the tornado at a point
       // the ring keeps turning slowly; drags / scrolls add momentum that dies away
       if (!G.drag) G.vel *= Math.exp(-dt * 1.8);
       G.spin += (RING.spinSpeed * smooth(0.55, 1, p) + G.vel) * dt;
@@ -1054,16 +1070,10 @@
       }
     }
 
-    // camera: pulls back and up while the gallery is open so the whole ring fits
+    // camera: lifted a little and looking slightly down, so the ring reads as an ellipse
     function placeCamera() {
-      const k = G.cam * G.cam * (3 - 2 * G.cam);
-      const tanHalf = Math.tan(camera.fov * Math.PI / 360);
-      // landscape: the whole ring fits; portrait (phones): it runs off both sides so the bust stays big
-      const ringFit = camera.aspect < 1 ? 0.32 : 1.12;
-      const fitW = (RING.R * ringFit + 0.6) / (tanHalf * camera.aspect) + RING.R * 0.7;
-      const zG = Math.max(camZ * 1.22, fitW);
-      camera.position.set(0, 1.9 * k, camZ + (zG - camZ) * k);
-      camera.lookAt(0, -0.35 * k, 0);
+      camera.position.set(0, RING.lift, camZ);
+      camera.lookAt(0, RING.lookY, 0);
     }
 
     // picking: the bust (to open) and the cards (hover / click)
@@ -1083,7 +1093,7 @@
       if (document.body.classList.contains('lb-open') || e.button) return;
       downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
       if (G.state === 'on' || G.state === 'in') {
-        if (overUI(e)) return;
+        if (overUI(e) || (e.pointerType === 'touch' && !e.target.closest('.bust'))) return;
         G.drag = { x: e.clientX, spin0: G.spin, lx: e.clientX, lt: performance.now(), v: 0 };
         G.vel = 0;
       }
@@ -1099,17 +1109,16 @@
       }
       if (e.pointerType === 'touch') return;
       let hit = null;
-      if (G.state === 'on') { hit = pick(e, cardMeshes()); G.hover = hit ? hit.object.userData.card : null; }
-      else if (G.state === 'off' && !overUI(e)) hit = pick(e, currentBust());
-      document.documentElement.classList.toggle('bust-hover', !!hit);
+      if (G.state === 'on' && !overUI(e)) hit = pick(e, cardMeshes());
+      G.hover = hit ? hit.object.userData.card : null;
+      document.documentElement.classList.toggle('bust-hover', !!hit);   // pointer cursor over a photo
     });
     addEventListener('pointerup', (e) => {
       const d = downAt; downAt = null;
       const moved = d ? Math.hypot(e.clientX - d.x, e.clientY - d.y) : 99;
       if (G.drag) { if (moved > 6) G.vel = Math.max(-3, Math.min(3, G.drag.v)); G.drag = null; }
       if (moved > 6 || document.body.classList.contains('lb-open') || overUI(e)) return;
-      if (G.state === 'off') { if (pick(e, currentBust())) openGallery(); }
-      else if (G.state === 'on') { const h = pick(e, cardMeshes()); if (h) Viewer.open(h.object.userData.card.img); }
+      if (G.state === 'on') { const h = pick(e, cardMeshes()); if (h) burst(h.object.userData.card.img); }
     });
     addEventListener('pointercancel', () => { G.drag = null; downAt = null; });
     addEventListener('wheel', (e) => {
@@ -1117,9 +1126,6 @@
       const dd = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 16 : 1);
       G.vel = Math.max(-3, Math.min(3, G.vel + dd * 0.004));
     }, { passive: true });
-    addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !document.body.classList.contains('lb-open')) closeGallery();
-    });
 
     // ======================= Image viewer ======================================
     // Like the DRGNFLEYE gallery viewer: the image large at the front of a drum, the rest bent
@@ -1169,8 +1175,9 @@
         const it = V.items[i]; if (!it || it.full) return; it.full = true;
         texLoader.load(`gallery/full/${GAL[i].id}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; it.mat.map = t; it.mat.needsUpdate = true; });
       }
-      function open(i) {
+      function open(i, onClose) {
         build();
+        V.onClose = onClose || null;
         V.open = true; V.f = V.target = i; V.last = performance.now();
         el.classList.add('open');
         document.body.classList.add('lb-open');               // the bust scene rests underneath
@@ -1210,6 +1217,7 @@
         if (!V.open && V.g <= 0) {
           el.classList.remove('open');
           document.body.classList.remove('lb-open');
+          const cb = V.onClose; V.onClose = null; cb && cb();
           return;
         }
         if (V.open && (V.g < 1 || V.f !== V.target || V.drag)) tick();
@@ -1264,7 +1272,6 @@
       }, true);
       return { open, close };
     })();
-    if (dbg.has('gallery')) setTimeout(() => openGallery(), 2500);   // debug: open on load
     if (dbg.has('debug')) window.__dm = { G, Viewer, pickAt: (x, y) => { const h = pick({ clientX: x, clientY: y }, cardMeshes()); return h ? h.object.userData.card.img : null; } };
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1297,11 +1304,9 @@
       const now = performance.now(), dt = Math.min(0.1, (now - (lastFrame || now)) / 1000); lastFrame = now;
       updateGallery(now, dt);
       placeCamera();
-      const galleryUp = G.state !== 'off';
       if (FX === 'wheel') {
         if (introStart === null && introFade < 1) introFade = 1;
         updateWheel(now, dt, look.y, look.x);
-        if (galleryUp) slots.forEach((w, i) => { if (w) w.userData.car.visible = i === current; });
         post.material.uniforms.p.value = 0;
         renderAll(rtA);
       } else {
