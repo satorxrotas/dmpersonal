@@ -87,6 +87,47 @@
     .action, .bio, .clients { z-index: 3; }
     .clients { left: calc(51 * var(--u)); }
     .clients p + p { margin-top: 1.3em; }
+    /* ---- Bust gallery (click the bust): page copy fades, the bust stays, images swirl into a ring ---- */
+    .wordmark, .bio, .clients { transition: opacity .6s ease; }
+    .action { transition: opacity .6s ease; }
+    body.gallery-open .wordmark, body.gallery-open .action,
+    body.gallery-open .bio, body.gallery-open .clients { opacity: 0 !important; pointer-events: none; }
+    body.gallery-open { overflow: hidden; }
+    body.gallery-open .bust {
+      position: fixed; inset: 0; height: 100vh; height: 100dvh; margin: 0;
+      z-index: 5; pointer-events: auto; cursor: grab; touch-action: none;
+    }
+    html.bust-hover, html.bust-hover * { cursor: pointer !important; }
+    .g-close {
+      position: fixed; top: max(20px, calc(2.6 * var(--u))); right: max(16px, calc(2.6 * var(--u)));
+      z-index: 9; background: none; border: 0; padding: 6px; line-height: 0; cursor: pointer;
+      color: var(--red); opacity: 0; visibility: hidden; transition: opacity .5s ease .4s, visibility 0s linear .9s;
+    }
+    .g-close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
+    body.gallery-open .g-close { opacity: 1; visibility: visible; transition: opacity .5s ease 1.2s, visibility 0s; }
+    .g-close:hover { opacity: .6 !important; }
+
+    /* ---- Image viewer (click a card): modelled on the DRGNFLEYE project-gallery viewer ---- */
+    .gv {
+      position: fixed; inset: 0; z-index: 30; background: #0a0a0a;
+      opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .gv.open { opacity: 1; visibility: visible; transition: opacity .55s ease; }
+    .gv canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: zoom-out; }
+    .gv canvas.on-image { cursor: default; }
+    .gv-count {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
+      font: 500 12px/1 var(--helv); letter-spacing: .2em; color: #f0ede6;
+    }
+    .gv-close {
+      position: absolute; top: 1.1rem; right: 1.1rem; width: 2.6rem; height: 2.6rem;
+      border-radius: 50%; border: 1px solid rgba(240, 237, 230, .7); background: rgba(10, 10, 10, .5);
+      color: #f0ede6; display: grid; place-items: center; cursor: pointer;
+      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .7)); transition: background .2s, color .2s, border-color .2s;
+    }
+    .gv-close svg { width: 12px; height: 12px; }
+    .gv-close:hover { background: var(--red); border-color: var(--red); color: #0a0a0a; }
+
     /* archived for this direction (not in the mockup) — remove these lines to bring them back */
     .foot, .strip { display: none !important; }
 
@@ -241,6 +282,8 @@
       <div class="bust"><canvas id="stage"></canvas></div>
     </div>
 
+    <button class="g-close" type="button" aria-label="Close gallery"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+
     <!-- archived for this direction (hidden in CSS) -->
     <nav class="foot" aria-label="Contact">
       <a href="#">Email</a><span>|</span><a href="#" target="_blank" rel="noopener">Instagram</a><span>|</span><a href="#" target="_blank" rel="noopener">LinkedIn</a>
@@ -249,6 +292,12 @@
       <div class="track"></div>
     </section>
   </main>
+
+  <div class="gv" id="gv" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <canvas></canvas>
+    <div class="gv-count" aria-live="polite"></div>
+    <button class="gv-close" type="button" aria-label="Close image"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+  </div>
 
   <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
     <button class="close" type="button" aria-label="Close"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
@@ -429,6 +478,7 @@
     }
     setTimeout(revealText, 12000);
   </script>
+  <script src="gallery/gallery.js"></script>
   <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -826,7 +876,7 @@
       // big enough that the next/previous bust (one STEP round) sits fully outside the frame:
       // its near edge (centre ± ~2.3 units) must clear the visible half-height at its depth
       const tanHalf = Math.tan(camera.fov * Math.PI / 360);
-      WHEEL.R = 1.08 * (2.3 + tanHalf * camera.position.z) / (Math.sin(STEP) - tanHalf * (1 - Math.cos(STEP)));
+      WHEEL.R = 1.08 * (2.3 + tanHalf * camZ) / (Math.sin(STEP) - tanHalf * (1 - Math.cos(STEP)));
       slots.forEach((wrap, i) => {
         if (!wrap) return;
         const { car, mat } = wrap.userData;
@@ -842,6 +892,7 @@
       current = ((Math.round(WHEEL.pos) % N) + N) % N;
     }
 
+    let camZ = 9;
     const bustBox = document.querySelector('.bust');
     const mobileMQ = matchMedia('(max-width: 760px)');
     function resize() {
@@ -850,7 +901,8 @@
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
-      camera.position.z = Math.max(mobileMQ.matches ? 6.6 : 9, 7 / camera.aspect);
+      if (!document.body.classList.contains('gallery-open') || !camZ)
+        camZ = Math.max(mobileMQ.matches ? 6.6 : 9, 7 / camera.aspect);   // (frozen while the gallery is full-screen)
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
       rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
@@ -861,6 +913,359 @@
     new ResizeObserver(resize).observe(bustBox); resize();
 
 
+
+
+    // ======================= Bust gallery =======================================
+    // Click the bust → page copy fades, the bust stays, and the images whirl up around it in a
+    // tornado that slows and settles into a slow ring of curved cards. Drag / scroll spins the
+    // ring; a card opens the viewer (below). The X (or Esc) sends everything back.
+    const GAL = window.DM_GALLERY || [];
+    const texLoader = new THREE.TextureLoader();
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+    const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+    const easeOut3 = (x) => 1 - Math.pow(1 - x, 3);
+
+    // a card bent onto a cylinder of radius R around the origin, centred at (0,0,R).
+    // axis 'y' = curves left↔right (ring), 'x' = curves up↕down (viewer drum)
+    function curvedPlane(w, h, R, axis, segs = 24) {
+      const pos = [], uv = [], nrm = [], idx = [];
+      const cols = axis === 'y' ? segs : 1, rows = axis === 'y' ? 1 : segs;
+      for (let r = 0; r <= rows; r++) for (let c = 0; c <= cols; c++) {
+        const u = c / cols, v = r / rows;
+        if (axis === 'y') { const a = (u - .5) * w / R; pos.push(R * Math.sin(a), (v - .5) * h, R * Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); }
+        else { const a = (v - .5) * h / R; pos.push((u - .5) * w, R * Math.sin(a), R * Math.cos(a)); nrm.push(0, Math.sin(a), Math.cos(a)); }
+        uv.push(u, v);
+      }
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1;
+        idx.push(a, b, d, b, e, d);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx);
+      return g;
+    }
+    const thumbTex = [], fullTex = [];
+    function tex(list, i, dir) {
+      if (!list[i]) { const t = texLoader.load(`gallery/${dir}/${GAL[i].id}.jpg`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; list[i] = t; }
+      return list[i];
+    }
+
+    const RING = { R: 4.4, H: 1.25, gap: 0.26, rowGap: 1.6, y: -0.55, spinSpeed: 0.09, TORNADO_MS: 2800, OUT_MS: 1300 };
+    const G = { state: 'off', t0: 0, spin: 0, vel: 0, cam: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
+    G.group.visible = false;
+    scene.add(G.group);
+
+    function buildGallery() {
+      if (G.cards.length || !GAL.length) return;
+      const avgW = RING.H * 1.4 + RING.gap;
+      const perRowMax = Math.max(8, Math.floor(2 * Math.PI * RING.R / avgW));
+      const n = Math.max(perRowMax, GAL.length);                 // few images: repeat them round the ring
+      const rows = Math.ceil(n / perRowMax), perRow = Math.ceil(n / rows);
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      const geos = {};
+      const make = (img, ring, row, k) => {
+        const a = GAL[img].w / GAL[img].h, w = RING.H * Math.max(0.62, Math.min(1.9, a));
+        const key = w.toFixed(3);
+        const geo = geos[key] || (geos[key] = curvedPlane(w, RING.H, RING.R, 'y'));
+        const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, img, 'thumb'), side: THREE.DoubleSide, transparent: true, opacity: 0, toneMapped: false, depthWrite: true });
+        const mesh = new THREE.Mesh(geo, mat);
+        const pivot = new THREE.Group(); pivot.add(mesh); G.group.add(pivot);
+        const yT = rnd(-6.5, 7.5);                                     // tornado: spread up the funnel…
+        const c = {
+          img, ring, mesh, mat, pivot,
+          base: ring ? (k / perRow) * Math.PI * 2 + row * (Math.PI / perRow) : rnd(0, Math.PI * 2),
+          yRing: RING.y + (ring ? (row - (rows - 1) / 2) * RING.rowGap : 0),
+          yT, sT: 0.28 + clamp01((yT + 6.5) / 14) * 1.15,                // …narrow at the bottom, wide at the top
+          spinT: rnd(5, 8) * Math.PI, tilt: rnd(-0.9, 0.9), delay: rnd(0, 0.28),
+          exitY: rnd(9, 14)
+        };
+        mesh.userData.card = c;
+        G.cards.push(c);
+      };
+      for (let k = 0; k < rows * perRow; k++) make(k % GAL.length, true, Math.floor(k / perRow), k % perRow);
+      for (let k = 0; k < 18; k++) make(k % GAL.length, false, 0, k);   // extra debris that only swirls, then leaves
+    }
+
+    function openGallery() {
+      if (!GAL.length || G.state === 'in' || G.state === 'on') return;
+      buildGallery();
+      G.state = 'in'; G.t0 = performance.now(); G.vel = 0;
+      G.group.visible = true;
+      document.body.classList.add('gallery-open');
+      document.documentElement.classList.remove('bust-hover');
+    }
+    function closeGallery() {
+      if (G.state !== 'in' && G.state !== 'on') return;
+      G.state = 'out'; G.t0 = performance.now();
+      document.body.classList.remove('gallery-open');
+      document.documentElement.classList.remove('bust-hover');
+      G.hover = null;
+    }
+    document.querySelector('.g-close').addEventListener('click', closeGallery);
+
+    function updateGallery(now, dt) {
+      const want = (G.state === 'in' || G.state === 'on') ? 1 : 0;
+      G.cam += (want - G.cam) * (1 - Math.exp(-dt * (want ? 1.6 : 2.4)));
+      if (G.state === 'off') return;
+      let p;
+      if (G.state === 'out') {
+        p = 1 - clamp01((now - G.t0) / RING.OUT_MS);
+        if (p <= 0) { G.state = 'off'; G.group.visible = false; return; }
+      } else {
+        p = reduced ? 1 : clamp01((now - G.t0) / RING.TORNADO_MS);
+        if (dbg.has('gp')) p = +dbg.get('gp');                 // debug: freeze the tornado at a point
+        if (p >= 1) G.state = 'on';
+      }
+      // the ring keeps turning slowly; drags / scrolls add momentum that dies away
+      if (!G.drag) G.vel *= Math.exp(-dt * 1.8);
+      G.spin += (RING.spinSpeed * smooth(0.55, 1, p) + G.vel) * dt;
+
+      for (const c of G.cards) {
+        const pi = clamp01((p - c.delay * 0.35) / 0.65);
+        const e = easeOut3(pi);
+        const th = c.base + G.spin;
+        let y, sc, rot, op;
+        if (c.ring) {
+          y = c.yT + (c.yRing - c.yT) * e;
+          sc = c.sT + (1 - c.sT) * e;
+          rot = th + Math.pow(1 - e, 2) * c.spinT;           // whips round, then slows into the ring
+          op = clamp01(pi * 6);
+        } else {
+          y = c.yT + e * c.exitY;                           // debris rides the funnel up and out
+          sc = c.sT * (1 + e * 0.6);
+          rot = th + (1 - Math.pow(1 - e, 2)) * c.spinT;
+          op = clamp01(pi * 6) * (1 - smooth(0.45, 0.95, pi));
+        }
+        c.pivot.position.y = y;
+        c.pivot.scale.setScalar(Math.max(0.001, sc));
+        c.pivot.rotation.set(0, rot, 0);
+        c.mesh.rotation.z = (1 - e) * c.tilt;               // cards lean in the wind, straighten as they settle
+        c.pivot.visible = op > 0.01;
+        // depth shading: cards round the back are darker (and you see them from behind)
+        const facing = (Math.cos(rot) + 1) / 2;
+        let b = 0.32 + 0.68 * facing;
+        if (G.hover === c) b = Math.min(1.15, b + 0.25);
+        c.mat.color.setScalar(b);
+        c.mat.opacity = op;
+        c.mat.transparent = op < 0.999;
+      }
+    }
+
+    // camera: pulls back and up while the gallery is open so the whole ring fits
+    function placeCamera() {
+      const k = G.cam * G.cam * (3 - 2 * G.cam);
+      const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+      // landscape: the whole ring fits; portrait (phones): it runs off both sides so the bust stays big
+      const ringFit = camera.aspect < 1 ? 0.32 : 1.12;
+      const fitW = (RING.R * ringFit + 0.6) / (tanHalf * camera.aspect) + RING.R * 0.7;
+      const zG = Math.max(camZ * 1.22, fitW);
+      camera.position.set(0, 1.9 * k, camZ + (zG - camZ) * k);
+      camera.lookAt(0, -0.35 * k, 0);
+    }
+
+    // picking: the bust (to open) and the cards (hover / click)
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    function pick(e, objects) {
+      const r = canvas.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return null;
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      return ray.intersectObjects(objects, true)[0] || null;
+    }
+    const currentBust = () => { const w = slots[current]; return w ? [w] : []; };
+    const cardMeshes = () => G.cards.filter(c => c.ring && c.pivot.visible).map(c => c.mesh);
+    const overUI = (e) => e.target.closest && e.target.closest('a, button, .lightbox, .gv');   // the logo / copy don't block the bust
+    let downAt = null;
+    addEventListener('pointerdown', (e) => {
+      if (document.body.classList.contains('lb-open') || e.button) return;
+      downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+      if (G.state === 'on' || G.state === 'in') {
+        if (overUI(e)) return;
+        G.drag = { x: e.clientX, spin0: G.spin, lx: e.clientX, lt: performance.now(), v: 0 };
+        G.vel = 0;
+      }
+    });
+    addEventListener('pointermove', (e) => {
+      if (document.body.classList.contains('lb-open')) return;
+      if (G.drag) {
+        const now = performance.now();
+        G.spin = G.drag.spin0 + (e.clientX - G.drag.x) * 0.006;
+        G.drag.v = (e.clientX - G.drag.lx) * 0.006 / Math.max(0.008, (now - G.drag.lt) / 1000);
+        G.drag.lx = e.clientX; G.drag.lt = now;
+        return;
+      }
+      if (e.pointerType === 'touch') return;
+      let hit = null;
+      if (G.state === 'on') { hit = pick(e, cardMeshes()); G.hover = hit ? hit.object.userData.card : null; }
+      else if (G.state === 'off' && !overUI(e)) hit = pick(e, currentBust());
+      document.documentElement.classList.toggle('bust-hover', !!hit);
+    });
+    addEventListener('pointerup', (e) => {
+      const d = downAt; downAt = null;
+      const moved = d ? Math.hypot(e.clientX - d.x, e.clientY - d.y) : 99;
+      if (G.drag) { if (moved > 6) G.vel = Math.max(-3, Math.min(3, G.drag.v)); G.drag = null; }
+      if (moved > 6 || document.body.classList.contains('lb-open') || overUI(e)) return;
+      if (G.state === 'off') { if (pick(e, currentBust())) openGallery(); }
+      else if (G.state === 'on') { const h = pick(e, cardMeshes()); if (h) Viewer.open(h.object.userData.card.img); }
+    });
+    addEventListener('pointercancel', () => { G.drag = null; downAt = null; });
+    addEventListener('wheel', (e) => {
+      if (G.state !== 'on' || document.body.classList.contains('lb-open')) return;
+      const dd = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 16 : 1);
+      G.vel = Math.max(-3, Math.min(3, G.vel + dd * 0.004));
+    }, { passive: true });
+    addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.body.classList.contains('lb-open')) closeGallery();
+    });
+
+    // ======================= Image viewer ======================================
+    // Like the DRGNFLEYE gallery viewer: the image large at the front of a drum, the rest bent
+    // round it above and below and darkening away; counter beside it; wheel / swipe / arrow keys
+    // step through (it loops); click outside the picture, the round X or Esc closes.
+    const Viewer = (() => {
+      const el = document.getElementById('gv'), cv = el.querySelector('canvas');
+      const countEl = el.querySelector('.gv-count');
+      const vr = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+      vr.setPixelRatio(Math.min(devicePixelRatio, 2));
+      vr.setClearColor(0x0a0a0a, 1);
+      const vs = new THREE.Scene(), vc = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+      vc.position.set(0, 0, 10);
+      const V = { open: false, g: 0, f: 0, target: 0, raf: 0, last: 0, items: [], L: null, drag: null };
+      const n = () => GAL.length;
+      const wrap = (d) => { const m = n(); d = ((d % m) + m) % m; return d > m / 2 ? d - m : d; };
+
+      function layout() {
+        const w = innerWidth, h = innerHeight, mobile = w <= 760;
+        vr.setSize(w, h, false);
+        vc.aspect = w / h; vc.updateProjectionMatrix();
+        const hv = 2 * 10 * Math.tan(15 * Math.PI / 180), wv = hv * vc.aspect;
+        const maxH = hv * (mobile ? 0.44 : 0.56), maxW = wv * (mobile ? 0.88 : 0.68);
+        const RR = maxH * 1.05;
+        V.L = { w, h, hv, maxH, maxW, RR, step: (maxH * 1.18) / RR, px: h / hv };
+        V.items.forEach(it => it.mesh.geometry.dispose());
+        V.items.forEach((it, i) => {
+          const a = GAL[i].w / GAL[i].h;
+          let ih = Math.min(maxH, maxW / a); it.w = ih * a; it.h = ih;
+          it.mesh.geometry = curvedPlane(it.w, it.h, RR, 'x', 28);
+          it.pivot.position.z = -RR;
+        });
+      }
+      function build() {
+        if (V.items.length) return;
+        GAL.forEach((g, i) => {
+          const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, i, 'thumb'), toneMapped: false });
+          const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+          const pivot = new THREE.Group(); pivot.add(mesh); vs.add(pivot);
+          mesh.userData.i = i;
+          V.items.push({ mat, mesh, pivot, full: false });
+        });
+        layout();
+        addEventListener('resize', () => { if (V.open) layout(); });
+      }
+      function sharpen(i) {                                 // swap the thumbnail for the full image
+        const it = V.items[i]; if (!it || it.full) return; it.full = true;
+        texLoader.load(`gallery/full/${GAL[i].id}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; it.mat.map = t; it.mat.needsUpdate = true; });
+      }
+      function open(i) {
+        build();
+        V.open = true; V.f = V.target = i; V.last = performance.now();
+        el.classList.add('open');
+        document.body.classList.add('lb-open');               // the bust scene rests underneath
+        [i, i + 1, i - 1].forEach(k => sharpen(((k % n()) + n()) % n()));
+        tick();
+      }
+      function close() { if (!V.open) return; V.open = false; tick(); }
+      function step(dir) { V.target = Math.round(V.target) + dir; tick(); }
+      function tick() {
+        if (V.raf) return;
+        V.raf = requestAnimationFrame(frame);
+      }
+      function frame() {
+        V.raf = 0;
+        const now = performance.now(), dt = Math.min(64, now - V.last); V.last = now;
+        V.g = clamp01(V.g + (V.open ? 1 : -1) * dt / (V.open ? 650 : 420));
+        V.f += (V.target - V.f) * Math.min(1, dt / (V.drag ? 40 : 140));
+        if (Math.abs(V.target - V.f) < 0.002) V.f = V.target;
+        const L = V.L, gE = V.g * V.g * (3 - 2 * V.g);
+        V.items.forEach((it, i) => {
+          const d = wrap(i - V.f);
+          it.pivot.rotation.x = d * L.step;                   // next one waits below, laid back
+          it.pivot.visible = Math.abs(d) < 2.6;
+          it.mat.color.setScalar(Math.max(0, 1 - Math.abs(d) * 0.55) * gE);
+          it.pivot.scale.setScalar(0.92 + 0.08 * gE);
+        });
+        const fi = ((Math.round(V.f) % n()) + n()) % n();
+        sharpen(fi); sharpen((fi + 1) % n()); sharpen((fi - 1 + n()) % n());
+        const it = V.items[fi];
+        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0');
+        const mobile = L.w <= 760;
+        const x = mobile ? L.w / 2 - countEl.offsetWidth / 2 : L.w / 2 + (it.w * L.px) / 2 + 20;
+        const y = mobile ? L.h / 2 + (it.h * L.px) / 2 + 18 : L.h / 2 - 6;
+        countEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        countEl.style.opacity = (gE * clamp01(1 - Math.abs(V.f - Math.round(V.f)) * 3)).toFixed(3);
+        vr.render(vs, vc);
+        if (!V.open && V.g <= 0) {
+          el.classList.remove('open');
+          document.body.classList.remove('lb-open');
+          return;
+        }
+        if (V.open && (V.g < 1 || V.f !== V.target || V.drag)) tick();
+        else if (!V.open) tick();
+      }
+      // input
+      const clipPx = () => V.L.maxH * 1.18 * V.L.px;
+      let settleT = 0;
+      const settle = (bias) => { clearTimeout(settleT); settleT = setTimeout(() => { if (!V.drag) { V.target = Math.round(V.target + (bias || 0)); tick(); } }, bias === undefined ? 180 : 0); };
+      cv.addEventListener('wheel', (e) => {
+        e.preventDefault(); if (!V.open) return;
+        V.target += (e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY) / clipPx(); tick(); settle();
+      }, { passive: false });
+      const vray = new THREE.Raycaster(), vndc = new THREE.Vector2();
+      const hitAt = (e) => {
+        vndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+        vray.setFromCamera(vndc, vc);
+        const h = vray.intersectObjects(V.items.filter(it => it.pivot.visible).map(it => it.mesh))[0];
+        return h ? h.object.userData.i : null;
+      };
+      cv.addEventListener('pointerdown', (e) => {
+        if (!V.open) return;
+        cv.setPointerCapture(e.pointerId);
+        V.drag = { y: e.clientY, x: e.clientX, t0: V.target, ly: e.clientY, lt: performance.now(), v: 0, moved: false };
+      });
+      cv.addEventListener('pointermove', (e) => {
+        if (!V.drag) { if (e.pointerType !== 'touch') cv.classList.toggle('on-image', hitAt(e) !== null); return; }
+        const now = performance.now();
+        if (!V.drag.moved && Math.abs(e.clientY - V.drag.y) < 6) return;
+        V.drag.moved = true;
+        V.drag.v = (V.drag.ly - e.clientY) / Math.max(8, now - V.drag.lt);
+        V.drag.ly = e.clientY; V.drag.lt = now;
+        V.target = V.drag.t0 + (V.drag.y - e.clientY) / clipPx(); tick();
+      });
+      cv.addEventListener('pointerup', (e) => {
+        const D = V.drag; V.drag = null; if (!D) return;
+        if (D.moved) { settle(Math.max(-1.5, Math.min(1.5, D.v * 220 / clipPx()))); return; }
+        const i = hitAt(e);
+        if (i === null) close();                               // click on the dark background
+        else { const d = wrap(i - V.f); if (Math.abs(d) > 0.5) step(Math.round(d)); }
+      });
+      cv.addEventListener('pointercancel', () => { V.drag = null; settle(); });
+      el.querySelector('.gv-close').addEventListener('click', close);
+      addEventListener('keydown', (e) => {
+        if (!V.open) return;
+        const k = e.key;
+        if (k === 'Escape') close();
+        else if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'PageDown' || k === ' ') step(1);
+        else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'PageUp') step(-1);
+        else return;
+        e.preventDefault(); e.stopImmediatePropagation();
+      }, true);
+      return { open, close };
+    })();
+    if (dbg.has('gallery')) setTimeout(() => openGallery(), 2500);   // debug: open on load
+    if (dbg.has('debug')) window.__dm = { G, Viewer, pickAt: (x, y) => { const h = pick({ clientX: x, clientY: y }, cardMeshes()); return h ? h.object.userData.card.img : null; } };
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const clock = new THREE.Clock();
@@ -890,9 +1295,13 @@
       }
       if (!reduced) { updateEnv(t); redLights.forEach(f => f(t)); }
       const now = performance.now(), dt = Math.min(0.1, (now - (lastFrame || now)) / 1000); lastFrame = now;
+      updateGallery(now, dt);
+      placeCamera();
+      const galleryUp = G.state !== 'off';
       if (FX === 'wheel') {
         if (introStart === null && introFade < 1) introFade = 1;
         updateWheel(now, dt, look.y, look.x);
+        if (galleryUp) slots.forEach((w, i) => { if (w) w.userData.car.visible = i === current; });
         post.material.uniforms.p.value = 0;
         renderAll(rtA);
       } else {
