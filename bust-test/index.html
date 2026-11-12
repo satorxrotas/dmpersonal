@@ -181,7 +181,8 @@
         display: block; order: 1; flex: none; margin-top: clamp(14px, 4.5vh, 48px);
         font-size: clamp(10px, 2.9vw, 13px); font-weight: 700; line-height: 1.25; text-align: center;
       }
-      .bust { position: relative; inset: auto; order: 2; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px; }
+      .bust { position: relative; inset: auto; order: 2; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px;
+              pointer-events: auto; touch-action: none; }   /* drags on the ring stay drags */
       .reel, .studio {
         order: 3; flex: none; align-self: center; justify-content: center;
         font-size: clamp(28px, 9vw, 52px); margin-top: clamp(6px, 1.6vh, 16px);
@@ -1107,7 +1108,9 @@
     let downAt = null;
     addEventListener('pointerdown', (e) => {
       if (document.body.classList.contains('lb-open') || e.button) return;
-      downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+      // a press only counts as a tap if the finger / mouse never travelled (and the ring wasn't coasting —
+      // then the press just catches it); otherwise it's a drag and never opens a photo
+      downAt = { x: e.clientX, y: e.clientY, t: performance.now(), max: 0, coasting: Math.abs(G.vel) > 0.5 };
       if (G.state === 'on' || G.state === 'in') {
         if (overUI(e) || (e.pointerType === 'touch' && !e.target.closest('.bust'))) return;
         G.drag = { x: e.clientX, y: e.clientY, spin0: G.spin, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0 };
@@ -1116,6 +1119,7 @@
     });
     addEventListener('pointermove', (e) => {
       if (document.body.classList.contains('lb-open')) return;
+      if (downAt) downAt.max = Math.max(downAt.max, Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y));
       if (G.drag) {
         const now = performance.now();
         // sideways or up/down both turn the ring (down / right = clockwise)
@@ -1134,9 +1138,11 @@
     });
     addEventListener('pointerup', (e) => {
       const d = downAt; downAt = null;
-      const moved = d ? Math.hypot(e.clientX - d.x, e.clientY - d.y) : 99;
-      if (G.drag) { if (moved > 6) G.vel = Math.max(-3, Math.min(3, G.drag.v)); G.drag = null; }
-      if (moved > 6 || document.body.classList.contains('lb-open') || overUI(e)) return;
+      const moved = d ? Math.max(d.max, Math.hypot(e.clientX - d.x, e.clientY - d.y)) : 99;
+      const TAP = e.pointerType === 'touch' ? 10 : 5;
+      const isDrag = moved > TAP || (d && performance.now() - d.t > 450 && moved > 3);
+      if (G.drag) { if (isDrag) G.vel = Math.max(-3, Math.min(3, G.drag.v)); G.drag = null; }
+      if (!d || isDrag || d.coasting || document.body.classList.contains('lb-open') || overUI(e)) return;
       if (G.state === 'on') { const h = pick(e, cardMeshes()); if (h) burst(h.object.userData.card.img); }
     });
     addEventListener('pointercancel', () => { G.drag = null; downAt = null; });
