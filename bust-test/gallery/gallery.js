@@ -36,5 +36,6 @@ window.DM_GALLERY = [
   {"id": "g032", "w": 576, "h": 720, "video": true},
   {"id": "g033", "w": 960, "h": 1200, "video": true},
   {"id": "g034", "w": 676, "h": 1200, "video": true},
-  {"id": "g035", "w": 676, "h": 1200, "video": true}
+  {"id": "g035", "w": 676, "h": 1200, "video": true},
+  {"id": "g036", "w": 1200, "h": 1200, "video": true}
 ];
