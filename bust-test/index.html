@@ -972,7 +972,7 @@
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
       if (!document.body.classList.contains('gallery-open') || !camZ)
-        camZ = mobileMQ.matches ? Math.max(12.8, 9.5 / camera.aspect) : Math.max(15, 12 / camera.aspect);
+        camZ = mobileMQ.matches ? Math.max(12.8, 9.5 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
       rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
@@ -1047,7 +1047,7 @@
     const PHONE = mobileMQ.matches;
     const RING = PHONE
       ? { R: 3.5, H: 1.1, gap: 0.2, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
-      : { R: 4.3, H: 1.0, gap: 0.2, rowGap: 1.7, y: -0.75, lift: 1.5, lookY: 0.15, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 };
+      : { R: 5.2, H: 1.4, gap: 0.12, rowGap: 1.7, y: -0.55, lift: 1.5, lookY: 0.6, twoRows: true, rowsN: 1, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 };
     const G = { state: 'off', p: 0, anim: null, out: 0, outA: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
     G.group.visible = false;
     scene.add(G.group);
@@ -1061,7 +1061,7 @@
       if (RING.oneRow) { rows = 1; perRow = n; cardH = RING.H * Math.min(1, perRowMax / n); }   // desktop: always one ring, cards shrink to fit
       let rowGap = RING.rowGap;
       if (RING.twoRows) {                                        // phones: two even rows, same-size cards in aligned columns
-        rows = 2; perRow = Math.max(8, Math.ceil(GAL.length / 2));
+        rows = RING.rowsN || 2; perRow = Math.max(8, Math.ceil(GAL.length / rows));   // desktop: rowsN 1 = one even ring
         cardH = Math.min(RING.H, (2 * Math.PI * RING.R / perRow - RING.gap) / RING.slot);
         rowGap = cardH + RING.gap * 1.3;
       }
