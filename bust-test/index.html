@@ -1001,7 +1001,7 @@
 
     const PHONE = mobileMQ.matches;
     const RING = PHONE
-      ? { R: 3.5, H: 1.1, gap: 0.22, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, spinSpeed: 0.09, TORNADO_MS: 2800 }
+      ? { R: 3.5, H: 1.1, gap: 0.2, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
       : { R: 4.7, H: 1.3, gap: 0.4, rowGap: 1.7, y: -0.55, lift: 1.9, lookY: -0.5, oneRow: true, spinSpeed: 0.09, TORNADO_MS: 2800 };
     const G = { state: 'off', p: 0, anim: null, out: 0, outA: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
     G.group.visible = false;
@@ -1014,12 +1014,30 @@
       const n = Math.max(perRowMax, GAL.length);                 // few images: repeat them round the ring
       let rows = Math.ceil(n / perRowMax), perRow = Math.ceil(n / rows), cardH = RING.H;
       if (RING.oneRow) { rows = 1; perRow = n; cardH = RING.H * Math.min(1, perRowMax / n); }   // desktop: always one ring, cards shrink to fit
+      let rowGap = RING.rowGap;
+      if (RING.twoRows) {                                        // phones: two even rows, same-size cards in aligned columns
+        rows = 2; perRow = Math.max(8, Math.ceil(GAL.length / 2));
+        cardH = Math.min(RING.H, (2 * Math.PI * RING.R / perRow - RING.gap) / RING.slot);
+        rowGap = cardH + RING.gap * 1.3;
+      }
       const rnd = (a, b) => a + Math.random() * (b - a);
       const geos = {};
       const make = (img, ring, row, k) => {
-        const a = GAL[img].w / GAL[img].h, w = cardH * Math.max(0.62, Math.min(1.9, a));
-        const key = w.toFixed(3);
-        const geo = geos[key] || (geos[key] = curvedPlane(w, cardH, RING.R, 'y'));
+        const a = GAL[img].w / GAL[img].h;
+        let geo;
+        if (RING.twoRows) {                                      // fixed slot, image cropped to fill it (like object-fit: cover)
+          const key = 'c' + a.toFixed(3);
+          geo = geos[key];
+          if (!geo) {
+            geo = geos[key] = curvedPlane(cardH * RING.slot, cardH, RING.R, 'y');
+            const uv = geo.attributes.uv, s = RING.slot;
+            const su = a > s ? s / a : 1, sv = a > s ? 1 : a / s;
+            for (let q = 0; q < uv.count; q++) uv.setXY(q, 0.5 + (uv.getX(q) - 0.5) * su, 0.5 + (uv.getY(q) - 0.5) * sv);
+          }
+        } else {
+          const w = cardH * Math.max(0.62, Math.min(1.9, a)), key = w.toFixed(3);
+          geo = geos[key] || (geos[key] = curvedPlane(w, cardH, RING.R, 'y'));
+        }
         const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, img, 'thumb'), side: THREE.DoubleSide, transparent: true, opacity: 0, toneMapped: false, depthWrite: true });
         if (GAL[img].video) attachLoop(mat, img);
         const mesh = new THREE.Mesh(geo, mat);
@@ -1027,8 +1045,8 @@
         const yT = rnd(-6.5, 7.5);                                     // tornado: spread up the funnel…
         const c = {
           img, ring, mesh, mat, pivot,
-          base: ring ? (k / perRow) * Math.PI * 2 + row * (Math.PI / perRow) : rnd(0, Math.PI * 2),
-          yRing: RING.y + (ring ? (row - (rows - 1) / 2) * RING.rowGap : 0),
+          base: ring ? (k / perRow) * Math.PI * 2 + (RING.twoRows ? 0 : row * (Math.PI / perRow)) : rnd(0, Math.PI * 2),
+          yRing: RING.y + (ring ? (row - (rows - 1) / 2) * rowGap : 0),
           yT, sT: 0.28 + clamp01((yT + 6.5) / 14) * 1.15,                // …narrow at the bottom, wide at the top
           spinT: rnd(5, 8) * Math.PI, tilt: rnd(-0.9, 0.9), delay: rnd(0, 0.28),
           exitY: rnd(9, 14),
