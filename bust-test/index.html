@@ -1090,6 +1090,7 @@
         const yT = rnd(-6.5, 7.5);                                     // tornado: spread up the funnel…
         const c = {
           img, ring, mesh, mat, pivot,
+          dir: ring && rows === 2 && row === 1 ? -1 : 1,     // phones: the lower row turns the other way
           base: ring ? (k / perRow) * Math.PI * 2 + (RING.twoRows ? 0 : row * (Math.PI / perRow)) : rnd(0, Math.PI * 2),
           yRing: RING.y + (ring ? (row - (rows - 1) / 2) * rowGap : 0),
           yT, sT: 0.28 + clamp01((yT + 6.5) / 14) * 1.15,                // …narrow at the bottom, wide at the top
@@ -1148,7 +1149,7 @@
       for (const c of G.cards) {
         const pi = clamp01((p - c.delay * 0.35) / 0.65);
         const e = easeOut3(pi);
-        const th = c.base + G.spin;
+        const th = c.base + G.spin * c.dir;
         let y, sc, rot, op;
         if (c.ring) {
           y = c.yT + (c.yRing - c.yT) * e;
