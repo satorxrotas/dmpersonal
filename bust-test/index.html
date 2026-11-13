@@ -1101,7 +1101,20 @@
         mesh.userData.card = c;
         G.cards.push(c);
       };
-      for (let k = 0; k < rows * perRow; k++) make(k % GAL.length, true, Math.floor(k / perRow), k % perRow);
+      // ring order: videos spread evenly round the lineup (each moving card has photos either side);
+      // the viewer keeps the gallery.js order
+      const vids = [], pics = [];
+      GAL.forEach((g, i) => (g.video ? vids : pics).push(i));
+      const order = [];
+      const slots = Math.max(1, vids.length);
+      let vi = 0;
+      for (let pos = 0, pi = 0; pos < GAL.length; pos++) {
+        const nextVidAt = Math.floor((vi + 0.5) * GAL.length / slots);
+        if (vi < vids.length && pos >= nextVidAt) order.push(vids[vi++]);
+        else if (pi < pics.length) order.push(pics[pi++]);
+        else order.push(vids[vi++]);
+      }
+      for (let k = 0; k < rows * perRow; k++) make(order[k % order.length], true, Math.floor(k / perRow), k % perRow);
       for (let k = 0; k < 18; k++) make(k % GAL.length, false, 0, k);   // extra debris that only swirls, then leaves
     }
 
