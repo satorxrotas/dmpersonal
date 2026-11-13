@@ -166,6 +166,7 @@
     /* bust sits on top of the type (it overlaps the wordmark in the mockup)
        but lets clicks fall through to the links underneath */
     .bust { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    .bust-space { display: none; }
 
     /* ---- Work strip: bottom right, bleeds off the edge, runs left → right ---- */
     .strip {
@@ -216,8 +217,10 @@
       }
       .action { order: 2; flex: none; font-size: clamp(28px, 9vw, 52px); }
       .reel { margin-top: clamp(10px, 3vh, 32px); }
-      .bust { position: relative; inset: auto; order: 3; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px;
-              pointer-events: auto; touch-action: none; }   /* drags on the ring stay drags */
+      /* the 3D canvas covers the whole screen (bust + ring can overlap the type);
+         .bust-space holds its place in the column and the camera centres on it */
+      .bust-space { display: block; order: 3; flex: 1 1 0; min-height: 0; align-self: stretch; }
+      .bust { position: absolute; inset: -14px -14px calc(-1 * max(22px, env(safe-area-inset-bottom))); margin: 0; z-index: 2; pointer-events: auto; touch-action: none; }
       .studio { order: 4; }
       .about { order: 5; font-size: clamp(18px, 5.6vw, 32px); margin-top: clamp(14px, 3.5vh, 36px); }
       .social { order: 6; margin-top: clamp(8px, 1.6vh, 16px); font-size: 10px; }
@@ -325,6 +328,7 @@
         <a href="#" target="_blank" rel="noopener">INSTAGRAM</a><span aria-hidden="true">|</span><a href="#" target="_blank" rel="noopener">LINKEDIN</a>
       </nav>
 
+      <div class="bust-space" aria-hidden="true"></div>
       <div class="bust"><canvas id="stage"></canvas></div>
     </div>
 
@@ -972,7 +976,14 @@
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
       if (!document.body.classList.contains('gallery-open') || !camZ)
-        camZ = mobileMQ.matches ? Math.max(12.8, 9.5 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
+        camZ = mobileMQ.matches ? Math.max(15.5, 8 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
+      // phones: centre the picture on the gap between REEL and CAMPAIGNS rather than the screen
+      const space = document.querySelector('.bust-space');
+      if (mobileMQ.matches && space.offsetHeight) {
+        const r = space.getBoundingClientRect(), b = bustBox.getBoundingClientRect();
+        const dy = (r.top + r.height / 2) - (b.top + h / 2);
+        camera.setViewOffset(w, h, 0, -dy, w, h);
+      } else camera.clearViewOffset();
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
       rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
@@ -980,7 +991,7 @@
       post.material.uniforms.res.value.set(w * dpr, h * dpr);
       post.material.uniforms.dpr.value = dpr;
     }
-    new ResizeObserver(resize).observe(bustBox); resize();
+    { const ro = new ResizeObserver(resize); ro.observe(bustBox); ro.observe(document.querySelector('.bust-space')); } resize();
 
 
 
@@ -1046,7 +1057,7 @@
 
     const PHONE = mobileMQ.matches;
     const RING = PHONE
-      ? { R: 3.5, H: 1.1, gap: 0.2, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
+      ? { R: 5.0, H: 1.2, gap: 0.12, rowGap: 1.4, y: -0.75, lift: 1.4, lookY: -0.3, twoRows: true, rowsN: 1, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
       : { R: 5.2, H: 1.4, gap: 0.12, rowGap: 1.7, y: -0.55, lift: 1.5, lookY: 0.6, twoRows: true, rowsN: 1, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 };
     const G = { state: 'off', p: 0, anim: null, out: 0, outA: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
     G.group.visible = false;
