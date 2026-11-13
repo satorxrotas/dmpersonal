@@ -1,5 +1,6 @@
 // Images for the bust gallery (tornado -> ring -> viewer): gallery/full/<id>.jpg (<=1600px) and
-// gallery/thumb/<id>.jpg (<=560px). Order here = order in the ring and in the viewer.
+// gallery/thumb/<id>.jpg (<=560px); video:true items also have gallery/video/<id>.mp4 (viewer, with sound)
+// and <id>-loop.mp4 (muted ring preview). Order here = order in the ring and in the viewer.
 window.DM_GALLERY = [
   {"id": "g001", "w": 1600, "h": 1061},
   {"id": "g002", "w": 1600, "h": 1070},
@@ -29,5 +30,6 @@ window.DM_GALLERY = [
   {"id": "g026", "w": 1000, "h": 1496},
   {"id": "g027", "w": 1080, "h": 1350},
   {"id": "g028", "w": 1067, "h": 1600},
-  {"id": "g029", "w": 1067, "h": 1600}
+  {"id": "g029", "w": 1067, "h": 1600},
+  {"id": "g030", "w": 900, "h": 1600, "video": true}
 ];

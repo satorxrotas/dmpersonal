@@ -977,6 +977,27 @@
       if (!list[i]) { const t = texLoader.load(`gallery/${dir}/${GAL[i].id}.jpg`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; list[i] = t; }
       return list[i];
     }
+    // videos: the ring plays a small muted loop on the card (poster until it starts)
+    const loopVids = [];
+    function makeVideo(src, muted) {
+      const v = document.createElement('video');
+      Object.assign(v, { src, muted, loop: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous' });
+      v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+      if (muted) v.setAttribute('muted', '');
+      return v;
+    }
+    function videoTex(v) { const t = new THREE.VideoTexture(v); t.colorSpace = THREE.SRGBColorSpace; return t; }
+    function attachLoop(mat, i) {
+      let L = loopVids[i];
+      if (!L) {
+        const v = makeVideo(`gallery/video/${GAL[i].id}-loop.mp4`, true);
+        L = loopVids[i] = { v, tex: videoTex(v), mats: [] };
+        v.addEventListener('playing', () => L.mats.forEach(m => { m.map = L.tex; m.needsUpdate = true; }), { once: true });
+        v.play().catch(() => {});
+      }
+      L.mats.push(mat);
+    }
+    const ringVideos = (play) => loopVids.forEach(L => L && (play ? L.v.play().catch(() => {}) : L.v.pause()));
 
     const PHONE = mobileMQ.matches;
     const RING = PHONE
@@ -1000,6 +1021,7 @@
         const key = w.toFixed(3);
         const geo = geos[key] || (geos[key] = curvedPlane(w, cardH, RING.R, 'y'));
         const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, img, 'thumb'), side: THREE.DoubleSide, transparent: true, opacity: 0, toneMapped: false, depthWrite: true });
+        if (GAL[img].video) attachLoop(mat, img);
         const mesh = new THREE.Mesh(geo, mat);
         const pivot = new THREE.Group(); pivot.add(mesh); G.group.add(pivot);
         const yT = rnd(-6.5, 7.5);                                     // tornado: spread up the funnel…
@@ -1208,7 +1230,21 @@
       }
       function sharpen(i) {                                 // swap the thumbnail for the full image
         const it = V.items[i]; if (!it || it.full) return; it.full = true;
-        texLoader.load(`gallery/full/${GAL[i].id}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; it.mat.map = t; it.mat.needsUpdate = true; });
+        texLoader.load(`gallery/full/${GAL[i].id}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; if (!it.playing) { it.mat.map = t; it.mat.needsUpdate = true; } });
+        if (GAL[i].video) {                                  // the full video, with sound; plays when it's at the front
+          it.video = makeVideo(`gallery/video/${GAL[i].id}.mp4`, false);
+          it.vtex = videoTex(it.video);
+          it.video.addEventListener('playing', () => { it.playing = true; it.mat.map = it.vtex; it.mat.needsUpdate = true; tick(); });
+        }
+      }
+      // keep exactly the front video playing (with sound if the browser allows, else muted until tapped)
+      function syncVideos(fi) {
+        V.items.forEach((it, i) => {
+          if (!it.video) return;
+          const front = V.open && i === fi && Math.abs(V.f - V.target) < 0.05;
+          if (front && it.video.paused && !it.userPaused) it.video.play().catch(() => { it.video.muted = true; it.video.play().catch(() => {}); });
+          if (!front && !it.video.paused) { it.video.pause(); it.userPaused = false; }
+        });
       }
       function open(i, onClose) {
         build();
@@ -1216,6 +1252,7 @@
         V.open = true; V.f = V.target = i; V.last = performance.now();
         el.classList.add('open');
         document.body.classList.add('lb-open');               // the bust scene rests underneath
+        ringVideos(false);
         [i, i + 1, i - 1].forEach(k => sharpen(((k % n()) + n()) % n()));
         tick();
       }
@@ -1242,7 +1279,10 @@
         const fi = ((Math.round(V.f) % n()) + n()) % n();
         sharpen(fi); sharpen((fi + 1) % n()); sharpen((fi - 1 + n()) % n());
         const it = V.items[fi];
-        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0');
+        syncVideos(fi);
+        const vid = it.video && !it.video.paused;
+        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0')
+          + (it.video ? (it.video.paused ? '  ·  TAP TO PLAY' : it.video.muted ? '  ·  TAP FOR SOUND' : '') : '');
         const mobile = L.w <= 760;
         const x = mobile ? L.w / 2 - countEl.offsetWidth / 2 : L.w / 2 + (it.w * L.px) / 2 + 20;
         const y = mobile ? L.h / 2 + (it.h * L.px) / 2 + 18 : L.h / 2 - 6;
@@ -1252,10 +1292,11 @@
         if (!V.open && V.g <= 0) {
           el.classList.remove('open');
           document.body.classList.remove('lb-open');
+          ringVideos(true);
           const cb = V.onClose; V.onClose = null; cb && cb();
           return;
         }
-        if (V.open && (V.g < 1 || V.f !== V.target || V.drag)) tick();
+        if (V.open && (V.g < 1 || V.f !== V.target || V.drag || vid)) tick();   // (videos need every frame)
         else if (!V.open) tick();
       }
       // input
@@ -1292,7 +1333,19 @@
         if (D.moved) { settle(Math.max(-1.5, Math.min(1.5, D.v * 220 / clipPx()))); return; }
         const i = hitAt(e);
         if (i === null) close();                               // click on the dark background
-        else { const d = wrap(i - V.f); if (Math.abs(d) > 0.5) step(Math.round(d)); }
+        else {
+          const d = wrap(i - V.f);
+          if (Math.abs(d) > 0.5) step(Math.round(d));
+          else {                                               // tap the front video: sound on → pause → play
+            const v = V.items[i].video;
+            if (v) {
+              if (v.paused) { V.items[i].userPaused = false; v.play().catch(() => {}); }
+              else if (v.muted) v.muted = false;
+              else { v.pause(); V.items[i].userPaused = true; }
+              tick();
+            }
+          }
+        }
       });
       cv.addEventListener('pointercancel', () => { V.drag = null; settle(); });
       el.querySelector('.gv-close').addEventListener('click', close);
