@@ -71,27 +71,52 @@
     /* desktop: DAVID and MAXWELL side by side at the same letter height, filling the width */
     .wordmark .wm-line { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
     .wordmark .wm-line svg { height: calc(8.9 * var(--u)); width: auto; }
+    /* REEL / CAMPAIGNS under the logo, ABOUT bottom left, socials bottom right, tagline centred */
     .action {
-      position: absolute; top: calc(43 * var(--u));
+      position: absolute; z-index: 3;
       font-family: var(--helv); font-weight: 700;
-      font-size: calc(6.1 * var(--u)); line-height: .8; letter-spacing: -0.01em;
-      display: inline-flex; align-items: flex-end; gap: .14em;
+      font-size: calc(4.1 * var(--u)); line-height: .8; letter-spacing: -0.01em;
+      background: none; border: 0; padding: 0; color: inherit; cursor: pointer;
       transition: opacity .2s;
     }
     .action:hover { opacity: .6; }
-    .reel { left: calc(4.2 * var(--u)); }
-    .studio { left: calc(59.4 * var(--u)); }
-    .studio svg { display: none; }   /* no arrow in the desktop layout */
-    .studio svg { width: .42em; height: .42em; flex: none; margin-bottom: .03em; }
-    .bio, .clients {
-      position: absolute; top: calc(48.2 * var(--u)); width: calc(27 * var(--u));
-      font-size: max(10px, calc(.74 * var(--u))); font-weight: 700; line-height: 1.3;
+    .reel   { left: calc(1.1 * var(--u)); top: calc(13 * var(--u)); }
+    .studio { right: calc(1.1 * var(--u)); top: calc(13 * var(--u)); }
+    .about  { left: calc(1.1 * var(--u)); bottom: calc(1.4 * var(--u)); }
+    .tagline {
+      position: absolute; z-index: 3; left: 0; right: 0; top: calc(13.4 * var(--u));
+      font-size: max(11px, calc(.95 * var(--u))); font-weight: 700; line-height: 1.3; text-align: center;
     }
-    .bio { left: calc(4.2 * var(--u)); }   /* lines up with REEL */
-    /* stacking: logo < bust < REEL / CAMPAIGNS + copy (as in the mockup) */
-    .action, .bio, .clients { z-index: 3; }
-    .clients { left: calc(59.4 * var(--u)); }   /* lines up with CAMPAIGNS */
-    .clients p + p { margin-top: 1.3em; }
+    .social {
+      position: absolute; z-index: 3; right: calc(1.1 * var(--u)); bottom: calc(1.6 * var(--u));
+      font-size: max(10px, calc(.68 * var(--u))); font-weight: 700; letter-spacing: .02em;
+      display: flex; gap: .45em;
+    }
+    .social a:hover { opacity: .6; }
+
+    /* ---- About lightbox ---- */
+    .about-lb {
+      position: fixed; inset: 0; z-index: 25; background: rgba(0, 0, 0, .94);
+      display: grid; place-items: center; padding: 64px 24px;
+      opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .about-lb.open { opacity: 1; visibility: visible; transition: opacity .45s ease; }
+    .about-body {
+      max-width: min(820px, 92vw); color: var(--red);
+      font-size: clamp(17px, 1.75vw, 30px); font-weight: 700; line-height: 1.3;
+      transform: translateY(14px); transition: transform .6s cubic-bezier(.16, 1, .3, 1);
+    }
+    .about-lb.open .about-body { transform: none; }
+    .about-body p + p { margin-top: 1.1em; }
+    .about-close {
+      position: absolute; top: max(20px, calc(2.2 * var(--u))); right: max(16px, calc(2.2 * var(--u)));
+      background: none; border: 0; padding: 6px; line-height: 0; cursor: pointer; color: var(--red);
+      transition: opacity .2s;
+    }
+    .about-close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
+    .about-close:hover { opacity: .6; }
+    .about-close:focus:not(:focus-visible) { outline: none; }
+
     /* ---- Bust gallery (click the bust): page copy fades, the bust stays, images swirl into a ring ---- */
     .wordmark, .bio, .clients { transition: opacity .6s ease; }
     .action { transition: opacity .6s ease; }
@@ -172,7 +197,6 @@
     }
     #stage { width: 100%; height: 100%; display: block; }
 
-    .tagline { display: none; }
 
     /* ---- Phones: everything on one screen, no scrolling, any aspect ratio ----
        logo · two short lines · bust + ring (takes whatever height is left) · REEL / CAMPAIGNS */
@@ -180,23 +204,22 @@
       html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
       .page { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding: 14px 14px max(22px, env(safe-area-inset-bottom)); }
       .stage { width: auto; height: 100%; display: flex; flex-direction: column; align-items: center; }
-      .wordmark, .action, .bio, .clients, .tagline { position: static; width: auto; }
+      .wordmark, .action, .tagline, .social { position: static; width: auto; }
       .wordmark { align-self: stretch; flex: none; }
       .wordmark .wm-stack { display: block; }
       .wordmark .wm-line { display: none; }
-      .studio svg { display: block; }
       .tagline {
-        display: block; order: 1; flex: none; margin-top: clamp(14px, 4.5vh, 48px);
-        font-size: clamp(10px, 2.9vw, 13px); font-weight: 700; line-height: 1.25; text-align: center;
+        order: 1; flex: none; margin-top: clamp(12px, 3.5vh, 40px);
+        font-size: clamp(10px, 2.9vw, 13px);
       }
-      .bust { position: relative; inset: auto; order: 2; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px;
+      .action { order: 2; flex: none; font-size: clamp(28px, 9vw, 52px); }
+      .reel { margin-top: clamp(10px, 3vh, 32px); }
+      .bust { position: relative; inset: auto; order: 3; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 0 -14px;
               pointer-events: auto; touch-action: none; }   /* drags on the ring stay drags */
-      .reel, .studio {
-        order: 3; flex: none; align-self: center; justify-content: center;
-        font-size: clamp(28px, 9vw, 52px); margin-top: clamp(6px, 1.6vh, 16px);
-      }
       .studio { order: 4; }
-      .bio, .clients { display: none; }
+      .about { order: 5; font-size: clamp(18px, 5.6vw, 32px); margin-top: clamp(14px, 3.5vh, 36px); }
+      .social { order: 6; margin-top: clamp(8px, 1.6vh, 16px); font-size: 10px; }
+      .about-body { font-size: 17px; }
     }
 
     /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
@@ -289,16 +312,16 @@
     <div class="stage">
       <h1 class="wordmark" data-in="left" style="--d:.15s" aria-label="David Maxwell"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><path id="dm-logo" d="M126.52,230.37c39.02-7.14,73.81-32.02,88.9-69.11,1.69.05-.19,17.72,2.41,22.13,1.4,2.38,8.57,4.98,10.77,7.95,2.23,3.03,3.58,9.51,6.29,13.66,15.09,23.16,38.5,36.49,67.01,34.38,5.45-.4,11.7-3.28,16.74-3.34,4.87-.06,9.62,2.95,14.55,1.43,4.2-1.29,5.63-8.04,8.37-10.81,4.16-4.19,14.61-9.19,20.19-13.9,4.02-3.39,17.61-18.96,20.35-19.66,2.91-.74,13.41,4.01,18.14,4.57,21.84,2.58,48.1-.61,59.17-21.96,5.83-11.24,9.38-24.56,2.8-35.83-11.05.65-22.51-3.78-33.5-1.51-15.84,3.27-29.81,24.04-41.11,34.54,5.15-11.34,12.24-22.22,14.21-34.83,1.38-8.86-.92-22.08,1.09-28.84,1.95-6.55,18.99-15.85,22.19-32.69,6.63-34.94-16.08-58.98-50-61.56-8.24-.63-15.15,1.75-21.66,1.69-5.59-.05-9-5.22-16.22-3.06-4.75,1.42-7.87,10.31-11.18,13.8-3.69,3.91-10.18,6.79-14.21,10.74-33.69,33.01-19.8,89.44,31.35,81.58,7.86-8.48-.82-18.75-10.45-14.17-5.64,2.68-2.34,8.43-13.15,3.13-30.78-15.08-13.98-62.91,11.9-74.18,4.57-1.99,11.01-1.37,15.04-3.32,4.24-2.05,1.98-5.26,11.97-6.25,15.73-1.55,37.01-.09,47.39,13.26l-46.57,15.03,5.01,18.26c14.43-4.16,6.47.79,3.51,7.67-5.59,12.96-10.39,26.01-13.36,39.85l-83.35,29.79-1.41,2.98,3.1,9.47c-11.23-2.69-1.04,14.16-1.67,14.95l-8.32,1.7,1.68,6.62-8.16,1.83,4.86,21.47c8.41-4.89,10.26,1.63,10.91,1.66,11.6.6,29.44,1.05,40.58-2.55,22.36-7.23,34.17-29.03,41.69-49.78,6.02-16.61,2.32-31.21,24.08-35.78,1.22,6.08,1.17,12.97.88,19.17-.24,5.19-1.36,19.95-2.66,23.95-6.54,20.21-21.46,4.35-28.97,19.16,1.19,8.42,6.78,8.37,13.96,7.39,2-.27,13.14-5.79,10.94-.71-1.53,3.53-32.13,28.23-36.09,28.82-2.82.42-5.22-1.65-8.83-.7-4.68,1.23-10.23,8.57-14.87,10.22-26.28,9.32-68.79-9.63-75.48-37.82-2.1-8.82,2.33-11.14,2.35-18.78.03-7.58-4.01-20.01-2.81-27.46,2.07-12.91,22.13-29.15,34.27-32.4,10.25-2.74,4.33,2.08,10.01,6.65,12.1,9.74,23.4-13.44,7.12-17.08-24.25-5.42-57.79,22.05-62.26,45.95l-6.41.23C240.22,78.54,192.66,7.31,120.6,0H0v232.77h112.28c1.75,0,11.39-1.88,14.24-2.4ZM397.51,175.37c7.62-9.07,25.94-27.65,37.63-28.92,12.49-1.35,7.94,2.11,13.02,8.34,1.49,1.82,5.14,2.72,5.59,3.5,3.88,6.59-5.13,18.93-10.46,22.93-14.7,11.04-35.65,8.43-52.38,4.99-1.51-1.41,5.32-9.31,6.6-10.84ZM412.51,44.9c9.24,19.25,4.14,40.85-13.27,53.2-2.94-18.82.89-38.29,13.27-53.2ZM319.94,192.59c-25.04,16.91-38.12-8.75-25.83-30.8,11.41-20.46,36.81-23.34,56.85-30.44-4.66,20.11-13.08,49.12-31.03,61.24ZM376.89,111.42l-10.92,4.97c-2.11-2.75,9.11-35.34,14.94-38.24l-4.02,33.27ZM67.37,174.58l-2.5-2.49V58.19h44.08c5.92,0,22.45,8.25,27.46,12.45,36.96,31.05,17.84,103.93-34.12,103.93h-34.93ZM949,41.55c-15.89-18.95-53.14-41.55-78.2-41.55h-120.6v232.77h112.28c94.54,0,146-120.26,86.52-191.22ZM817.57,174.58l-2.5-2.49V58.19h44.08c3.03,0,16.32,5.13,19.67,6.94,45.68,24.72,30.94,109.44-26.32,109.44h-34.93ZM503.12,232.88L414.19,0h73.19l49.92,159.61L591.34,0h69.03l-86.69,232.57-70.57.31ZM442.47,271.01h-44.91l-21.6,38.24-20.81-38.24h-44.08l42.67,67.33-42.69,65.67-53.99-131.39c-1.3-1.67-3.11-1.49-4.95-1.7-6.31-.75-31.05-1.01-36.71.07-1.96.37-3.21.71-3.83,2.82l-53.53,138.53h41.59l7.67-25.04,53.65.34,9.64,24.78c9.34.08,18.73-.31,28.08-.15,6.98.11,12.85.11,19.83,0,10.46-.17,20.96.54,31.4-.19,2.76-.95,20.3-35.21,24-40.8.78-1.17-.5-2.88,2.86-2.18l24.14,43.24h46.58l-47.97-74.29,42.98-67.04ZM217.91,355.81l14.99-43.23c2.36.19,2.62,2.44,3.37,4.09,5.58,12.18,8.19,26.65,13.24,39.13h-31.6ZM115.61,271.01h39.09v141.32h-38.26v-76.48l-22.48,44.87c-3.13,5.27-26.98,4.35-29.94,1.71-7.71-6.86-13.78-38.71-24.1-46.58v76.48H1.66v-141.32h40.75l36.6,71.51,36.6-71.51ZM730.24,232.77h-66.54V0h66.54v232.77ZM634.51,377.33c-41.18,6.99-52.75-49.62-22.26-70.46,18.41-12.58,22.36,14.73,7.47,12.42-4.65-.72-5.34-7.32-10.4-2.87-12.18,10.72-11.64,38.37.59,49.09,33.43,29.3,66.68-42.39,38.9-70.47-13.85-14-38.73-7.61-51.62,5.07-3.02,2.97-19.97,27.63-19.97,29.91v52.37h-28.28v14.97c-14.82-3.22-13.62,6.2-20.73,13.34-7.07,7.1-11.74,2.23-20.86,3.27v-31.59h6.67s-.03-9.99-.03-9.99l6.68.02-.03-13.32,6.68.02c-.12-4.14.15-8.35-.01-12.5-.08-2.01,1.25-6.18-1.64-5.78-4.85,12.39-12.08,25.21-19.29,36.43-4.93,7.66-24.47,36.4-31.81,38.03-4.44.99-9.28.11-13.79.35v-26.6l10.56-.26,2.75-2.23v-50.71h6.65v-33.25h-23.29l-.74-8.4c-14.45-6.75-17.87,15.23-15.54,25.51,1.48,6.53,9.85,10.62,9.62,17.8-29.05-9.48-21.99-55.26,6.49-60.04l.17-6.47c16.29-.98,26.38-1.44,37.44,11.64l1.73-5.1,20.72.12v23.28h-18.31s1.67,61.53,1.67,61.53c2.87-.25,5.96,1.12,8.48-1.08,2.09-1.83,9.85-18.69,11.78-22.74,9.3-19.54,14.22-41.24,31.3-55.99-2.96,9.51-7.47,17.11-8.36,27.38-1.57,18.22,5.59,36.47,1.73,54.08,7.27,1.44,8.76-3.64,11.92-8.86,17.64-29.2,29.82-81.68,75.45-75.97,46.96,5.88,36.14,92.18,1.53,98.05ZM705.29,379.08h59.88v33.25h-98.14v-141.32h94.81v33.25h-56.56v19.95h49.9v31.59h-49.9v23.28ZM916.54,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41ZM815.07,377.42h53.23v34.92h-94.81v-141.32h41.59v106.41Z"/></defs></svg><svg class="wm-stack" viewBox="0 0 974.42 415.79" aria-hidden="true" focusable="false"><use href="#dm-logo"/></svg><span class="wm-line" aria-hidden="true"><svg viewBox="0 -1 974.42 235" focusable="false"><use href="#dm-logo"/></svg><svg viewBox="0 269 974.42 148" focusable="false"><use href="#dm-logo" transform="translate(0 0)"/></svg></span></h1>
 
-      <p class="tagline" data-in="left" style="--d:.35s">Director / Creative Director / Designer<br><br>Paris → Los Angeles</p>
+      <p class="tagline" data-in="left" style="--d:.35s">Filmmaker / Creative Director / Designer<br><br>Paris → Los Angeles</p>
 
       <a class="action reel" data-in="left" style="--d:.55s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL</a>
-      <p class="bio" data-in="left" style="--d:.7s">Director and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently working at Amazon and previously working for TikTok. His work spans film, campaigns, and visual storytelling.</p>
 
-      <a class="action studio" data-in="right" style="--d:.65s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">CAMPAIGNS<svg viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg></a>
-      <div class="clients" data-in="right" style="--d:.8s">
-        <p>Selected Clients: Warner, Disney, Airbnb, Nike, DreamWorks, Red Bull and others.</p>
-        <p>Founder of DRGNFLEYE, a multimedia studio.</p>
-      </div>
+      <a class="action studio" data-in="right" style="--d:.65s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">CAMPAIGNS</a>
+
+      <button class="action about" type="button" data-in="left" style="--d:.8s" aria-haspopup="dialog" aria-controls="about">ABOUT</button>
+      <nav class="social" data-in="right" style="--d:.9s" aria-label="Social">
+        <a href="#" target="_blank" rel="noopener">INSTAGRAM</a><span aria-hidden="true">|</span><a href="#" target="_blank" rel="noopener">LINKEDIN</a>
+      </nav>
 
       <div class="bust"><canvas id="stage"></canvas></div>
     </div>
@@ -313,6 +336,15 @@
       <div class="track"></div>
     </section>
   </main>
+
+  <div class="about-lb" id="about" role="dialog" aria-modal="true" aria-label="About">
+    <button class="about-close" type="button" aria-label="Close about"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <div class="about-body">
+      <p>Director and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently working at Amazon and previously working for TikTok. His work spans film, campaigns, and visual storytelling.</p>
+      <p>Selected Clients: Warner, Disney, Airbnb, Nike, DreamWorks, Red Bull and others.</p>
+      <p>Founder of DRGNFLEYE, a multimedia studio.</p>
+    </div>
+  </div>
 
   <div class="gv" id="gv" role="dialog" aria-modal="true" aria-label="Image viewer">
     <canvas></canvas>
@@ -436,6 +468,17 @@
         Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE campaigns', 'site');
         spinUp(spin.querySelector('.lockup-logo'));
       });
+    })();
+
+    // ABOUT
+    (() => {
+      const btn = document.querySelector('.about'), box = document.getElementById('about');
+      const open = () => { box.classList.add('open'); document.body.classList.add('lb-open'); box.querySelector('.about-close').focus({ preventScroll: true }); };
+      const close = () => { if (!box.classList.contains('open')) return; box.classList.remove('open'); document.body.classList.remove('lb-open'); btn.focus({ preventScroll: true }); };
+      btn.addEventListener('click', open);
+      box.querySelector('.about-close').addEventListener('click', close);
+      box.addEventListener('click', (e) => { if (!e.target.closest('.about-body, .about-close')) close(); });
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
     })();
 
     // REEL
@@ -927,7 +970,7 @@
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
       if (!document.body.classList.contains('gallery-open') || !camZ)
-        camZ = mobileMQ.matches ? Math.max(10.5, 9.5 / camera.aspect) : Math.max(16, 12.5 / camera.aspect);
+        camZ = mobileMQ.matches ? Math.max(12.8, 9.5 / camera.aspect) : Math.max(15, 12 / camera.aspect);
       camera.updateProjectionMatrix();
       const dpr = renderer.getPixelRatio();
       rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
@@ -1002,7 +1045,7 @@
     const PHONE = mobileMQ.matches;
     const RING = PHONE
       ? { R: 3.5, H: 1.1, gap: 0.2, rowGap: 1.4, y: -0.75, lift: 1.7, lookY: -0.45, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
-      : { R: 4.7, H: 1.3, gap: 0.4, rowGap: 1.7, y: -0.55, lift: 1.9, lookY: -0.5, oneRow: true, spinSpeed: 0.09, TORNADO_MS: 2800 };
+      : { R: 4.3, H: 1.0, gap: 0.2, rowGap: 1.7, y: -0.75, lift: 1.5, lookY: 0.15, twoRows: true, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 };
     const G = { state: 'off', p: 0, anim: null, out: 0, outA: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
     G.group.visible = false;
     scene.add(G.group);
