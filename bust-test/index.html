@@ -126,12 +126,12 @@
     }
     .gv-close {
       position: absolute; top: 1.1rem; right: 1.1rem; width: 2.6rem; height: 2.6rem;
-      border-radius: 50%; border: 1px solid rgba(240, 237, 230, .7); background: rgba(10, 10, 10, .5);
+      border: 0; background: none; padding: 0;
       color: #f0ede6; display: grid; place-items: center; cursor: pointer;
-      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .7)); transition: background .2s, color .2s, border-color .2s;
+      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .7)); transition: color .2s;
     }
-    .gv-close svg { width: 12px; height: 12px; }
-    .gv-close:hover { background: var(--red); border-color: var(--red); color: #0a0a0a; }
+    .gv-close svg { width: 18px; height: 18px; }
+    .gv-close:hover { color: var(--red); }
 
     /* archived for this direction (not in the mockup) — remove these lines to bring them back */
     .foot, .strip { display: none !important; }
