@@ -237,13 +237,13 @@
         order: 1; flex: none; margin-top: clamp(12px, 3.5vh, 40px);
         font-size: clamp(10px, 2.9vw, 13px);
       }
-      .action { order: 2; flex: none; font-size: clamp(28px, 9vw, 52px); }
-      .reel { margin-top: clamp(10px, 3vh, 32px); }
+      .action { order: 4; flex: none; font-size: clamp(28px, 9vw, 52px); }
+      .reel { margin-top: clamp(4px, 1vh, 12px); }
       /* the 3D canvas covers the whole screen (bust + ring can overlap the type);
          .bust-space holds its place in the column and the camera centres on it */
-      .bust-space { display: block; order: 3; flex: 1 1 0; min-height: 0; align-self: stretch; }
+      .bust-space { display: block; order: 2; flex: 1 1 0; min-height: 0; align-self: stretch; }
       .bust { position: absolute; inset: -14px -14px calc(-1 * max(22px, env(safe-area-inset-bottom))); margin: 0; z-index: 2; pointer-events: auto; touch-action: none; }
-      .studio { order: 4; }
+      .studio { order: 4; margin-top: clamp(10px, 2vh, 20px); }
       .about { order: 5; font-size: clamp(18px, 5.6vw, 32px); margin-top: clamp(14px, 3.5vh, 36px); }
       .social { order: 6; margin-top: clamp(8px, 1.6vh, 16px); gap: 14px; }
       .social svg { width: 22px; }
@@ -1038,7 +1038,7 @@
       camera.aspect = w / h;
       // close enough to fill the height, but back off if the width would clip
       if (!document.body.classList.contains('gallery-open') || !camZ)
-        camZ = mobileMQ.matches ? Math.max(15.5, 8 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
+        camZ = mobileMQ.matches ? Math.max(19, 9 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
       // phones: centre the picture on the gap between REEL and CAMPAIGNS rather than the screen
       const space = document.querySelector('.bust-space');
       if (mobileMQ.matches && space.offsetHeight) {
