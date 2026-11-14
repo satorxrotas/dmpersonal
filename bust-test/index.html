@@ -95,6 +95,7 @@
     .social a:hover { opacity: .6; }
     .social a { display: block; line-height: 0; }
     .social svg { width: clamp(20px, 1.7vw, 30px); height: auto; display: block; }
+    .social .mail-btn svg { width: clamp(22px, 1.85vw, 32px); }
     .social { gap: clamp(10px, .9vw, 16px); }
 
     /* ---- About lightbox ---- */
@@ -121,6 +122,24 @@
     .about-close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
     .about-close:hover { opacity: .6; }
     .about-close:focus:not(:focus-visible) { outline: none; }
+    .mail-btn { background: none; border: 0; padding: 0; color: inherit; cursor: pointer; line-height: 0; }
+    .mail-btn:hover { opacity: .6; }
+    /* contact form, same small bold red type as About */
+    .contact-form { width: min(30em, 86vw); display: flex; flex-direction: column; gap: 1.6em; }
+    .contact-form label { display: flex; flex-direction: column; gap: .5em; letter-spacing: .02em; }
+    .contact-form input, .contact-form textarea {
+      font: inherit; color: var(--red); background: transparent; text-align: center;
+      border: 0; border-bottom: 2px solid var(--red); padding: .5em .2em; border-radius: 0; resize: none;
+      font-size: max(16px, 1em);   /* 16px+ stops iPhones zooming in on focus */
+    }
+    .contact-form textarea { text-align: left; border: 2px solid var(--red); padding: .7em; }
+    .contact-form input:focus, .contact-form textarea:focus { outline: none; background: rgba(238, 65, 55, .08); }
+    .contact-form .send {
+      align-self: center; font: inherit; font-size: 1.4em; color: #000; background: var(--red);
+      border: 0; padding: .55em 1.6em; cursor: pointer; letter-spacing: .06em; transition: opacity .2s;
+    }
+    .contact-form .send:hover { opacity: .75; }
+    .form-note { min-height: 1.3em; }
 
     /* ---- Bust gallery (click the bust): page copy fades, the bust stays, images swirl into a ring ---- */
     .wordmark, .bio, .clients { transition: opacity .6s ease; }
@@ -331,6 +350,7 @@
       <nav class="social" data-in="right" style="--d:.9s" aria-label="Social">
         <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg></a>
         <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor"/><g fill="#000"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></svg></a>
+        <button class="mail-btn" type="button" aria-label="Email" aria-haspopup="dialog" aria-controls="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4" width="21" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button>
       </nav>
 
       <div class="bust-space" aria-hidden="true"></div>
@@ -347,6 +367,17 @@
       <div class="track"></div>
     </section>
   </main>
+
+  <div class="about-lb" id="contact" role="dialog" aria-modal="true" aria-label="Contact">
+    <button class="about-close" type="button" aria-label="Close contact"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <form class="about-body contact-form" novalidate>
+      <label>Name<input name="name" type="text" autocomplete="name" required></label>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Message<textarea name="message" rows="5" required></textarea></label>
+      <button class="send" type="submit">SEND</button>
+      <p class="form-note" aria-live="polite"></p>
+    </form>
+  </div>
 
   <div class="about-lb" id="about" role="dialog" aria-modal="true" aria-label="About">
     <button class="about-close" type="button" aria-label="Close about"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
@@ -481,15 +512,41 @@
       });
     })();
 
-    // ABOUT
-    (() => {
-      const btn = document.querySelector('.about'), box = document.getElementById('about');
-      const open = () => { box.classList.add('open'); document.body.classList.add('lb-open'); box.querySelector('.about-close').focus({ preventScroll: true }); };
+    // ABOUT + EMAIL lightboxes
+    function textBox(btn, box, focusSel) {
+      const open = () => { box.classList.add('open'); document.body.classList.add('lb-open'); (box.querySelector(focusSel) || box.querySelector('.about-close')).focus({ preventScroll: true }); };
       const close = () => { if (!box.classList.contains('open')) return; box.classList.remove('open'); document.body.classList.remove('lb-open'); btn.focus({ preventScroll: true }); };
       btn.addEventListener('click', open);
       box.querySelector('.about-close').addEventListener('click', close);
       box.addEventListener('click', (e) => { if (!e.target.closest('.about-body, .about-close')) close(); });
       addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    }
+    textBox(document.querySelector('.about'), document.getElementById('about'));
+    textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
+
+    // Contact form. No server yet, so SEND opens the visitor's mail app with everything filled in.
+    // (To send straight from the page instead, point FORM_ENDPOINT at a form service such as Formspree.)
+    (() => {
+      const CONTACT_EMAIL = 'hello@example.com';   // TODO: David's address
+      const FORM_ENDPOINT = '';                    // e.g. 'https://formspree.io/f/xxxx'
+      const form = document.querySelector('.contact-form'), note = form.querySelector('.form-note');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const d = Object.fromEntries(new FormData(form));
+        if (!d.name.trim() || !/^\S+@\S+\.\S+$/.test(d.email) || !d.message.trim()) { note.textContent = 'Please fill in your name, a valid email and a message.'; return; }
+        if (FORM_ENDPOINT) {
+          note.textContent = 'Sending…';
+          try {
+            const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+            if (!r.ok) throw 0;
+            form.reset(); note.textContent = 'Thank you — message sent.';
+          } catch { note.textContent = 'Something went wrong. Please try again.'; }
+          return;
+        }
+        const body = `${d.message}\n\n— ${d.name} (${d.email})`;
+        location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Website enquiry from ' + d.name)}&body=${encodeURIComponent(body)}`;
+        note.textContent = 'Opening your email app…';
+      });
     })();
 
     // REEL
