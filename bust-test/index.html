@@ -90,9 +90,12 @@
     .social {
       position: absolute; z-index: 3; right: calc(1.1 * var(--u)); bottom: calc(1.6 * var(--u));
       font-size: max(10px, calc(.68 * var(--u))); font-weight: 700; letter-spacing: .02em;
-      display: flex; gap: .45em;
+      display: flex; gap: .45em; align-items: center;
     }
     .social a:hover { opacity: .6; }
+    .social a { display: block; line-height: 0; }
+    .social svg { width: clamp(20px, 1.7vw, 30px); height: auto; display: block; }
+    .social { gap: clamp(10px, .9vw, 16px); }
 
     /* ---- About lightbox ---- */
     .about-lb {
@@ -102,12 +105,12 @@
     }
     .about-lb.open { opacity: 1; visibility: visible; transition: opacity .45s ease; }
     .about-body {
-      max-width: min(820px, 92vw); color: var(--red);
-      font-size: clamp(17px, 1.75vw, 30px); font-weight: 700; line-height: 1.3;
+      max-width: min(34em, 88vw); color: var(--red); text-align: center;
+      font-size: max(11px, calc(.95 * var(--u))); font-weight: 700; line-height: 1.3;   /* same as the tagline */
       transform: translateY(14px); transition: transform .6s cubic-bezier(.16, 1, .3, 1);
     }
     .about-lb.open .about-body { transform: none; }
-    .about-body p + p { margin-top: 1.1em; }
+    .about-body p + p { margin-top: 1.3em; }
     .about-body a { text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: .08em; }
     .about-body a:hover { opacity: .6; }
     .about-close {
@@ -223,8 +226,9 @@
       .bust { position: absolute; inset: -14px -14px calc(-1 * max(22px, env(safe-area-inset-bottom))); margin: 0; z-index: 2; pointer-events: auto; touch-action: none; }
       .studio { order: 4; }
       .about { order: 5; font-size: clamp(18px, 5.6vw, 32px); margin-top: clamp(14px, 3.5vh, 36px); }
-      .social { order: 6; margin-top: clamp(8px, 1.6vh, 16px); font-size: 10px; }
-      .about-body { font-size: 17px; }
+      .social { order: 6; margin-top: clamp(8px, 1.6vh, 16px); gap: 14px; }
+      .social svg { width: 22px; }
+      .about-body { font-size: clamp(10px, 2.9vw, 13px); }
     }
 
     /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
@@ -325,7 +329,8 @@
 
       <button class="action about" type="button" data-in="left" style="--d:.8s" aria-haspopup="dialog" aria-controls="about">ABOUT</button>
       <nav class="social" data-in="right" style="--d:.9s" aria-label="Social">
-        <a href="#" target="_blank" rel="noopener">INSTAGRAM</a><span aria-hidden="true">|</span><a href="#" target="_blank" rel="noopener">LINKEDIN</a>
+        <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg></a>
+        <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor"/><g fill="#000"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></svg></a>
       </nav>
 
       <div class="bust-space" aria-hidden="true"></div>
