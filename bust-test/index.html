@@ -142,6 +142,8 @@
     }
     .theme-btn:hover span { animation-play-state: paused; opacity: .6; }
     @keyframes sq-blink { 0%, 72%, 100% { background: var(--red); } 82%, 88% { background: var(--blink); } }
+    @keyframes sq-blink-light { 0%, 72%, 100% { background: var(--red); } 82%, 88% { background: #000; } }
+    html.light .theme-btn span { animation-name: sq-blink-light; }
     @media (prefers-reduced-motion: reduce) { .theme-btn span { animation: none; } }
     .mail-btn { background: none; border: 0; padding: 0; color: inherit; cursor: pointer; line-height: 0; }
     .mail-btn:hover { opacity: .6; }
@@ -370,7 +372,7 @@
       <button class="action about" type="button" data-in="left" style="--d:.8s" aria-haspopup="dialog" aria-controls="about"><svg class="px-arrow" viewBox="0 0 6 5" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/></svg>ABOUT</button>
       <nav class="social" data-in="right" style="--d:.9s" aria-label="Social">
         <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg></a>
-        <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor"/><g style="fill: var(--bg)"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></svg></a>
+        <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="li-cut"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="#fff"/><g fill="#000"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></mask></defs><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor" mask="url(#li-cut)"/></svg></a>
         <button class="mail-btn" type="button" aria-label="Email" aria-haspopup="dialog" aria-controls="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4" width="21" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button>
         <button class="theme-btn" type="button" aria-label="Switch to white background" aria-pressed="false"><span></span></button>
       </nav>
