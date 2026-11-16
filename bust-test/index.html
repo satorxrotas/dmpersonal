@@ -139,22 +139,39 @@
     .about-close:focus:not(:focus-visible) { outline: none; }
 
     /* ---- ABOUT as a magazine spread: portrait page left, type page right ---- */
-    .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; }
+    /* intro: the red fades in behind a copy of the hero title (which turns white in place),
+       then the photo and text slide up; a cut-out of David sits above the title so his
+       head overlaps it. Layers: red 0 · photo 1 · title + text 2 · cut-out 3 · close 5 */
+    .about-lb.ed, html.light .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; background: none; }
+    .about-lb.ed::before {
+      content: ""; position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(165deg, #8a0020 0%, #6a0008 55%, #4a0005 100%);
+    }
     .ed-spread {
       --serif: "Libre Caslon Text", Georgia, "Times New Roman", serif;
-      display: grid; grid-template-columns: 1fr 1fr; color: #fff;
-      width: 100%; min-height: 100vh; min-height: 100dvh; margin: 0;   /* full screen, not a floating spread */
-      background: linear-gradient(165deg, #8a0020 0%, #6a0008 55%, #4a0005 100%);
+      position: relative; display: grid; grid-template-columns: 1fr 1fr; color: #fff;
+      width: 100%; min-height: 100vh; min-height: 100dvh; margin: 0;
       font-size: min(1vw, 1.5vh);
-      opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .8s cubic-bezier(.16, 1, .3, 1);
     }
-    .about-lb.open .ed-spread { opacity: 1; transform: none; }
-    .ed-page { position: relative; min-width: 0; padding: 7em 7em 5em; display: flex; flex-direction: column; }
-    .ed-photo { margin: 0; padding: 0; overflow: hidden; }
-    .ed-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block;
-      transform: scale(1.06); transition: transform 1.6s cubic-bezier(.16, 1, .3, 1); }
-    .about-lb.open .ed-photo img { transform: none; }
-    .ed-photo { position: relative; }
+    .ed-photo, .ed-cut, .ed-page {
+      transform: translateY(100vh); transition: transform 1.4s cubic-bezier(.16, 1, .3, 1) 1s;   /* after the title has turned white */
+    }
+    .about-lb.open .ed-photo, .about-lb.open .ed-cut, .about-lb.open .ed-page { transform: none; }
+    .about-lb:not(.open) .ed-photo, .about-lb:not(.open) .ed-cut, .about-lb:not(.open) .ed-page { transition-delay: .45s; }   /* reset after the fade-out */
+    .ed-page { grid-column: 2; grid-row: 1; z-index: 2; transition-delay: 1.12s; position: relative; min-width: 0;
+      padding: max(7em, calc(var(--wm-b, 0px) + 4em)) 7em 5em; display: flex; flex-direction: column; }
+    .ed-photo, .ed-cut { grid-column: 1; grid-row: 1; margin: 0; padding: 0; overflow: hidden; position: relative; }
+    .ed-photo { z-index: 1; }
+    .ed-cut { z-index: 3; pointer-events: none; }
+    .ed-photo img, .ed-cut img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block; }
+    .about-lb .wm-ghost {
+      position: absolute; z-index: 2; margin: 0; pointer-events: none;
+      color: var(--red); transition: color 1.6s ease .1s;
+    }
+    .about-lb.open .wm-ghost.on { color: #fff; }
+    /* the X tucks into the top corner, clear of the title */
+    .about-lb.ed .about-close { top: 6px; right: 6px; padding: 4px; }
+    .about-lb.ed .about-close svg { width: clamp(14px, 1.1vw, 22px); }
     .ed-run, .ed-folio { position: absolute; left: 0; right: 0; text-align: center; font: 400 .72em/1 var(--serif); color: rgba(255,255,255,.85); letter-spacing: .01em; }
     .ed-run { top: 1.9em; }
     .ed-folio { bottom: 1.6em; letter-spacing: .3em; }
@@ -175,12 +192,12 @@
     .ed-clients { break-inside: avoid; }
     .ed-cols a { color: inherit; text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: .06em; }
     .ed-cols a:hover { opacity: .7; }
-    .about-lb.ed .about-close { color: #fff; z-index: 2; }
+    .about-lb.ed .about-close { color: #fff; z-index: 5; }
     @media (max-width: 760px) {
       .about-lb.ed { display: block; padding: 0; }
       .ed-spread { grid-template-columns: 1fr; font-size: clamp(11px, 3.4vw, 15px); }
-      .ed-photo { height: 68vh; height: 68svh; }
-      .ed-page { padding: 3.2em 1.6em 4.2em; }
+      .ed-photo, .ed-cut { height: 68vh; height: 68svh; }
+      .ed-page { grid-column: 1; grid-row: 2; padding: 3.2em 1.6em 4.2em; }
       .ed-dek { margin-top: 1.6em; font-size: 1.6em; padding: 0; }
       .ed-cols { margin-top: 2.4em; column-gap: 1.6em; font-size: .95em; }
     }
@@ -483,8 +500,8 @@
       <figure class="ed-photo">
         <img src="about/david.jpg" alt="Portrait of David Maxwell" width="1076" height="1444" loading="lazy">
       </figure>
+      <div class="ed-cut" aria-hidden="true"><img src="about/david-cut.webp" alt="" width="1076" height="1444" loading="lazy"></div>
       <div class="ed-page">
-        <span class="ed-run" aria-hidden="true">David Maxwell, Filmmaker / Creative Director / Designer</span>
         <h2 class="ed-dek"><span class="ed-drop" aria-hidden="true">F</span><span class="sr-only">F</span>ilmmaker and creative director, born in Lomé, raised in Paris, and based in Los Angeles.</h2>
         <div class="ed-cols">
           <p class="ed-lead">Currently at Amazon. His work spans visual storytelling, campaigns, and design.</p>
@@ -668,6 +685,44 @@
     }
     textBox(document.querySelector('.about'), document.getElementById('about'));
     textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
+
+    // ABOUT intro: copy the hero title (+ smiley) into the About layer at the same spot and turn it white
+    (() => {
+      const box = document.getElementById('about'), src = document.querySelector('.page .wordmark');
+      if (!box || !src) return;
+      let ghost = null, gone = null;
+      const place = () => {
+        if (!ghost) return;
+        const r = src.getBoundingClientRect();
+        Object.assign(ghost.style, { left: r.left + 'px', top: (r.top + box.scrollTop) + 'px', width: r.width + 'px' });
+        box.style.setProperty('--wm-b', r.bottom + 'px');
+      };
+      const sync = (from, to) => {   // keep the clone's smiley spin / wink in step with the original
+        const a = from && from.getAnimations && from.getAnimations()[0];
+        if (a && to) to.style.animationDelay = (-(a.currentTime % 100000)) + 'ms';
+      };
+      new MutationObserver(() => {
+        if (box.classList.contains('open')) {
+          clearTimeout(gone);
+          if (!ghost) {
+            ghost = src.cloneNode(true);
+            ghost.querySelector('defs')?.closest('svg')?.remove();
+            ghost.removeAttribute('data-in'); ghost.removeAttribute('style'); ghost.removeAttribute('aria-label');
+            ghost.setAttribute('aria-hidden', 'true');
+            ghost.classList.add('wm-ghost');
+            box.appendChild(ghost);
+            sync(src.querySelector('.w3d-spin'), ghost.querySelector('.w3d-spin'));
+            const so = src.querySelectorAll('.w-open, .w-shut'), go = ghost.querySelectorAll('.w-open, .w-shut');
+            go.forEach((g, i) => sync(so[i], g));
+          }
+          box.scrollTop = 0; place();
+          requestAnimationFrame(() => requestAnimationFrame(() => ghost && ghost.classList.add('on')));
+        } else if (ghost) {
+          gone = setTimeout(() => { ghost && ghost.remove(); ghost = null; }, 600);
+        }
+      }).observe(box, { attributes: true, attributeFilter: ['class'] });
+      addEventListener('resize', place);
+    })();
 
     // ABOUT drop cap: the blackletter F glitches into pixels now and then, like the W in the logo
     (() => {
