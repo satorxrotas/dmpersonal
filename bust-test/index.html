@@ -159,7 +159,7 @@
     .about-lb.open .ed-photo, .about-lb.open .ed-cut, .about-lb.open .ed-page { transform: none; }
     .about-lb:not(.open) .ed-photo, .about-lb:not(.open) .ed-cut, .about-lb:not(.open) .ed-page { transition-delay: .45s; }   /* reset after the fade-out */
     .ed-page { grid-column: 2; grid-row: 1; z-index: 2; transition-delay: 1.12s; position: relative; min-width: 0;
-      padding: max(7em, calc(var(--wm-b, 0px) + 4em)) 7em 5em; display: flex; flex-direction: column; }
+      padding: max(5em, calc(var(--wm-b, 0px) + 1.5em)) 7em 4em; display: flex; flex-direction: column; }
     .ed-photo, .ed-cut { grid-column: 1; grid-row: 1; margin: 0; padding: 0; overflow: hidden; position: relative; }
     .ed-photo { z-index: 1; }
     .ed-cut { z-index: 3; pointer-events: none; }
@@ -177,13 +177,13 @@
     .ed-folio { bottom: 1.6em; letter-spacing: .3em; }
     .ed-dek {
       font: 700 2.75em/1.2 var(--serif); text-align: left; text-wrap: pretty; hyphens: none;
-      margin: 2.2em 0 0; padding: 0 .4em;
+      margin: 1.2em 0 0; padding: 0 .4em;
     }
     .ed-drop { float: left; font: 400 3.6em/.8 "UnifrakturMaguntia", var(--serif); margin: .04em .08em 0 0; }
     .ed-drop { color: transparent; }   /* the canvas draws it (starts pixelated) */
     .ed-drop.px { position: relative; }
     .ed-drop canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
-    .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; font: 400 1.3em/1.5 var(--serif); }
+    .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; padding-top: 2.4em; font: 400 1.22em/1.5 var(--serif); }
     .ed-cols p { margin: 0 0 1em; text-align: left; hyphens: manual; }
     .ed-cols h3 { font: 700 .78em/1 var(--serif); letter-spacing: .22em; text-transform: uppercase; margin: 0 0 1.1em; break-after: avoid; }
     .ed-cols ul { list-style: none; margin: 0; padding: 0; font-style: italic; }
@@ -503,8 +503,9 @@
       <div class="ed-page">
         <h2 class="ed-dek"><span class="ed-drop" aria-hidden="true">F</span><span class="sr-only">F</span>ilmmaker and creative director, born in Lomé, raised in Paris, and based in Los Angeles.</h2>
         <div class="ed-cols">
-          <p class="ed-lead">Currently at Amazon. His work spans visual storytelling, campaigns, and design.</p>
-          <p>Founder of <a href="https://drgnfleye.com" target="_blank" rel="noopener">DRGNFLEYE</a>, a multimedia studio.</p>
+          <p class="ed-lead">Currently at Amazon, his work spans visual storytelling, campaigns, and design.</p>
+          <p>With an unconventional background in pre-med and accounting, Maxwell found his way into the creative world through curiosity and a self-taught approach to design, filmmaking, and storytelling. His multidisciplinary practice is shaped by a life lived across continents, bringing together different perspectives, disciplines, and ways of thinking.</p>
+          <p>His work moves fluidly between music, sports, entertainment, and technology, connecting strategic thinking with artistic instinct. He is also the founder of <a href="https://drgnfleye.com" target="_blank" rel="noopener">DRGNFLEYE</a>, an independent multimedia studio.</p>
           <div class="ed-clients">
             <h3>Selected Clients</h3>
             <ul><li>TikTok</li><li>Warner</li><li>Disney</li><li>Airbnb</li><li>Nike</li><li>DreamWorks</li><li>Red Bull</li><li>and others.</li></ul>
