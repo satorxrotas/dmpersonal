@@ -189,7 +189,7 @@
     .ed-run { top: 1.9em; }
     .ed-folio { bottom: 1.6em; letter-spacing: .3em; }
     .ed-dek {
-      font: 700 2.75em/1.2 var(--serif); text-align: left; text-wrap: pretty; hyphens: none;
+      font: var(--ed-hw, 700) 2.75em/1.2 var(--ed-hf, var(--serif)); letter-spacing: var(--ed-hls, 0); text-align: left; text-wrap: pretty; hyphens: none;
       margin: 1.2em 0 0; padding: 0 .4em;
     }
     .ed-drop { float: left; font: 400 3.6em/.8 "UnifrakturMaguntia", var(--serif); margin: .04em .08em 0 0; }
@@ -203,6 +203,11 @@
     .ed-spread[data-body="cereal-light"]   { --ed-bf: var(--sans); --ed-bw: 300; }
     .ed-spread[data-body="circular"]       { --ed-bf: "Circular Air", var(--sans); --ed-bw: 400; }
     .ed-spread[data-body="circular-light"] { --ed-bf: "Circular Air", var(--sans); --ed-bw: 300; }
+    /* headline trials: ?head=cereal | cereal-light | circular | circular-light */
+    .ed-spread[data-head="cereal"]         { --ed-hf: var(--sans); --ed-hw: 400; --ed-hls: -.015em; }
+    .ed-spread[data-head="cereal-light"]   { --ed-hf: var(--sans); --ed-hw: 300; --ed-hls: -.015em; }
+    .ed-spread[data-head="circular"]       { --ed-hf: "Circular Air", var(--sans); --ed-hw: 400; --ed-hls: -.02em; }
+    .ed-spread[data-head="circular-light"] { --ed-hf: "Circular Air", var(--sans); --ed-hw: 300; --ed-hls: -.02em; }
     .ed-spread[data-body] .ed-cols { font-size: 1.12em; line-height: 1.55; }
     .ed-cols h3 { font: 700 .74em/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; margin: 0 0 1.1em; break-after: avoid; }
     .ed-cols ul { list-style: none; margin: 0; padding: 0; font-style: italic; }
@@ -713,7 +718,9 @@
     textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
 
     { const v = new URLSearchParams(location.search).get('body'); const sp = document.querySelector('.ed-spread');
-      if (v && sp && /^(cereal|cereal-light|circular|circular-light)$/.test(v)) sp.dataset.body = v; }
+      if (v && sp && /^(cereal|cereal-light|circular|circular-light)$/.test(v)) sp.dataset.body = v;
+      const h = new URLSearchParams(location.search).get('head');
+      if (h && sp && /^(cereal|cereal-light|circular|circular-light)$/.test(h)) sp.dataset.head = h; }
     // ABOUT intro: copy the hero title (+ smiley) into the About layer at the same spot and turn it white
     (() => {
       const box = document.getElementById('about'), src = document.querySelector('.page .wordmark');
