@@ -143,16 +143,15 @@
     .ed-spread {
       --serif: "Libre Caslon Text", Georgia, "Times New Roman", serif;
       display: grid; grid-template-columns: 1fr 1fr; color: #fff;
-      width: min(94vw, calc(86vh * 1.49)); aspect-ratio: 1.49; margin: auto;
+      width: 100%; min-height: 100vh; min-height: 100dvh; margin: 0;   /* full screen, not a floating spread */
       background: linear-gradient(165deg, #8a0020 0%, #6a0008 55%, #4a0005 100%);
-      box-shadow: 0 30px 80px rgba(0,0,0,.55);
-      font-size: min(1.15vw, calc(.77 * 1.72vh));
+      font-size: min(1vw, 1.5vh);
       opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .8s cubic-bezier(.16, 1, .3, 1);
     }
     .about-lb.open .ed-spread { opacity: 1; transform: none; }
-    .ed-page { box-shadow: inset 3.5em 0 3em -2.5em rgba(0,0,0,.45); position: relative; min-width: 0; padding: 4.2em 4.4em 3.6em; display: flex; flex-direction: column; }
+    .ed-page { position: relative; min-width: 0; padding: 7em 7em 5em; display: flex; flex-direction: column; }
     .ed-photo { margin: 0; padding: 0; overflow: hidden; }
-    .ed-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block;
+    .ed-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block;
       transform: scale(1.06); transition: transform 1.6s cubic-bezier(.16, 1, .3, 1); }
     .about-lb.open .ed-photo img { transform: none; }
     .ed-photo { position: relative; }
@@ -168,7 +167,7 @@
     .ed-drop.px { position: relative; }
     .ed-drop canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
     .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; font: 400 1.3em/1.5 var(--serif); }
-    .ed-cols p { margin: 0 0 1em; text-align: justify; hyphens: auto; }
+    .ed-cols p { margin: 0 0 1em; text-align: left; hyphens: manual; }
     .ed-cols .ed-lead::first-letter { font-weight: 700; }
     .ed-cols h3 { font: 700 .78em/1 var(--serif); letter-spacing: .22em; text-transform: uppercase; margin: 0 0 1.1em; break-after: avoid; }
     .ed-cols ul { list-style: none; margin: 0; padding: 0; font-style: italic; }
@@ -179,10 +178,9 @@
     .about-lb.ed .about-close { color: #fff; z-index: 2; }
     @media (max-width: 760px) {
       .about-lb.ed { display: block; padding: 0; }
-      .ed-spread { grid-template-columns: 1fr; width: 100%; aspect-ratio: auto; font-size: clamp(11px, 3.4vw, 15px); box-shadow: none; min-height: 100%; }
+      .ed-spread { grid-template-columns: 1fr; font-size: clamp(11px, 3.4vw, 15px); }
       .ed-photo { height: 68vh; height: 68svh; }
       .ed-page { padding: 3.2em 1.6em 4.2em; }
-      .ed-page { box-shadow: none; }
       .ed-dek { margin-top: 1.6em; font-size: 1.6em; padding: 0; }
       .ed-cols { margin-top: 2.4em; column-gap: 1.6em; font-size: .95em; }
     }
@@ -496,7 +494,6 @@
             <ul><li>TikTok</li><li>Warner</li><li>Disney</li><li>Airbnb</li><li>Nike</li><li>DreamWorks</li><li>Red Bull</li><li>and others.</li></ul>
           </div>
         </div>
-        <span class="ed-folio" aria-hidden="true">– 3 –</span>
       </div>
     </article>
   </div>
