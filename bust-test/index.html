@@ -20,6 +20,11 @@
     @font-face { font-family: "Airbnb Print"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-SemiBold.woff2") format("woff2"); }
     @font-face { font-family: "Airbnb Print"; font-weight: 700; font-style: normal; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-Bold.woff2") format("woff2"); }
     @font-face { font-family: "Airbnb Cereal VF"; font-weight: 300 900; font-style: normal; font-display: swap; src: url("../fonts/cereal/AirbnbCerealVF-Wght.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Cereal VF"; font-weight: 300 900; font-style: italic; font-display: swap; src: url("../fonts/cereal/AirbnbCerealVF-Italics-Wght.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 300; font-style: normal; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Light.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 300; font-style: italic; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Light-Italic.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Book.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Book-Italic.woff2") format("woff2"); }
     /* Druk Wide: drop the licensed files into /fonts and they take over.
        Until then it falls back to Archivo at its widest, heaviest setting. */
     @font-face {
@@ -191,8 +196,14 @@
     .ed-drop { color: transparent; }   /* the canvas draws it (starts pixelated) */
     .ed-drop.px { position: relative; }
     .ed-drop canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
-    .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; padding-top: 2.4em; font: 400 1.22em/1.5 var(--serif); }
+    .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; padding-top: 2.4em; font: var(--ed-bw, 400) 1.22em/1.5 var(--ed-bf, var(--serif)); }
     .ed-cols p { margin: 0 0 1em; text-align: left; hyphens: manual; break-inside: avoid; }
+    /* body-font trials: ?body=cereal | cereal-light | circular | circular-light */
+    .ed-spread[data-body="cereal"]         { --ed-bf: var(--sans); --ed-bw: 400; }
+    .ed-spread[data-body="cereal-light"]   { --ed-bf: var(--sans); --ed-bw: 300; }
+    .ed-spread[data-body="circular"]       { --ed-bf: "Circular Air", var(--sans); --ed-bw: 400; }
+    .ed-spread[data-body="circular-light"] { --ed-bf: "Circular Air", var(--sans); --ed-bw: 300; }
+    .ed-spread[data-body] .ed-cols { font-size: 1.12em; line-height: 1.55; }
     .ed-cols h3 { font: 700 .74em/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; margin: 0 0 1.1em; break-after: avoid; }
     .ed-cols ul { list-style: none; margin: 0; padding: 0; font-style: italic; }
     .ed-cols li { line-height: 1.55; }
@@ -701,6 +712,8 @@
     textBox(document.querySelector('.about'), document.getElementById('about'));
     textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
 
+    { const v = new URLSearchParams(location.search).get('body'); const sp = document.querySelector('.ed-spread');
+      if (v && sp && /^(cereal|cereal-light|circular|circular-light)$/.test(v)) sp.dataset.body = v; }
     // ABOUT intro: copy the hero title (+ smiley) into the About layer at the same spot and turn it white
     (() => {
       const box = document.getElementById('about'), src = document.querySelector('.page .wordmark');
