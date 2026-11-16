@@ -356,7 +356,7 @@
       .stage {
         width: auto; height: 100%; display: grid; grid-template-columns: 1fr 1fr;
         grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-        grid-template-areas: "logo logo" "tag tag" "reel camp" "space space" "about social";
+        grid-template-areas: "logo logo" "reel camp" "tag tag" "space space" "about social";   /* links right under the title, tagline below */
         justify-items: center; align-items: end;
       }
       .wordmark, .action, .tagline, .social { position: static; width: auto; }
@@ -368,17 +368,17 @@
       .wordmark .wm-wink { height: 13vw; margin-bottom: 1.2vw; }
       .wordmark .wm-wink.w3d { font-size: 1.364vw; }
       .tagline {
-        grid-area: tag; margin-top: clamp(10px, 2.6vh, 32px);
+        grid-area: tag; margin-top: clamp(14px, 2.8vh, 30px);
         font-size: clamp(10px, 2.9vw, 13px);
       }
       /* mirrors desktop: REEL / CAMPAIGNS in the top corners, ABOUT / icons in the bottom corners */
       .action { font-size: clamp(18px, 5.4vw, 30px); }
-      .reel   { grid-area: reel; justify-self: start; margin-top: clamp(12px, 2.4vh, 24px); }
+      .reel   { grid-area: reel; justify-self: start; margin-top: clamp(10px, 2vh, 20px); }
       /* the 3D canvas covers the whole screen (bust + ring can overlap the type);
          .bust-space holds its place in the column and the camera centres on it */
       .bust-space { display: block; grid-area: space; min-height: 0; align-self: stretch; justify-self: stretch; }
       .bust { position: absolute; inset: -14px -14px calc(-1 * max(22px, env(safe-area-inset-bottom))); margin: 0; z-index: 2; pointer-events: auto; touch-action: none; }
-      .studio { grid-area: camp; justify-self: end; margin-top: clamp(12px, 2.4vh, 24px); }
+      .studio { grid-area: camp; justify-self: end; margin-top: clamp(10px, 2vh, 20px); }
       .about  { grid-area: about; justify-self: start; }
       .social { grid-area: social; justify-self: end; gap: 12px; margin-bottom: .25em; }
       .social svg { width: 22px; }
