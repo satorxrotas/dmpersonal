@@ -719,7 +719,7 @@
       function setup() {
         if (!build()) return;
         if (!cv.parentNode) drop.appendChild(cv);
-        drop.classList.add('px'); ready = true; draw();
+        drop.classList.add('px'); ready = true; if (reduce) frame = 'clean'; draw();
       }
       // mostly the clean letter, then a quick break-up and back (≈4s loop, W-style timing)
       const SEQ = [['full', .45], ['b', .35], ['a', .2], ['clean', 2.6], ['a', .2], ['b', .3]];   // opens pixelated, resolves, then glitches again
