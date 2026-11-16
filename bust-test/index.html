@@ -83,6 +83,7 @@
     .wordmark .wm-row2 { display: flex; align-items: flex-end; gap: calc(1.1 * var(--u)); }
     /* the smiley after MAXWELL, winking now and then (same sequence as the loader) */
     .wordmark .wm-wink { height: calc(6.4 * var(--u)); width: auto; flex: none; margin-bottom: calc(1.2 * var(--u)); }
+    .wordmark .wm-wink.w3d { aspect-ratio: 124.33 / 118.5; font-size: calc(.672 * var(--u)); perspective: 60em; }
     /* REEL / CAMPAIGNS under the logo, ABOUT bottom left, socials bottom right, tagline centred */
     .action {
       position: absolute; z-index: 3;
@@ -316,6 +317,7 @@
       .wordmark .wm-row2 { gap: 2.4vw; }
       .wordmark .wm-row2 > svg:first-child { flex: 1 1 0; min-width: 0; width: auto; height: auto; }
       .wordmark .wm-wink { height: 13vw; margin-bottom: 1.2vw; }
+      .wordmark .wm-wink.w3d { font-size: 1.364vw; }
       .tagline {
         grid-area: tag; margin-top: clamp(10px, 2.6vh, 32px);
         font-size: clamp(10px, 2.9vw, 13px);
@@ -334,7 +336,7 @@
       .about-body { font-size: clamp(10px, 2.9vw, 13px); }
     }
 
-    /* ---- Loading lockup: spinning logo + LOADING..., shared by the page loader
+    /* ---- Loading lockup: spinning 3D smiley, shared by the page loader
        (black on orange) and the Studio Work loader (white on black) ---- */
     .lockup {
       display: flex; flex-direction: column;
@@ -518,15 +520,20 @@
     // 0.8s, up to a silly 60 turns a second. Stops once the logo leaves the page.
     const WINK_SVG = '<svg class="lockup-logo wink" viewBox="0 0 124.33 118.5" fill="currentColor" aria-hidden="true"><g class="w-open"><path d="M17.63,75.86l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M69.66,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M107.18,51.07c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,107.87c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g><g class="w-shut" transform="translate(0 15.67)"><path d="M17.63,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27L27.93,0c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><rect x="67.39" y="29.09" width="27.62" height="11.69" transform="translate(-6.62 24.91) rotate(-16.77)"/><path d="M107.18,35.39c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,92.2c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g></svg>';
     // turn the flat wink SVG into an extruded 3D stack (used by both loaders)
-    function wink3D(svg) {
+    function wink3D(svg, cls = 'lockup-logo') {
       const n = 18, T = 1.3;   // layers, depth in em (≈ 7px at full size)
-      let out = '<div class="lockup-logo w3d" aria-hidden="true"><div class="w3d-spin">';
+      let out = `<div class="${cls} w3d" aria-hidden="true"><div class="w3d-spin">`;
       for (let i = 0; i < n; i++) {
         const z = ((i / (n - 1)) - .5) * T, face = i === 0 || i === n - 1 ? 'face' : 'side';
-        out += svg.replace('class="lockup-logo wink"', `class="wink w3d-l ${face}" style="transform:translateZ(${z.toFixed(3)}em)"`);
+        out += svg.replace(/class="[^"]*\bwink\b[^"]*"/, `class="wink w3d-l ${face}" style="transform:translateZ(${z.toFixed(3)}em)"`);
       }
       return out + '</div></div>';
     }
+    // logo smiley after MAXWELL: the same 3D spinning version as the loader
+    addEventListener('DOMContentLoaded', () => {
+      const w = document.querySelector('.wordmark svg.wm-wink');
+      if (w) w.outerHTML = wink3D(w.outerHTML, 'wm-wink');
+    });
     // MAXWELL's W: frame / seconds, matching the reference clip (4.06s loop)
     (function () {
       const SEQ = [[1,.56],[2,.20],[4,.31],[3,.49],[4,.51],[1,.48],[5,.51],[6,.54],[5,.46]];
@@ -639,7 +646,7 @@
         f.addEventListener('load', () => setTimeout(() => f.classList.add('ready'), 250));
         const spin = document.createElement('div');
         spin.className = 'site-loading lockup';
-        spin.innerHTML = wink3D(WINK_SVG) + '<p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>';
+        spin.innerHTML = wink3D(WINK_SVG);
         wrap.append(f, spin);
         Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE campaigns', 'site');
       });
@@ -807,7 +814,6 @@
   </script>
   <div id="loader" class="lockup" role="status">
     <script>document.write(wink3D(WINK_SVG))</script>
-    <p>LOADING<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
   </div>
 
   <script>
