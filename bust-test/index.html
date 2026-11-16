@@ -57,6 +57,7 @@
     }
     [data-in="left"]  { --from: -9vw; }
     [data-in="right"] { --from: 9vw; }
+    [data-in="up"]    { --from: 0px; }
     @keyframes slide-in {
       from { opacity: 0; transform: translateX(var(--from)); }
       to   { opacity: 1; transform: none; }
@@ -210,6 +211,11 @@
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     /* theme square: mostly red, now and then blinks white (black on the white theme); flips the page to white */
     .theme-btn { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0; display: grid; place-items: center; }
+    .stage > .theme-btn {
+      --sz: clamp(20px, 1.7vw, 30px);   /* same box as the social icons, so centres line up */
+      position: absolute; z-index: 3; bottom: calc(1.6 * var(--u));
+      left: calc(50% - var(--sz) / 2); width: var(--sz); height: var(--sz);
+    }
     .theme-btn span {
       display: block; width: clamp(15px, 1.3vw, 24px); height: clamp(15px, 1.3vw, 24px);
       background: var(--red); animation: sq-blink 4.5s ease-in-out infinite;
@@ -354,6 +360,7 @@
       .about  { grid-area: about; justify-self: start; }
       .social { grid-area: social; justify-self: end; gap: 12px; margin-bottom: .25em; }
       .social svg { width: 22px; }
+      .stage > .theme-btn { position: static; --sz: 22px; grid-row: 5; grid-column: 1 / -1; justify-self: center; margin-bottom: .25em; }
       .about-body { font-size: clamp(10px, 2.9vw, 13px); }
     }
 
@@ -471,8 +478,9 @@
         <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg></a>
         <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="li-cut"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="#fff"/><g fill="#000"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></mask></defs><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor" mask="url(#li-cut)"/></svg></a>
         <button class="mail-btn" type="button" aria-label="Email" aria-haspopup="dialog" aria-controls="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4" width="21" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button>
-        <button class="theme-btn" type="button" aria-label="Switch to white background" aria-pressed="false"><span></span></button>
       </nav>
+      <!-- theme square: centred on the bottom line, between ABOUT and the icons -->
+      <button class="theme-btn" type="button" data-in="up" style="--d:.95s" aria-label="Switch to white background" aria-pressed="false"><span></span></button>
 
       <div class="bust-space" aria-hidden="true"></div>
       <div class="bust"><canvas id="stage"></canvas></div>
