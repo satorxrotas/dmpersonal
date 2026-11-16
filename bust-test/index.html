@@ -163,6 +163,8 @@
       margin: 2.2em 0 0; padding: 0 .4em;
     }
     .ed-drop { float: left; font: 400 3.6em/.8 "UnifrakturMaguntia", var(--serif); margin: .04em .08em 0 0; }
+    .ed-drop.px { color: transparent; position: relative; }
+    .ed-drop canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
     .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; font: 400 1.3em/1.5 var(--serif); }
     .ed-cols p { margin: 0 0 1em; text-align: justify; hyphens: auto; }
     .ed-cols .ed-lead::first-letter { font-weight: 700; }
@@ -662,6 +664,74 @@
     }
     textBox(document.querySelector('.about'), document.getElementById('about'));
     textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
+
+    // ABOUT drop cap: the blackletter F glitches into pixels now and then, like the W in the logo
+    (() => {
+      const drop = document.querySelector('.ed-drop'), box = document.getElementById('about');
+      if (!drop || !document.fonts) return;
+      const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+      const src = document.createElement('canvas'), sctx = src.getContext('2d', { willReadFrequently: true });
+      let W = 0, H = 0, dpr = 1, mask = null, cell = 0, cols = 0, rows = 0, frame = 'clean', ready = false;
+      // which blocks go pixel in each frame (u, v = cell position 0..1 across the glyph)
+      const FRAMES = {
+        clean: () => false,
+        a: (u, v) => u + v * .9 > 1.05,                 // lower right breaks up
+        b: (u, v) => u > .32 || v > .62,                // most of it
+        full: () => true,
+      };
+      function build() {
+        const cs = getComputedStyle(drop), fs = parseFloat(cs.fontSize);
+        const r = drop.getBoundingClientRect(); if (!r.width) return false;
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        // canvas a little bigger than the letter's box so swashes aren't clipped
+        W = Math.ceil(r.width + fs * .3); H = Math.ceil(fs * 1.15);
+        cv.width = src.width = Math.round(W * dpr); cv.height = src.height = Math.round(H * dpr);
+        cv.style.width = W + 'px'; cv.style.height = H + 'px';
+        cv.style.left = '0px'; cv.style.top = (-fs * .2) + 'px';
+        sctx.setTransform(dpr, 0, 0, dpr, 0, 0); sctx.clearRect(0, 0, W, H);
+        sctx.font = `${cs.fontWeight} ${fs}px ${cs.fontFamily}`; sctx.fillStyle = '#fff'; sctx.textBaseline = 'alphabetic';
+        const m = sctx.measureText('F');
+        sctx.fillText('F', 0, fs * .2 + (r.height - (r.height - m.actualBoundingBoxAscent) ) + 0);
+        // block grid ~ 13 cells tall, matching the W's chunky pixels
+        cell = Math.max(2, Math.round(src.height / 15)); cols = Math.ceil(src.width / cell); rows = Math.ceil(src.height / cell);
+        const d = sctx.getImageData(0, 0, src.width, src.height).data; mask = new Uint8Array(cols * rows);
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+          let a = 0, n = 0;
+          for (let yy = y * cell; yy < Math.min(src.height, (y + 1) * cell); yy += 2) for (let xx = x * cell; xx < Math.min(src.width, (x + 1) * cell); xx += 2) { a += d[(yy * src.width + xx) * 4 + 3]; n++; }
+          mask[y * cols + x] = n && a / n > 45 ? 1 : 0;
+        }
+        return true;
+      }
+      function draw() {
+        if (!ready) return;
+        const color = getComputedStyle(drop.parentNode).color, f = FRAMES[frame];
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+        // crisp glyph everywhere the frame keeps it clean
+        ctx.save(); ctx.beginPath();
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (!f((x + .5) / cols, (y + .5) / rows)) ctx.rect(x * cell, y * cell, cell, cell);
+        ctx.clip(); ctx.drawImage(src, 0, 0); ctx.restore();
+        ctx.globalCompositeOperation = 'source-in'; ctx.fillStyle = color; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.globalCompositeOperation = 'source-over';
+        // solid blocks where it's pixelated
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (mask[y * cols + x] && f((x + .5) / cols, (y + .5) / rows)) ctx.fillRect(x * cell, y * cell, cell, cell);
+      }
+      function setup() {
+        if (!build()) return;
+        if (!cv.parentNode) drop.appendChild(cv);
+        drop.classList.add('px'); ready = true; draw();
+      }
+      // mostly the clean letter, then a quick break-up and back (≈4s loop, W-style timing)
+      const SEQ = [['clean', 2.6], ['a', .2], ['b', .3], ['full', .45], ['b', .35], ['a', .2]];
+      let k = 0, t = null;
+      const step = () => { frame = SEQ[k][0]; draw(); t = setTimeout(step, SEQ[k][1] * 1000); k = (k + 1) % SEQ.length; };
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      new MutationObserver(() => {
+        if (box.classList.contains('open')) {
+          document.fonts.load(`400 40px "UnifrakturMaguntia"`).finally(() => requestAnimationFrame(() => { setup(); if (!reduce && !t) { k = 0; step(); } }));
+        } else { clearTimeout(t); t = null; frame = 'clean'; draw(); }
+      }).observe(box, { attributes: true, attributeFilter: ['class'] });
+      addEventListener('resize', () => { if (ready && box.classList.contains('open')) { build(); draw(); } });
+    })();
 
     // Contact form. No server yet, so SEND opens the visitor's mail app with everything filled in.
     // (To send straight from the page instead, point FORM_ENDPOINT at a form service such as Formspree.)
