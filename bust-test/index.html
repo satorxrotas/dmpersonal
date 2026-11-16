@@ -163,7 +163,8 @@
       margin: 2.2em 0 0; padding: 0 .4em;
     }
     .ed-drop { float: left; font: 400 3.6em/.8 "UnifrakturMaguntia", var(--serif); margin: .04em .08em 0 0; }
-    .ed-drop.px { color: transparent; position: relative; }
+    .ed-drop { color: transparent; }   /* the canvas draws it (starts pixelated) */
+    .ed-drop.px { position: relative; }
     .ed-drop canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
     .ed-cols { columns: 2; column-gap: 2.6em; margin-top: auto; font: 400 1.3em/1.5 var(--serif); }
     .ed-cols p { margin: 0 0 1em; text-align: justify; hyphens: auto; }
@@ -671,7 +672,7 @@
       if (!drop || !document.fonts) return;
       const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
       const src = document.createElement('canvas'), sctx = src.getContext('2d', { willReadFrequently: true });
-      let W = 0, H = 0, dpr = 1, mask = null, cell = 0, cols = 0, rows = 0, frame = 'clean', ready = false;
+      let W = 0, H = 0, dpr = 1, mask = null, cell = 0, cols = 0, rows = 0, frame = 'full', ready = false;
       // which blocks go pixel in each frame (u, v = cell position 0..1 across the glyph)
       const FRAMES = {
         clean: () => false,
@@ -721,14 +722,14 @@
         drop.classList.add('px'); ready = true; draw();
       }
       // mostly the clean letter, then a quick break-up and back (≈4s loop, W-style timing)
-      const SEQ = [['clean', 2.6], ['a', .2], ['b', .3], ['full', .45], ['b', .35], ['a', .2]];
+      const SEQ = [['full', .45], ['b', .35], ['a', .2], ['clean', 2.6], ['a', .2], ['b', .3]];   // opens pixelated, resolves, then glitches again
       let k = 0, t = null;
       const step = () => { frame = SEQ[k][0]; draw(); t = setTimeout(step, SEQ[k][1] * 1000); k = (k + 1) % SEQ.length; };
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       new MutationObserver(() => {
         if (box.classList.contains('open')) {
           document.fonts.load(`400 40px "UnifrakturMaguntia"`).finally(() => requestAnimationFrame(() => { setup(); if (!reduce && !t) { k = 0; step(); } }));
-        } else { clearTimeout(t); t = null; frame = 'clean'; draw(); }
+        } else { clearTimeout(t); t = null; frame = 'full'; draw(); }
       }).observe(box, { attributes: true, attributeFilter: ['class'] });
       addEventListener('resize', () => { if (ready && box.classList.contains('open')) { build(); draw(); } });
     })();
