@@ -3,14 +3,18 @@
 // and <id>-loop.mp4 (muted ring preview). t = caption (from gallery/captions.json, built from the filenames).
 // Order here = order in the ring and in the viewer.
 window.DM_GALLERY = [
-  {"id": "g001", "w": 2000, "h": 2000, "t": "David, Archived Cover, 2022"},
-  {"id": "g002", "w": 2000, "h": 1338, "t": "David Maxwell, Nine.pm, On Film"},
-  {"id": "g003", "w": 2000, "h": 1546, "t": "David Maxwell, Nine.pm, Performance Piece 2018"},
-  {"id": "g004", "w": 1838, "h": 1226, "t": "David Maxwell, N Ir, 2018"},
-  {"id": "g005", "w": 1080, "h": 1350, "t": "David Maxwell X Cafe Racers Of Instagram 2022"},
-  {"id": "g006", "w": 2000, "h": 1333, "t": "David Maxwell X California Closets Store Front 2021"},
+  {"id": "g001", "w": 2000, "h": 2000, "t": "David :: Archived Cover (2022)"},
+  {"id": "g002", "w": 2000, "h": 1338, "t": "David Maxwell :: NINE.PM :: On Film"},
+  {"id": "g003", "w": 2000, "h": 1546, "t": "David Maxwell :: NINE.PM :: Performance Piece (2018)"},
+  {"id": "g004", "w": 1838, "h": 1226, "t": "David Maxwell :: NØIR (2019)"},
+  {"id": "g005", "w": 1080, "h": 1350, "t": "David Maxwell x Cafe Racers Of Instagram (2022)"},
+  {"id": "g006", "w": 2000, "h": 1333, "t": "David Maxwell x California Closets Store Front (2021)"},
   {"id": "g007", "w": 1125, "h": 1396},
-  {"id": "g008", "w": 2000, "h": 1600, "t": "Julius Tobi Waveiq 2025"},
-  {"id": "g009", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design 2019"},
-  {"id": "g010", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design 2021"}
+  {"id": "g008", "w": 2000, "h": 1600, "t": "Julius Tobi :: WaveIQ (2025)"},
+  {"id": "g009", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design (2019)"},
+  {"id": "g010", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design (2021)"},
+  {"id": "g011", "w": 1333, "h": 2000, "t": "Luka Dončić :: In Paris"},
+  {"id": "g012", "w": 1080, "h": 1350, "t": "Miss Korea For La Cleanic (2019)"},
+  {"id": "g013", "w": 1499, "h": 2000, "t": "Nile Rodgers At Electric Lady"},
+  {"id": "g014", "w": 1080, "h": 1350, "t": "Rosedale Campaign Hero (2022)"}
 ];
