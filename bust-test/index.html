@@ -796,7 +796,7 @@
       const f = document.querySelector('.ed-f'), box = document.getElementById('about');
       if (!f || !box) return;
       const INTRO = [[3, .5], [4, .3], [2, .2]];
-      const LOOP = [[1, 3.39], [2, .20], [4, .31], [3, .49], [4, .51]];   // no slanted frames for the F
+      const LOOP = [[1, 1.6], [2, .18], [4, .27], [3, .44], [4, .45]];   // same rhythm as the A, a touch quicker (≈2.9s loop)
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       let t = null, k = 0, seq = INTRO;
       const step = () => {
