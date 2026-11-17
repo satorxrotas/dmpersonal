@@ -24,9 +24,11 @@ window.DM_GALLERY = [
   {"id": "g019", "w": 1080, "h": 1350, "t": "David Maxwell :: Archived Album Art"},
   {"id": "g020", "w": 2000, "h": 2000, "t": "Marclo :: 11 Days :: CD Design (2026)"},
   {"id": "g021", "w": 1333, "h": 2000, "t": "Luka Dončić for NERF"},
-  {"id": "g022", "w": 1333, "h": 2000, "t": "La Cleanic :: Tower Ring"},
+  {"id": "g022", "w": 1333, "h": 2000, "t": "La Cleanic Jewelry Capsule :: Tower Ring"},
   {"id": "g023", "w": 2000, "h": 2000, "t": "Marclo :: Haze Single Design (2026)"},
   {"id": "g024", "w": 1687, "h": 1212, "t": "Moise :: We Survived the Storm :: Vinyl Design (2021)"},
-  {"id": "g025", "w": 1221, "h": 1351},
-  {"id": "g026", "w": 1155, "h": 1300, "t": "TikTok Campaign at MLK's House"}
+  {"id": "g025", "w": 1221, "h": 1351, "t": "TikTok :: Support Black Businesses"},
+  {"id": "g026", "w": 1155, "h": 1300, "t": "TikTok Campaign at MLK's House"},
+  {"id": "g027", "w": 576, "h": 720, "t": "David Maxwell :: Working on Myself (2020)", "video": true},
+  {"id": "g028", "w": 720, "h": 1280, "t": "David Maxwell :: Silence (2021)", "video": true}
 ];

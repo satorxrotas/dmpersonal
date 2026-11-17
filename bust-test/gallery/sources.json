@@ -38,7 +38,7 @@
  "g021": "LUKA_DONČIĆ_FOR_NERF.PNG",
  "g022": {
   "file": "LA_CLEANIC__TOWER__RING.png",
-  "as": "LA_CLEANIC__TOWER_RING"
+  "override": "La Cleanic Jewelry Capsule :: Tower Ring"
  },
  "g023": {
   "file": "MARCLO_HAZE_SINGLE_DESIGN_2026.png",
@@ -47,7 +47,9 @@
  "g024": "MOISE__WE_SURVIVED_THE_STORM__VINYL_DESIGN_2021.png",
  "g025": {
   "file": "sbbdeng.png",
-  "override": ""
+  "override": "TikTok :: Support Black Businesses"
  },
- "g026": "TIKTOK_CAMPAIGN_AT_MLK_S_HOUSE.png"
+ "g026": "TIKTOK_CAMPAIGN_AT_MLK_S_HOUSE.png",
+ "g027": "DAVID_MAXWELL__WORKING_ON_MYSELF__2020.MP4",
+ "g028": "DAVID_MAXWELL__SILENCE__2021.MOV"
 }
