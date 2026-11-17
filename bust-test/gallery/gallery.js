@@ -37,5 +37,6 @@ window.DM_GALLERY = [
   {"id": "g032", "w": 1080, "h": 1920, "video": true},
   {"id": "g033", "w": 1920, "h": 1080, "t": "THEY. :: Choosin’ (2025)", "video": true},
   {"id": "g034", "w": 1920, "h": 1080, "t": "THEY. :: Rotation (2025)", "video": true},
-  {"id": "g035", "w": 1440, "h": 1440, "t": "David Maxwell :: The Function (2023)", "video": true}
+  {"id": "g035", "w": 1440, "h": 1440, "t": "David Maxwell :: The Function (2023)", "video": true},
+  {"id": "g036", "w": 1080, "h": 1920, "t": "Luka Dončić :: Merch Drop (2026)", "video": true}
 ];
