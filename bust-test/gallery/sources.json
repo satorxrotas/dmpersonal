@@ -3,14 +3,26 @@
  "g001": "DAVID__ARCHIVED_COVER__2022_.jpeg",
  "g002": "DAVID_MAXWELL__NINE.PM__ON_FILM.jpg",
  "g003": "DAVID_MAXWELL__NINE.PM__PERFORMANCE_PIECE_2018.jpg",
- "g004": {"file": "DAVID_MAXWELL__N_IR__2018.JPG", "override": "David Maxwell :: NØIR (2019)"},
+ "g004": {
+  "file": "DAVID_MAXWELL__N_IR__2018.JPG",
+  "override": "David Maxwell :: NØIR (2019)"
+ },
  "g005": "DAVID_MAXWELL_X_CAFE_RACERS_OF_INSTAGRAM_2022.jpeg",
  "g006": "DAVID_MAXWELL_X_CALIFORNIA_CLOSETS_STORE_FRONT_2021.jpg",
- "g007": {"file": "IMG_4666.jpg", "override": ""},
- "g008": {"file": "JULIUS_TOBI_WAVEIQ_2025.JPG", "as": "JULIUS_TOBI__WAVEIQ_2025"},
+ "g007": {
+  "file": "IMG_4666.jpg",
+  "override": ""
+ },
+ "g008": {
+  "file": "JULIUS_TOBI_WAVEIQ_2025.JPG",
+  "as": "JULIUS_TOBI__WAVEIQ_2025"
+ },
  "g009": "LA_CLEANIC_CAPSULE_DESIGN_2019.jpg",
  "g010": "LA_CLEANIC_CAPSULE_DESIGN_2021.jpg",
- "g011": {"file": "LUKA_DON_I__IN_PARIS.jpg", "as": "LUKA_DONČIĆ__IN_PARIS"},
+ "g011": {
+  "file": "LUKA_DON_I__IN_PARIS.jpg",
+  "as": "LUKA_DONČIĆ__IN_PARIS"
+ },
  "g012": "MISS_KOREA_FOR_LA_CLEANIC_2019.jpg",
  "g013": "NILE_RODGERS_AT_ELECTRIC_LADY.JPG",
  "g014": "ROSEDALE_CAMPAIGN_HERO_2022.jpg",
@@ -18,6 +30,24 @@
  "g016": "SALT_DUNES_2019.JPG",
  "g017": "SAM_FROM_ACF_2023.jpg",
  "g018": "SASHA_KEABLE_IN_LOS_ANGELES_2026.JPG",
- "g019": {"file": "DAVID_MAXWELL__ARCHIVED_ALBUM__ART.PNG", "as": "DAVID_MAXWELL__ARCHIVED_ALBUM_ART"},
- "g020": "MARCLO__11_DAYS__CD_DESIGN_2026.png"
+ "g019": {
+  "file": "DAVID_MAXWELL__ARCHIVED_ALBUM__ART.PNG",
+  "as": "DAVID_MAXWELL__ARCHIVED_ALBUM_ART"
+ },
+ "g020": "MARCLO__11_DAYS__CD_DESIGN_2026.png",
+ "g021": "LUKA_DONČIĆ_FOR_NERF.PNG",
+ "g022": {
+  "file": "LA_CLEANIC__TOWER__RING.png",
+  "as": "LA_CLEANIC__TOWER_RING"
+ },
+ "g023": {
+  "file": "MARCLO_HAZE_SINGLE_DESIGN_2026.png",
+  "as": "MARCLO__HAZE_SINGLE_DESIGN_2026"
+ },
+ "g024": "MOISE__WE_SURVIVED_THE_STORM__VINYL_DESIGN_2021.png",
+ "g025": {
+  "file": "sbbdeng.png",
+  "override": ""
+ },
+ "g026": "TIKTOK_CAMPAIGN_AT_MLK_S_HOUSE.png"
 }
