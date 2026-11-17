@@ -226,14 +226,17 @@
     .about-lb.ed .about-close { top: 6px; right: 6px; padding: 4px; color: #fff; z-index: 5; }
     .about-lb.ed .about-close svg { width: clamp(14px, 1.1vw, 22px); }
     @media (max-width: 760px) {
-      .ed-spread { min-height: 100svh; font-size: clamp(10.5px, 3vw, 13px); }
+      /* phone: the whole article fits one screen, no scrolling */
+      .about-lb.ed { overflow: hidden; }
+      .ed-spread { height: 100vh; height: 100svh; min-height: 0; overflow: hidden; font-size: min(3vw, 1.38svh); line-height: 1.4; }
       /* David big and centred; the text sits over his jacket */
       .ed-cut {
         top: calc(var(--head) * .4 - 4.4vw); bottom: auto; left: calc(50% - 59.5vw); width: 119vw;
         -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent);
       }
-      .ed-page { width: 78%; margin: 0 auto; padding: calc(var(--head) + 60vw) 0 12vw; }
-      .ed-clients { height: 8em; }
+      .ed-page { position: absolute; left: 50%; width: 80%; margin: 0 0 0 -40%; padding: 0; bottom: max(14px, 2.2svh); }   /* text anchored to the bottom, over the jacket */
+      .ed-text p { margin-bottom: .75em; }
+      .ed-clients { height: 6.4em; margin-top: 1.9em; }
     }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     /* theme square: mostly red, now and then blinks white (black on the white theme); flips the page to white */
