@@ -160,10 +160,14 @@
        on a simulated studio backdrop, one column of text and a fan of clients.
        Layers: backdrop 1 · title 2 · David 3 · text 4 · close 5 */
     .about-lb.ed, html.light .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; background: none; display: block; }
-    .about-lb.ed::before { content: ""; position: fixed; inset: 0; z-index: 0; background: #220004; }
+    .about-lb.ed::before { content: ""; position: fixed; inset: 0; z-index: 0; background: #000; }
     .ed-bg {   /* fitted to the portrait's lighting; JS lines it up with the cut-out */
       position: absolute; inset: 0; z-index: 1; pointer-events: none;
       background: #220004 url("about/backdrop.jpg") no-repeat 0 0 / 300% auto;
+    }
+    .ed-bg::after {   /* the backdrop fades to black at the bottom of the page */
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,.55) 75%, #000 100%);
     }
     .ed-spread {
       --sans: "Airbnb Cereal VF", "Airbnb Cereal", "Helvetica Neue", Arial, sans-serif;
@@ -198,14 +202,18 @@
     .ed-clients { position: relative; margin-top: 3.4em; height: 7.4em; text-align: center; }
     .ed-clients h3 { font: 700 1em/1 var(--sans); margin: 0; }
     .ed-clients ul { list-style: none; margin: 0; padding: 0; }
-    .ed-clients li { position: absolute; left: calc(50% + var(--x)); top: calc(2.2em + var(--y)); transform: translateX(-50%); font-size: .92em; white-space: nowrap; }
-    .ed-clients li:nth-child(1) { --x: -40%; --y: 3.3em; }
-    .ed-clients li:nth-child(2) { --x: -26%; --y: 1.6em; }
-    .ed-clients li:nth-child(3) { --x: -12%; --y: .55em; }
-    .ed-clients li:nth-child(4) { --x: 0%;   --y: 0em; }
-    .ed-clients li:nth-child(5) { --x: 12%;  --y: .65em; }
-    .ed-clients li:nth-child(6) { --x: 27%;  --y: 1.8em; }
-    .ed-clients li:nth-child(7) { --x: 41%;  --y: 3.7em; }
+    .ed-clients li { position: absolute; left: calc(50% + var(--x)); top: calc(2.2em + var(--y)); transform: translateX(-50%); font-size: .92em; white-space: nowrap;
+      /* a sine wave travelling along the arc: same motion, phase-shifted per name */
+      animation: ed-wave 2.8s cubic-bezier(.37, 0, .63, 1) infinite alternate; animation-delay: calc(var(--i) * -.4s - 2.8s); }
+    @keyframes ed-wave { from { translate: 0 -.55em; } to { translate: 0 .55em; } }
+    @media (prefers-reduced-motion: reduce) { .ed-clients li { animation: none; } }
+    .ed-clients li:nth-child(1) { --i: 0; --x: -40%; --y: 3.3em; }
+    .ed-clients li:nth-child(2) { --i: 1; --x: -26%; --y: 1.6em; }
+    .ed-clients li:nth-child(3) { --i: 2; --x: -12%; --y: .55em; }
+    .ed-clients li:nth-child(4) { --i: 3; --x: 0%;   --y: 0em; }
+    .ed-clients li:nth-child(5) { --i: 4; --x: 12%;  --y: .65em; }
+    .ed-clients li:nth-child(6) { --i: 5; --x: 27%;  --y: 1.8em; }
+    .ed-clients li:nth-child(7) { --i: 6; --x: 41%;  --y: 3.7em; }
     .about-lb .wm-ghost {
       position: absolute; z-index: 2; margin: 0; pointer-events: none; transform-origin: 0 0;
       color: var(--red); transition: color 1.6s ease .1s, transform 1.4s cubic-bezier(.16, 1, .3, 1) .25s;
