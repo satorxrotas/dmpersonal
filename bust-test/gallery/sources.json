@@ -65,5 +65,12 @@
   "file": "Sequence_05_1.mp4",
   "override": ""
  },
- "g033": "THEY___CHOOSIN___2025_.mp4"
+ "g033": {
+  "file": "THEY___CHOOSIN___2025_.mp4",
+  "override": "THEY. :: Choosin’ (2025)"
+ },
+ "g034": {
+  "file": "THEY___ROTATION___2025_.mp4",
+  "override": "THEY. :: Rotation (2025)"
+ }
 }
