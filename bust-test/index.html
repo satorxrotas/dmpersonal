@@ -315,6 +315,11 @@
       position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
       font: 500 12px/1 var(--helv); letter-spacing: .2em; color: #f0ede6;
     }
+    /* caption: desktop — left of the picture, right-aligned to its edge; phone — under it, left-aligned */
+    .gv-title {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: normal; text-align: right;
+      font: 400 12px/1.3 var(--helv); color: #f0ede6;
+    }
     .gv-close {
       position: absolute; top: 1.1rem; right: 1.1rem; width: 2.6rem; height: 2.6rem;
       border: 0; background: none; padding: 0;
@@ -567,7 +572,8 @@
 
   <div class="gv" id="gv" role="dialog" aria-modal="true" aria-label="Image viewer">
     <canvas></canvas>
-    <div class="gv-count" aria-live="polite"></div>
+    <div class="gv-title" aria-live="polite"></div>
+    <div class="gv-count" aria-hidden="true"></div>
     <button class="gv-close" type="button" aria-label="Close image"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
   </div>
 
@@ -1768,7 +1774,7 @@
     // step through (it loops); click outside the picture, the round X or Esc closes.
     const Viewer = (() => {
       const el = document.getElementById('gv'), cv = el.querySelector('canvas');
-      const countEl = el.querySelector('.gv-count');
+      const countEl = el.querySelector('.gv-count'), titleEl = el.querySelector('.gv-title');
       const vr = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
       vr.setPixelRatio(Math.min(devicePixelRatio, 2));
       vr.setClearColor(0x0a0a0a, 1);
@@ -1861,11 +1867,22 @@
         const vid = it.video && !it.video.paused;
         countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0')
           + (it.video ? (it.video.paused ? '  ·  TAP TO PLAY' : it.video.muted ? '  ·  TAP FOR SOUND' : '') : '');
-        const mobile = L.w <= 760;
-        const x = mobile ? L.w / 2 - countEl.offsetWidth / 2 : L.w / 2 + (it.w * L.px) / 2 + 20;
-        const y = mobile ? L.h / 2 + (it.h * L.px) / 2 + 18 : L.h / 2 - 6;
+        const t = GAL[fi].t || ''; if (titleEl.textContent !== t) titleEl.textContent = t;
+        const mobile = L.w <= 760, iw = it.w * L.px, ih = it.h * L.px;
+        let x, y, tx, ty;
+        if (mobile) {   // under the picture: caption at its left edge, counter at its right edge
+          y = ty = L.h / 2 + ih / 2 + 14;
+          titleEl.style.maxWidth = Math.max(80, iw - countEl.offsetWidth - 16) + 'px'; titleEl.style.textAlign = 'left';
+          tx = L.w / 2 - iw / 2; x = L.w / 2 + iw / 2 - countEl.offsetWidth;
+        } else {        // either side of the picture, vertically centred
+          titleEl.style.maxWidth = Math.max(80, Math.min(260, L.w / 2 - iw / 2 - 40)) + 'px'; titleEl.style.textAlign = 'right';
+          y = L.h / 2 - 6; ty = L.h / 2 - titleEl.offsetHeight / 2 + 1;
+          x = L.w / 2 + iw / 2 + 20; tx = L.w / 2 - iw / 2 - 20 - titleEl.offsetWidth;
+        }
+        const op = (gE * clamp01(1 - Math.abs(V.f - Math.round(V.f)) * 3)).toFixed(3);
         countEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-        countEl.style.opacity = (gE * clamp01(1 - Math.abs(V.f - Math.round(V.f)) * 3)).toFixed(3);
+        titleEl.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
+        countEl.style.opacity = titleEl.style.opacity = op;
         vr.render(vs, vc);
         if (!V.open && V.g <= 0) {
           el.classList.remove('open');

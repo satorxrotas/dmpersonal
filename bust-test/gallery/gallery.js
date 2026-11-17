@@ -1,41 +1,16 @@
-// Images for the bust gallery (tornado -> ring -> viewer): gallery/full/<id>.jpg (<=1600px) and
+// Images for the bust gallery (tornado -> ring -> viewer): gallery/full/<id>.jpg (<=2000px) and
 // gallery/thumb/<id>.jpg (<=560px); video:true items also have gallery/video/<id>.mp4 (viewer, with sound)
-// and <id>-loop.mp4 (muted ring preview). Order here = order in the ring and in the viewer.
+// and <id>-loop.mp4 (muted ring preview). t = caption (from gallery/captions.json, built from the filenames).
+// Order here = order in the ring and in the viewer.
 window.DM_GALLERY = [
-  {"id": "g001", "w": 1600, "h": 1061},
-  {"id": "g002", "w": 1600, "h": 1070},
-  {"id": "g003", "w": 1600, "h": 1236},
-  {"id": "g004", "w": 1600, "h": 1600},
-  {"id": "g005", "w": 1080, "h": 1350},
-  {"id": "g006", "w": 1600, "h": 1280},
-  {"id": "g007", "w": 1600, "h": 1068},
-  {"id": "g008", "w": 1280, "h": 1600},
-  {"id": "g009", "w": 1125, "h": 1396},
-  {"id": "g010", "w": 1600, "h": 1280},
-  {"id": "g011", "w": 1058, "h": 1600},
-  {"id": "g012", "w": 1143, "h": 1600},
-  {"id": "g013", "w": 890, "h": 1334},
-  {"id": "g014", "w": 890, "h": 1334},
-  {"id": "g015", "w": 1066, "h": 1600},
-  {"id": "g016", "w": 1600, "h": 1066},
-  {"id": "g017", "w": 1080, "h": 1350},
-  {"id": "g018", "w": 1080, "h": 1350},
-  {"id": "g019", "w": 1080, "h": 1350},
-  {"id": "g020", "w": 1080, "h": 1350},
-  {"id": "g021", "w": 1080, "h": 1350},
-  {"id": "g022", "w": 1080, "h": 1350},
-  {"id": "g023", "w": 1155, "h": 1300},
-  {"id": "g024", "w": 1600, "h": 1600},
-  {"id": "g025", "w": 1600, "h": 1600},
-  {"id": "g026", "w": 1000, "h": 1496},
-  {"id": "g027", "w": 1080, "h": 1350},
-  {"id": "g028", "w": 1067, "h": 1600},
-  {"id": "g029", "w": 1067, "h": 1600},
-  {"id": "g030", "w": 900, "h": 1600, "video": true},
-  {"id": "g031", "w": 1200, "h": 1200, "video": true},
-  {"id": "g032", "w": 576, "h": 720, "video": true},
-  {"id": "g033", "w": 960, "h": 1200, "video": true},
-  {"id": "g034", "w": 676, "h": 1200, "video": true},
-  {"id": "g035", "w": 676, "h": 1200, "video": true},
-  {"id": "g036", "w": 1200, "h": 1200, "video": true}
+  {"id": "g001", "w": 2000, "h": 2000, "t": "David, Archived Cover, 2022"},
+  {"id": "g002", "w": 2000, "h": 1338, "t": "David Maxwell, Nine.pm, On Film"},
+  {"id": "g003", "w": 2000, "h": 1546, "t": "David Maxwell, Nine.pm, Performance Piece 2018"},
+  {"id": "g004", "w": 1838, "h": 1226, "t": "David Maxwell, N Ir, 2018"},
+  {"id": "g005", "w": 1080, "h": 1350, "t": "David Maxwell X Cafe Racers Of Instagram 2022"},
+  {"id": "g006", "w": 2000, "h": 1333, "t": "David Maxwell X California Closets Store Front 2021"},
+  {"id": "g007", "w": 1125, "h": 1396},
+  {"id": "g008", "w": 2000, "h": 1600, "t": "Julius Tobi Waveiq 2025"},
+  {"id": "g009", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design 2019"},
+  {"id": "g010", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design 2021"}
 ];
