@@ -52,6 +52,10 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { background: var(--bg); color: var(--red); overflow-x: clip; transition: background-color .5s ease; }
     html.light { --bg: #fff; --blink: #000; }
+    /* third scheme: the original design's orange-gold, everything black, black-chrome busts */
+    html.gold { --bg: #f8931d; --red: #000; --blink: #fff; }
+    html.gold .about-lb:not(.ed), html.gold .lightbox { background: rgba(248, 147, 29, .96); }
+    html.gold .gv { background: var(--bg); }
     html.light .about-lb { background: rgba(255, 255, 255, .95); }
 
     /* ---- Text entrance: slides in from its own side as the bust arrives ---- */
@@ -161,7 +165,7 @@
     /* ---- ABOUT: the hero title grows to a full-width white banner, David (cut-out) stands
        on a simulated studio backdrop, one column of text and a fan of clients.
        Layers: backdrop 1 · title 2 · David 3 · text 4 · close 5 */
-    .about-lb.ed, html.light .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; background: none; display: block; }
+    .about-lb.ed, html.light .about-lb.ed, html.gold .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; background: none; display: block; }
     .about-lb.ed::before { content: ""; position: fixed; inset: 0; z-index: 0; background: #000; }
     .ed-bg {   /* fitted to the portrait's lighting; JS lines it up with the cut-out */
       position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -462,7 +466,8 @@
       background: #000; opacity: 0; transition: opacity .5s ease;
     }
     .lightbox .frame.is-site iframe.ready { opacity: 1; }
-    .site-loading { position: absolute; inset: 0; color: var(--red); transition: opacity .4s ease; }
+    .site-loading { position: absolute; inset: 0; color: var(--red); background: var(--bg); transition: opacity .4s ease; }
+    .site-loading.gone { opacity: 0; pointer-events: none; }
     .is-site iframe.ready + .site-loading { opacity: 0; }
     .lightbox .placeholder {
       width: 100%; height: 100%; background: var(--c);
@@ -487,7 +492,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&display=swap" rel="stylesheet">
-  <script>try { if (localStorage.getItem('dm_theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}</script>
+  <script>try { const t = localStorage.getItem('dm_theme'); if (t === 'light' || t === 'gold') document.documentElement.classList.add(t); } catch (e) {}</script>
   <script type="importmap">
     { "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -720,11 +725,19 @@
       });
     })();
 
-    // theme square: black ⇄ white background (remembered for next visit)
+    // theme square cycles: black → white → gold → black (remembered for next visit)
     (() => {
       const b = document.querySelector('.theme-btn'), root = document.documentElement;
-      const sync = () => { const l = root.classList.contains('light'); b.setAttribute('aria-pressed', l); b.setAttribute('aria-label', l ? 'Switch to black background' : 'Switch to white background'); };
-      b.addEventListener('click', () => { root.classList.toggle('light'); try { localStorage.setItem('dm_theme', root.classList.contains('light') ? 'light' : 'dark'); } catch (e) {} sync(); });
+      const ORDER = ['dark', 'light', 'gold'], NAME = { dark: 'black', light: 'white', gold: 'gold' };
+      const cur = () => root.classList.contains('gold') ? 'gold' : root.classList.contains('light') ? 'light' : 'dark';
+      const sync = () => { const n = ORDER[(ORDER.indexOf(cur()) + 1) % 3]; b.setAttribute('aria-pressed', cur() !== 'dark'); b.setAttribute('aria-label', 'Switch to ' + NAME[n] + ' background'); };
+      b.addEventListener('click', () => {
+        const n = ORDER[(ORDER.indexOf(cur()) + 1) % 3];
+        root.classList.remove('light', 'gold'); if (n !== 'dark') root.classList.add(n);
+        try { localStorage.setItem('dm_theme', n); } catch (e) {}
+        dispatchEvent(new CustomEvent('dm-theme', { detail: n }));   // the 3D scene swaps the bust finish
+        sync();
+      });
       sync();
     })();
 
@@ -923,7 +936,16 @@
     (() => {
       const link = document.querySelector('.reel');
       const video = document.querySelector('#reel video');   // keep one element so it stays buffered
-      link.addEventListener('click', (e) => { e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel', 'full'); });
+      link.addEventListener('click', (e) => {
+        e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel', 'full');
+        if (video.readyState >= 3) return;                         // already buffered
+        const spin = document.createElement('div');
+        spin.className = 'site-loading lockup'; spin.setAttribute('role', 'status'); spin.setAttribute('aria-label', 'Loading reel');
+        spin.innerHTML = wink3D(WINK_SVG);
+        video.parentNode.appendChild(spin);
+        const done = () => { spin.classList.add('gone'); setTimeout(() => spin.remove(), 450); video.removeEventListener('canplay', done); video.removeEventListener('playing', done); };
+        video.addEventListener('canplay', done); video.addEventListener('playing', done);   // play() in open() starts the download
+      });
     })();
 
     // Strip: build tiles (twice, for a seamless loop) and wire them to the lightbox
@@ -1051,6 +1073,7 @@
       return g;
     }
 
+    let bounceBox = null;   // the coloured bounce from below; recoloured to match the page scheme
     if (ENV === 'dark') {
       // big soft overhead dome, slowly swinging front-to-back
       softbox({ w: 16, h: 16, intensity: 5, round: true, pos: new THREE.Vector3(0, 14, 3),
@@ -1065,7 +1088,7 @@
       softbox({ w: 2.2, h: 2.2, intensity: 14, round: true, pos: new THREE.Vector3(4, 4, 13),
         orbit: (g, t) => { g.rotation.y = t * 0.12; g.rotation.x = Math.sin(t * 0.31) * 0.4; } });
       // faint orange bounce from below so it still belongs on the page
-      softbox({ w: 18, h: 5, color: ORANGE, intensity: 0.7, pos: new THREE.Vector3(0, -9, 8) });
+      bounceBox = softbox({ w: 18, h: 5, color: ORANGE, intensity: 0.7, pos: new THREE.Vector3(0, -9, 8) });
     } else {
       softbox({ w: 6, h: 14, pos: new THREE.Vector3(-9, 3, 6), orbit: (g, t) => { g.rotation.y = Math.sin(t * 0.17) * 0.8; } });
       softbox({ w: 3, h: 12, intensity: 4, pos: new THREE.Vector3(10, 2, -2), orbit: (g, t) => { g.rotation.y = -Math.sin(t * 0.23) * 0.7; } });
@@ -1098,7 +1121,7 @@
     });
     // red satin: the page red, shaded darker by a slowly circling key light, with a soft
     // sheen from the same moving softboxes the chrome used
-    const redLights = [];
+    const redLights = [], redLightObjs = [];
     if (LOOK === 'red') {
       chrome = new THREE.MeshPhysicalMaterial({
         color: 0xd0202a,
@@ -1106,10 +1129,11 @@
         clearcoat: 0.6, clearcoatRoughness: 0.12,
         envMapIntensity: 1.1                     // picks up the moving softboxes
       });
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x6a1a1a, 0.6));
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x6a1a1a, 0.6);
       const key = new THREE.DirectionalLight(0xffffff, 0.75);
       const rim = new THREE.DirectionalLight(0xffffff, 0.3);
-      scene.add(key, rim);
+      scene.add(hemi, key, rim);
+      redLightObjs.push([hemi, .6], [key, .75], [rim, .3]);
       redLights.push((t) => {
         key.position.set(Math.sin(t * 0.25) * 6 - 2, 5 + Math.sin(t * 0.17) * 2, 6);
         rim.position.set(6 + Math.sin(t * 0.2) * 2, 2, -4);
@@ -1131,7 +1155,7 @@
     // --- Busts: load, chrome them, and cycle through with a glitch -------
     const dbg = new URLSearchParams(location.search);
     // raw/ = the scans without smoothing (the smoothed set is still alongside: bust.glb, bust2.glb …)
-    const BUSTS = [dbg.get('m') || 'raw/bust1.glb', 'raw/bust2.glb', 'raw/bust3.glb', 'raw/bust4.glb', 'raw/bust6.glb', 'raw/bust7.glb', 'raw/bust8.glb', 'raw/bust9.glb'];
+    const BUSTS = [dbg.get('m') || 'raw/bust1.glb', 'raw/bust2.glb', 'raw/bust3.glb', 'raw/bust4.glb', 'raw/bust6.glb', 'raw/bust8.glb', 'raw/bust9.glb'];
     // per-bust size tweak on top of the shared normalisation
     const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15, 'bust6.glb': 1.15, 'bust7.glb': 1.15, 'bust8.glb': 1.15, 'bust9.glb': 1.15 };
     const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1600;
@@ -1168,6 +1192,25 @@
       wrap.userData = { car, mat };
       return wrap;
     }
+
+    // Gold scheme → the busts switch to the earlier black chrome; other schemes keep the red satin.
+    const FINISH = {
+      red:   { color: 0xd0202a, metalness: .55, roughness: .3,  clearcoat: .6, clearcoatRoughness: .12, envMapIntensity: 1.1, tone: THREE.NoToneMapping, lights: 1 },
+      black: { color: 0xffffff, metalness: 1,   roughness: .06, clearcoat: 1,  clearcoatRoughness: .04, envMapIntensity: 1.3, tone: THREE.ACESFilmicToneMapping, lights: 0 }
+    };
+    function applyFinish() {
+      if (LOOK !== 'red' || dbg.has('normal')) return;              // debug looks stay as asked
+      const f = FINISH[document.documentElement.classList.contains('gold') ? 'black' : 'red'];
+      const set = (m) => { m.color.setHex(f.color); m.metalness = f.metalness; m.roughness = f.roughness; m.clearcoat = f.clearcoat;
+        m.clearcoatRoughness = f.clearcoatRoughness; m.envMapIntensity = f.envMapIntensity; m.needsUpdate = true; };
+      set(chrome); slots.forEach(w => w && set(w.userData.mat));
+      renderer.toneMapping = f.tone;
+      // the bounce from below takes the page colour: red on the red schemes, gold on gold
+      if (bounceBox) bounceBox.children[0].material.uniforms.col.value.set(f === FINISH.black ? 0xf8931d : ORANGE).multiplyScalar(0.7);
+      redLightObjs.forEach(([l, i]) => { l.intensity = i * f.lights; });
+    }
+    addEventListener('dm-theme', applyFinish);
+    applyFinish();
 
     // Which bust a visitor sees: the first ever visit gets bust 1, each later visit the next
     // one in order (counted once per browser session, so refreshing doesn't skip ahead).
