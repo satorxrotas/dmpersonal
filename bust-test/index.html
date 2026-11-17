@@ -195,10 +195,10 @@
     .ed-text a { color: inherit; text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: .06em; }
     .ed-text a:hover { opacity: .7; }
     /* drop cap: the swash F, with the same frame-swap glitch as the A and W in the title */
-    /* hangs off the first line: only that line is indented, the F rises above it and its bottom
-       swash drops into the start of the second line (per the reference) */
-    .ed-drop { display: inline-block; position: relative; width: 4.95em; height: .7em; vertical-align: baseline; }
-    .ed-drop .ed-f { position: absolute; left: -.2em; bottom: -1.2em; height: 4.6em; width: auto; fill: currentColor; overflow: visible; }
+    /* hangs off the first line: only that line is indented and the F rises above it */
+    .ed-drop { display: inline-block; position: relative; width: 4.5em; height: .7em; vertical-align: baseline; }
+    /* the F's lowest point sits on the first line's baseline, so it never reaches the line below */
+    .ed-drop .ed-f { position: absolute; left: -.2em; bottom: .05em; height: 4.2em; width: auto; fill: currentColor; overflow: visible; }
     .ed-drop .df { display: none; }
     .ed-f:not([data-f]) .df1, .ed-f[data-f="1"] .df1, .ed-f[data-f="2"] .df2, .ed-f[data-f="3"] .df3,
     .ed-f[data-f="4"] .df4, .ed-f[data-f="5"] .df5, .ed-f[data-f="6"] .df6 { display: inline; }
