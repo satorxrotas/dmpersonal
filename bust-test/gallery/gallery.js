@@ -9,7 +9,7 @@ window.DM_GALLERY = [
   {"id": "g004", "w": 1838, "h": 1226, "t": "David Maxwell :: NØIR (2019)"},
   {"id": "g005", "w": 1080, "h": 1350, "t": "David Maxwell x Cafe Racers of Instagram (2022)"},
   {"id": "g006", "w": 2000, "h": 1333, "t": "David Maxwell x California Closets Store Front (2021)"},
-  {"id": "g007", "w": 1125, "h": 1396},
+  {"id": "g007", "w": 1125, "h": 1396, "t": "La Cleanic “Flower Mouth” (2019)"},
   {"id": "g008", "w": 2000, "h": 1600, "t": "Julius Tobi :: WaveIQ (2025)"},
   {"id": "g009", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design (2019)"},
   {"id": "g010", "w": 1080, "h": 1350, "t": "La Cleanic Capsule Design (2021)"},
@@ -36,5 +36,6 @@ window.DM_GALLERY = [
   {"id": "g031", "w": 1080, "h": 1920, "t": "David Maxwell :: Let It Hit (2023)", "video": true},
   {"id": "g032", "w": 1080, "h": 1920, "video": true},
   {"id": "g033", "w": 1920, "h": 1080, "t": "THEY. :: Choosin’ (2025)", "video": true},
-  {"id": "g034", "w": 1920, "h": 1080, "t": "THEY. :: Rotation (2025)", "video": true}
+  {"id": "g034", "w": 1920, "h": 1080, "t": "THEY. :: Rotation (2025)", "video": true},
+  {"id": "g035", "w": 1440, "h": 1440, "t": "David Maxwell :: The Function (2023)", "video": true}
 ];
