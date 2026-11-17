@@ -320,7 +320,16 @@
       position: absolute; left: 0; top: 0; pointer-events: none; white-space: normal; text-align: right;
       font: 400 12px/1.3 var(--helv); color: #f0ede6;
     }
-    .gv-title span { display: block; }   /* desktop: one caption part per line */
+    .gv-title span { display: block; }
+    /* "tap for sound" sits on the video, near its bottom edge: small, grey, slowly pulsing */
+    .gv-hint {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
+      font: 700 10px/1 var(--helv); letter-spacing: .18em; color: rgba(240, 237, 230, .55);
+      text-shadow: 0 1px 6px rgba(0, 0, 0, .5);
+    }
+    .gv-hint:not(:empty) { animation: gv-hint 2.4s ease-in-out infinite; }
+    @keyframes gv-hint { 0%, 100% { color: rgba(240, 237, 230, .25); } 50% { color: rgba(240, 237, 230, .7); } }
+    @media (prefers-reduced-motion: reduce) { .gv-hint:not(:empty) { animation: none; } }   /* desktop: one caption part per line */
     .gv-close {
       position: absolute; top: 1.1rem; right: 1.1rem; width: 2.6rem; height: 2.6rem;
       border: 0; background: none; padding: 0;
@@ -575,6 +584,7 @@
     <canvas></canvas>
     <div class="gv-title" aria-live="polite"></div>
     <div class="gv-count" aria-hidden="true"></div>
+    <div class="gv-hint" aria-live="polite"></div>
     <button class="gv-close" type="button" aria-label="Close image"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
   </div>
 
@@ -1775,7 +1785,7 @@
     // step through (it loops); click outside the picture, the round X or Esc closes.
     const Viewer = (() => {
       const el = document.getElementById('gv'), cv = el.querySelector('canvas');
-      const countEl = el.querySelector('.gv-count'), titleEl = el.querySelector('.gv-title');
+      const countEl = el.querySelector('.gv-count'), titleEl = el.querySelector('.gv-title'), hintEl = el.querySelector('.gv-hint');
       const vr = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
       vr.setPixelRatio(Math.min(devicePixelRatio, 2));
       vr.setClearColor(0x0a0a0a, 1);
@@ -1866,8 +1876,10 @@
         const it = V.items[fi];
         syncVideos(fi);
         const vid = it.video && !it.video.paused;
-        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0')
-          + (it.video ? (it.video.paused ? '  ·  TAP TO PLAY' : it.video.muted ? '  ·  TAP FOR SOUND' : '') : '');
+        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0');
+        // hint over the video itself (grey, slowly pulsing) instead of in the counter
+        const hint = it.video ? (it.video.paused ? 'TAP TO PLAY' : it.video.muted ? 'TAP FOR SOUND' : '') : '';
+        if (hintEl.textContent !== hint) hintEl.textContent = hint;
         const mobile = L.w <= 760, iw = it.w * L.px, ih = it.h * L.px;
         // desktop: a narrow stack — each "::" part and each side of a collaboration "x" on its own line
         const t = GAL[fi].t || '', key = (mobile ? 'm' : 'd') + t;
@@ -1885,11 +1897,21 @@
           }
         }
         let x, y, tx, ty;
-        if (mobile) {   // under the picture: caption at its left edge, counter at its right edge
-          y = ty = L.h / 2 + ih / 2 + 14;
-          titleEl.style.maxWidth = Math.max(80, iw - countEl.offsetWidth - 16) + 'px'; titleEl.style.textAlign = 'left';
+        if (mobile) {   // under the picture, one line: caption on the left (shrinks to fit), counter on the right
+          const room = iw - countEl.offsetWidth - 14;
+          const fitKey = key + '|' + Math.round(room);
+          if (titleEl.dataset.fit !== fitKey) {
+            titleEl.dataset.fit = fitKey;
+            Object.assign(titleEl.style, { whiteSpace: 'nowrap', maxWidth: 'none', fontSize: '12px', overflow: 'visible', textOverflow: 'clip', textAlign: 'left' });
+            const w = titleEl.scrollWidth;
+            const fs = w > room ? Math.max(8.5, 12 * room / w) : 12;
+            titleEl.style.fontSize = fs.toFixed(2) + 'px';
+            if (titleEl.scrollWidth > room) Object.assign(titleEl.style, { maxWidth: room + 'px', overflow: 'hidden', textOverflow: 'ellipsis' });
+          }
+          y = L.h / 2 + ih / 2 + 12; ty = y + (countEl.offsetHeight - titleEl.offsetHeight) / 2;
           tx = L.w / 2 - iw / 2; x = L.w / 2 + iw / 2 - countEl.offsetWidth;
         } else {        // either side of the picture, vertically centred
+          Object.assign(titleEl.style, { whiteSpace: 'normal', fontSize: '', overflow: 'visible', textOverflow: 'clip' }); titleEl.dataset.fit = '';
           titleEl.style.maxWidth = Math.max(80, Math.min(165, L.w / 2 - iw / 2 - 40)) + 'px'; titleEl.style.textAlign = 'right';
           y = L.h / 2 - 6; ty = L.h / 2 - titleEl.offsetHeight / 2 + 1;
           x = L.w / 2 + iw / 2 + 20; tx = L.w / 2 - iw / 2 - 20 - titleEl.offsetWidth;
@@ -1898,6 +1920,8 @@
         countEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
         titleEl.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
         countEl.style.opacity = titleEl.style.opacity = op;
+        hintEl.style.transform = `translate(${(L.w / 2 - hintEl.offsetWidth / 2).toFixed(1)}px, ${(L.h / 2 + ih / 2 - hintEl.offsetHeight - 14).toFixed(1)}px)`;
+        hintEl.style.opacity = hint ? op : 0;
         vr.render(vs, vc);
         if (!V.open && V.g <= 0) {
           el.classList.remove('open');
