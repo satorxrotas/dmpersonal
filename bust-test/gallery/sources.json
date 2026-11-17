@@ -51,5 +51,13 @@
  },
  "g026": "TIKTOK_CAMPAIGN_AT_MLK_S_HOUSE.png",
  "g027": "DAVID_MAXWELL__WORKING_ON_MYSELF__2020.MP4",
- "g028": "DAVID_MAXWELL__SILENCE__2021.MOV"
+ "g028": "DAVID_MAXWELL__SILENCE__2021.MOV",
+ "g029": {
+  "file": "DAVID_MAXWELL_-_THE_FUNCTION_Game_Scence.mp4",
+  "override": "David Maxwell :: The Function Game Scene"
+ },
+ "g030": {
+  "file": "LUKA_DON_I__MERCH_DROP_2026.MP4",
+  "as": "LUKA_DONČIĆ__MERCH_DROP_2026"
+ }
 }

@@ -30,5 +30,7 @@ window.DM_GALLERY = [
   {"id": "g025", "w": 1221, "h": 1351, "t": "TikTok :: Support Black Businesses"},
   {"id": "g026", "w": 1155, "h": 1300, "t": "TikTok Campaign at MLK's House"},
   {"id": "g027", "w": 576, "h": 720, "t": "David Maxwell :: Working on Myself (2020)", "video": true},
-  {"id": "g028", "w": 720, "h": 1280, "t": "David Maxwell :: Silence (2021)", "video": true}
+  {"id": "g028", "w": 720, "h": 1280, "t": "David Maxwell :: Silence (2021)", "video": true},
+  {"id": "g029", "w": 1080, "h": 1920, "t": "David Maxwell :: The Function Game Scene", "video": true},
+  {"id": "g030", "w": 1080, "h": 1350, "t": "Luka Dončić :: Merch Drop (2026)", "video": true}
 ];
