@@ -286,6 +286,7 @@
       border: 0; padding: .55em 1.6em; cursor: pointer; letter-spacing: .06em; transition: opacity .2s;
     }
     .contact-form .send:hover { opacity: .75; }
+    .contact-form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }   /* honeypot: bots fill it, people never see it */
     .form-note { min-height: 1.3em; }
 
     /* ---- Bust gallery (click the bust): page copy fades, the bust stays, images swirl into a ring ---- */
@@ -566,6 +567,7 @@
       <label>Name<input name="name" type="text" autocomplete="name" required></label>
       <label>Email<input name="email" type="email" autocomplete="email" required></label>
       <label>Message<textarea name="message" rows="5" required></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
       <button class="send" type="submit">SEND</button>
       <p class="form-note" aria-live="polite"></p>
     </form>
@@ -938,19 +940,26 @@
     // (To send straight from the page instead, point FORM_ENDPOINT at a form service such as Formspree.)
     (() => {
       const CONTACT_EMAIL = 'hello@example.com';   // TODO: David's address
-      const FORM_ENDPOINT = '';                    // e.g. 'https://formspree.io/f/xxxx'
+      // Google Apps Script web app (see _apps-script/contact-form.gs): logs to the Sheet, emails the visitor a thank-you
+      const FORM_ENDPOINT = '';                    // paste the Web app URL here (…/exec)
       const form = document.querySelector('.contact-form'), note = form.querySelector('.form-note');
+      let openedAt = Date.now();
+      new MutationObserver(() => { if (document.getElementById('contact').classList.contains('open')) openedAt = Date.now(); })
+        .observe(document.getElementById('contact'), { attributes: true, attributeFilter: ['class'] });
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const d = Object.fromEntries(new FormData(form));
         if (!d.name.trim() || !/^\S+@\S+\.\S+$/.test(d.email) || !d.message.trim()) { note.textContent = 'Please fill in your name, a valid email and a message.'; return; }
         if (FORM_ENDPOINT) {
           note.textContent = 'Sending…';
+          const send = form.querySelector('.send'); send.disabled = true;
           try {
-            const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
-            if (!r.ok) throw 0;
-            form.reset(); note.textContent = 'Thank you — message sent.';
+            const body = new URLSearchParams(new FormData(form)); body.set('t', Date.now() - openedAt);
+            // Apps Script doesn't allow reading the response cross-site, so this is fire-and-forget (no-cors)
+            await fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body });
+            form.reset(); note.textContent = 'Thank you — message sent. A confirmation is on its way to your inbox.';
           } catch { note.textContent = 'Something went wrong. Please try again.'; }
+          send.disabled = false;
           return;
         }
         const body = `${d.message}\n\n— ${d.name} (${d.email})`;
