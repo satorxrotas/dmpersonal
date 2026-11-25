@@ -2,6 +2,9 @@
 // (Browsers don't animate favicons themselves, so we swap the icon.)
 (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  // Safari can't use a changing (data:) icon; leave it the static PNG/ICO, or it shows a letter placeholder
+  const ua = navigator.userAgent;
+  if (/Safari/.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/.test(ua)) return;
   const ring = '<circle cx="16" cy="16" r="13.5" fill="none" stroke="#ee4137" stroke-width="3"/>';
   const svg = (dot) => 'data:image/svg+xml,' + encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">${ring}${dot ? '<circle cx="16" cy="16" r="8" fill="#ee4137"/>' : ''}</svg>`);
