@@ -1,3 +1,4 @@
+/** @OnlyCurrentDoc */
 /**
  * DAVID MAXWELL — website contact form  →  Google Sheet + Gmail
  *
@@ -21,6 +22,7 @@
 
 const CONFIG = {
   SHEET_NAME: 'Submissions',
+  OWNER_EMAIL: 'hello@davidmaxwell.work',          // where the notification goes
   FROM_NAME: 'David Maxwell',                       // shown as the sender of the auto-reply
   REPLY_SUBJECT: 'Thanks for reaching out',
   REPLY_BODY: [                                     // {first} = the visitor's first name
@@ -68,7 +70,7 @@ function doPost(e) {
       // 2) the notification to this account, with their message; Reply goes to them
       if (CONFIG.NOTIFY_OWNER) {
         MailApp.sendEmail({
-          to: Session.getEffectiveUser().getEmail(),
+          to: CONFIG.OWNER_EMAIL,
           subject: 'New website message — ' + name,
           body: message + '\n\n— ' + name + ' <' + email + '>\n\n(Logged in your "' + CONFIG.SHEET_NAME + '" sheet. Hit Reply to answer them directly.)',
           replyTo: email,
