@@ -326,6 +326,11 @@
       font: 400 12px/1.3 var(--helv); color: #f0ede6;
     }
     .gv-title span { display: block; }
+    .gv-title .gv-mq { display: inline-block; }
+    .gv-title.scroll .gv-mq { animation: gv-mq var(--dur, 8s) ease-in-out infinite; }
+    .gv-title.scroll { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+    @keyframes gv-mq { 0%, 18% { transform: none; } 50%, 68% { transform: translateX(var(--dx)); } 100% { transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .gv-title.scroll .gv-mq { animation: none; } }
     /* "tap for sound" sits on the video, near its bottom edge: small, grey, slowly pulsing */
     .gv-hint {
       position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
@@ -1890,9 +1895,9 @@
         const t = GAL[fi].t || '', key = (mobile ? 'm' : 'd') + t;
         if (titleEl.dataset.k !== key) {
           titleEl.dataset.k = key;
-          if (mobile) titleEl.textContent = t;
+          const esc = (s) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+          if (mobile) titleEl.innerHTML = `<span class="gv-mq">${esc(t)}</span>`;
           else {
-            const esc = (s) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
             const lines = [];
             t.split(' :: ').forEach((seg, i) => seg.split(' x ').forEach((part, j) => {
               if (j) lines.push('x');
@@ -1907,11 +1912,18 @@
           const fitKey = key + '|' + Math.round(room);
           if (titleEl.dataset.fit !== fitKey) {
             titleEl.dataset.fit = fitKey;
+            titleEl.classList.remove('scroll');
             Object.assign(titleEl.style, { whiteSpace: 'nowrap', maxWidth: 'none', fontSize: '12px', overflow: 'visible', textOverflow: 'clip', textAlign: 'left' });
             const w = titleEl.scrollWidth;
-            const fs = w > room ? Math.max(8.5, 12 * room / w) : 12;
+            const fs = w > room ? Math.max(10.5, 12 * room / w) : 12;   // shrink a little, never below readable
             titleEl.style.fontSize = fs.toFixed(2) + 'px';
-            if (titleEl.scrollWidth > room) Object.assign(titleEl.style, { maxWidth: room + 'px', overflow: 'hidden', textOverflow: 'ellipsis' });
+            const over = titleEl.scrollWidth - room;
+            if (over > 1) {   // still too long: scroll it across and back so the whole caption can be read
+              Object.assign(titleEl.style, { maxWidth: room + 'px', overflow: 'hidden' });
+              titleEl.style.setProperty('--dx', (-over - 4).toFixed(1) + 'px');
+              titleEl.style.setProperty('--dur', (3.2 + 2 * (over + 4) / 28).toFixed(2) + 's');   // ~28px/s, with pauses at each end
+              titleEl.classList.add('scroll');
+            }
           }
           y = L.h / 2 + ih / 2 + 12; ty = y + (countEl.offsetHeight - titleEl.offsetHeight) / 2;
           tx = L.w / 2 - iw / 2; x = L.w / 2 + iw / 2 - countEl.offsetWidth;

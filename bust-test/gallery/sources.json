@@ -32,10 +32,13 @@
  "g018": "SASHA_KEABLE_IN_LOS_ANGELES_2026.JPG",
  "g019": {
   "file": "DAVID_MAXWELL__ARCHIVED_ALBUM__ART.PNG",
-  "as": "DAVID_MAXWELL__ARCHIVED_ALBUM_ART"
+  "override": "David Maxwell :: Archived Album Art (2026)"
  },
  "g020": "MARCLO__11_DAYS__CD_DESIGN_2026.png",
- "g021": "LUKA_DONČIĆ_FOR_NERF.PNG",
+ "g021": {
+  "file": "LUKA_DONČIĆ_FOR_NERF.PNG",
+  "override": "Luka Dončić for NERF (2024)"
+ },
  "g022": {
   "file": "LA_CLEANIC__TOWER__RING.png",
   "override": "La Cleanic Jewelry Capsule :: Tower Ring"
