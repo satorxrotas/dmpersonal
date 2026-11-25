@@ -943,9 +943,9 @@
     // Contact form. No server yet, so SEND opens the visitor's mail app with everything filled in.
     // (To send straight from the page instead, point FORM_ENDPOINT at a form service such as Formspree.)
     (() => {
-      const CONTACT_EMAIL = 'hello@example.com';   // TODO: David's address
+      const CONTACT_EMAIL = 'hello@davidmaxwell.work';   // fallback only (used if no endpoint)
       // Google Apps Script web app (see _apps-script/contact-form.gs): logs to the Sheet, emails the visitor a thank-you
-      const FORM_ENDPOINT = '';                    // paste the Web app URL here (…/exec)
+      const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwXnOkXD05QDfuIrTxi2WiPQqakzLRT_PODH3TrB9MUkKKpGLzEyRmIrVfxg3zY9CDTyA/exec';
       const form = document.querySelector('.contact-form'), note = form.querySelector('.form-note');
       let openedAt = Date.now();
       new MutationObserver(() => { if (document.getElementById('contact').classList.contains('open')) openedAt = Date.now(); })
