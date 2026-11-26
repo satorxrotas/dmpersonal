@@ -959,8 +959,14 @@
           const send = form.querySelector('.send'); send.disabled = true;
           try {
             const body = new URLSearchParams(new FormData(form)); body.set('t', Date.now() - openedAt);
-            // Apps Script doesn't allow reading the response cross-site, so this is fire-and-forget (no-cors)
-            await fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body });
+            // Apps Script doesn't allow reading the response cross-site, so this is fire-and-forget.
+            // sendBeacon hands the request to the browser and returns at once (iOS Safari can hang forever on
+            // Google's redirect if we wait for fetch); fetch is the fallback, capped at 4 s.
+            const queued = navigator.sendBeacon && navigator.sendBeacon(FORM_ENDPOINT, body);
+            if (!queued) await Promise.race([
+              fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }),
+              new Promise(r => setTimeout(r, 4000)),
+            ]);
             form.reset(); note.textContent = 'Thank you — message sent. A confirmation is on its way to your inbox.';
           } catch { note.textContent = 'Something went wrong. Please try again.'; }
           send.disabled = false;
