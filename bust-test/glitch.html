@@ -1,0 +1,2359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="../favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <script src="../favicon-blink.js" defer></script>
+  <title>David Maxwell — glitch test</title>
+  <meta name="robots" content="noindex">
+  <style>
+    /* Airbnb Cereal: Bold for wordmark, body and footer; Medium for small UI text */
+    @font-face {
+      font-family: "Airbnb Cereal"; font-weight: 700; font-style: normal; font-display: swap;
+      src: url("../fonts/AirbnbCereal-Bold.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Airbnb Cereal"; font-weight: 500; font-style: normal; font-display: swap;
+      src: url("../fonts/AirbnbCereal-Medium.woff2") format("woff2");
+    }
+    /* Airbnb Print (slab serif) for the About page; Cereal variable fonts for its small labels */
+    @font-face { font-family: "Airbnb Print"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-Regular.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Print"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-RegularItalic.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Print"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-SemiBold.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Print"; font-weight: 700; font-style: normal; font-display: swap; src: url("../fonts/cereal/Airbnb-Print-Bold.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Cereal VF"; font-weight: 300 900; font-style: normal; font-display: swap; src: url("../fonts/cereal/AirbnbCerealVF-Wght.woff2") format("woff2"); }
+    @font-face { font-family: "Airbnb Cereal VF"; font-weight: 300 900; font-style: italic; font-display: swap; src: url("../fonts/cereal/AirbnbCerealVF-Italics-Wght.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 300; font-style: normal; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Light.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 300; font-style: italic; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Light-Italic.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Book.woff2") format("woff2"); }
+    @font-face { font-family: "Circular Air"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/cereal/Circular-Air-Pro-Book-Italic.woff2") format("woff2"); }
+    /* Druk Wide: drop the licensed files into /fonts and they take over.
+       Until then it falls back to Archivo at its widest, heaviest setting. */
+    @font-face {
+      font-family: "Druk Wide";
+      font-weight: 700;
+      src: local("Druk Wide Bold"), local("DrukWide-Bold"),
+           url("../fonts/DrukWide-Bold.woff2") format("woff2");
+      font-display: swap;
+    }
+    :root {
+      --red: #ee4137;
+      --bg: #000; --blink: #fff;
+      --orange: var(--red);   /* legacy name, kept so older rules follow the new colour */
+      --ink: var(--red);
+      /* layout unit: the desktop composition is drawn on a 100u × ~56u board that
+         fits the screen (1u = 1% of the width, or less on short/wide screens) */
+      --u: min(1vw, 1.75svh);
+      --helv: "Airbnb Cereal", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --druk: "Druk Wide", "Archivo", "Arial Black", sans-serif;
+      --pad-x: 2.6vw;
+      --pad-y: 3.2vw;
+      --body: clamp(13px, 0.95vw, 19px);
+      --action: clamp(17px, 1.6vw, 32px);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--red); overflow-x: clip; transition: background-color .5s ease; }
+    html.light { --bg: #fff; --blink: #000; }
+    /* third scheme: the original design's orange-gold, everything black, black-chrome busts */
+    html.gold { --bg: #f8931d; --red: #000; --blink: #fff; }
+    html.gold .about-lb:not(.ed), html.gold .lightbox { background: rgba(248, 147, 29, .96); }
+    html.gold .gv { background: var(--bg); }
+    html.light .about-lb { background: rgba(255, 255, 255, .95); }
+
+    /* ---- Text entrance: slides in from its own side as the bust arrives ---- */
+    .intro-pending [data-in] { opacity: 0; }
+    .intro-go [data-in] {
+      animation: slide-in 1.3s cubic-bezier(.16, 1, .3, 1) backwards;
+      animation-delay: var(--d, 0s);
+    }
+    [data-in="left"]  { --from: -9vw; }
+    [data-in="right"] { --from: 9vw; }
+    [data-in="up"]    { --from: 0px; }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateX(var(--from)); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .intro-go [data-in] { animation: fade-in .6s ease backwards; animation-delay: 0s; }
+      @keyframes fade-in { from { opacity: 0; } }
+    }
+    body { font-family: var(--helv); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ---- Desktop: one locked screen, laid out on the 100u board ---- */
+    .page { position: relative; height: 100svh; min-height: calc(56 * var(--u)); overflow: hidden; }
+    .stage { position: relative; width: calc(100 * var(--u)); height: 100%; margin: 0 auto; }
+    .wordmark {
+      position: absolute; left: calc(.6 * var(--u)); top: calc(1.2 * var(--u));
+      width: calc(98.8 * var(--u)); line-height: 0;
+    }
+    .wordmark svg { display: block; fill: currentColor; }
+    .wordmark .wm-stack { display: none; }
+    /* animated W in MAXWELL: six frames swapped on the video's timing (JS below) */
+    /* animated A in DAVID: same frame-swap system as the W */
+    .wordmark .wm-a .af { display: none; }
+    .wordmark .wm-a .af1 { display: inline; }
+    .wordmark .wm-a[data-f] .af1 { display: none; }
+    .wordmark .wm-a[data-f="1"] .af1, .wordmark .wm-a[data-f="2"] .af2, .wordmark .wm-a[data-f="3"] .af3,
+    .wordmark .wm-a[data-f="4"] .af4 { display: inline; }
+    .wordmark .wm-w .wf { display: none; }
+    .wordmark .wm-w .wf1 { display: inline; }
+    .wordmark .wm-w[data-f] .wf1 { display: none; }
+    .wordmark .wm-w[data-f="1"] .wf1, .wordmark .wm-w[data-f="2"] .wf2, .wordmark .wm-w[data-f="3"] .wf3,
+    .wordmark .wm-w[data-f="4"] .wf4, .wordmark .wm-w[data-f="5"] .wf5, .wordmark .wm-w[data-f="6"] .wf6 { display: inline; }
+    /* desktop: DAVID and MAXWELL side by side at the same letter height, filling the width */
+    .wordmark .wm-line { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+    .wordmark .wm-line > svg, .wordmark .wm-row2 > svg:first-child { height: calc(7.91 * var(--u)); width: auto; flex: none; }   /* sized from the reference lockup */
+    /* explicit widths from each viewBox: Safari mis-sizes height-only SVGs inside flex rows */
+    .wordmark .wm-line > svg { aspect-ratio: 980.08 / 235; width: calc(7.91 * var(--u) * 980.08 / 235); }
+    .wordmark .wm-row2 > svg:first-child { aspect-ratio: 1545.67 / 235; width: calc(7.91 * var(--u) * 1545.67 / 235); }
+    .wordmark .wm-row2 { display: flex; align-items: flex-end; gap: calc(2.06 * var(--u)); }
+    /* the smiley after MAXWELL, winking now and then (same sequence as the loader) */
+    .wordmark .wm-wink { height: calc(7.42 * var(--u)); width: auto; flex: none; margin-bottom: calc(0.69 * var(--u)); }
+    .wordmark .wm-wink.w3d { aspect-ratio: 124.33 / 118.5; width: calc(7.42 * var(--u) * 124.33 / 118.5); font-size: calc(0.779 * var(--u)); perspective: 60em; }
+    /* REEL / CAMPAIGNS under the logo, ABOUT bottom left, socials bottom right, tagline centred */
+    .action {
+      position: absolute; z-index: 3;
+      font-family: var(--helv); font-weight: 700;
+      font-size: var(--btn);   /* 35% smaller again */ line-height: .8; letter-spacing: -0.01em;
+      background: none; border: 0; padding: 0; color: inherit; cursor: pointer;
+      display: inline-flex; align-items: flex-end; gap: .22em;
+      transition: opacity .2s;
+    }
+    .action:hover { opacity: .6; }
+    .action .px-diag { width: .7em; height: .7em; flex: none; margin-bottom: .05em; }   /* cap height */
+    .reel   { left: calc(1.1 * var(--u)); top: calc(11.2 * var(--u)); }
+    .studio { right: calc(1.1 * var(--u)); top: calc(11.2 * var(--u)); }
+    .about  { left: calc(1.1 * var(--u)); bottom: calc(1.4 * var(--u)); }
+    .stage { --btn: calc(1.3 * var(--u)); }
+    .tg-arrow { display: inline-block; width: 1.1em; height: .7em; vertical-align: .05em; margin: 0 .1em; }   /* drawn: the font has no arrow glyph */
+    .tagline {
+      position: absolute; z-index: 3; left: 0; right: 0; top: calc(11.5 * var(--u));
+      font-size: max(11px, calc(.95 * var(--u))); font-weight: 700; line-height: 1.3; text-align: center;
+    }
+    .social {
+      position: absolute; z-index: 3; right: calc(1.1 * var(--u)); bottom: calc(1.6 * var(--u));
+      font-size: max(10px, calc(.68 * var(--u))); font-weight: 700; letter-spacing: .02em;
+      display: flex; gap: .45em; align-items: center;
+    }
+    .social a:hover { opacity: .6; }
+    .social a { display: block; line-height: 0; }
+    /* icons are as tall as the capitals of REEL / CAMPAIGNS / ABOUT (cap ≈ .71em; icon ink ≈ 21/24 of its box) */
+    .social svg { width: calc(var(--btn) * .92); height: auto; display: block; }
+    .social .mail-btn svg { width: calc(var(--btn) * 1.1); }   /* envelope ink is shorter (≈17/24), so its box is a bit bigger */
+    .social { gap: clamp(10px, .9vw, 16px); }
+
+    /* ---- About lightbox ---- */
+    .about-lb {
+      position: fixed; inset: 0; z-index: 25; background: rgba(0, 0, 0, .94);
+      display: grid; place-items: center; padding: 64px 24px;
+      opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .about-lb.open { opacity: 1; visibility: visible; transition: opacity .45s ease; }
+    .about-body {
+      max-width: min(34em, 88vw); color: var(--red); text-align: center;
+      font-size: max(11px, calc(.95 * var(--u))); font-weight: 700; line-height: 1.3;   /* same as the tagline */
+      transform: translateY(14px); transition: transform .6s cubic-bezier(.16, 1, .3, 1);
+    }
+    .about-lb.open .about-body { transform: none; }
+    .about-body p + p { margin-top: 1.3em; }
+    .about-body a { text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: .08em; }
+    .about-body a:hover { opacity: .6; }
+    .about-close {
+      position: absolute; top: max(20px, calc(2.2 * var(--u))); right: max(16px, calc(2.2 * var(--u)));
+      background: none; border: 0; padding: 6px; line-height: 0; cursor: pointer; color: var(--red);
+      transition: opacity .2s;
+    }
+    .about-close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
+    .about-close:hover { opacity: .6; }
+    .about-close:focus:not(:focus-visible) { outline: none; }
+
+    /* ---- ABOUT: the hero title grows to a full-width white banner, David (cut-out) stands
+       on a simulated studio backdrop, one column of text and a fan of clients.
+       Layers: backdrop 1 · title 2 · David 3 · text 4 · close 5 */
+    .about-lb.ed, html.light .about-lb.ed, html.gold .about-lb.ed { padding: 0; overflow-y: auto; overscroll-behavior: contain; background: none; display: block; }
+    .about-lb.ed::before { content: ""; position: fixed; inset: 0; z-index: 0; background: #000; }
+    .ed-bg {   /* fitted to the portrait's lighting; JS lines it up with the cut-out */
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: #220004 url("about/backdrop.jpg") no-repeat 0 0 / 300% auto;
+    }
+    .ed-bg::after {   /* the backdrop fades to black at the bottom of the page */
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,.55) 75%, #000 100%);
+    }
+    .ed-spread {
+      --sans: "Airbnb Cereal VF", "Airbnb Cereal", "Helvetica Neue", Arial, sans-serif;
+      --head: var(--wm-b, 15vh);                     /* bottom of the grown title (set by JS) */
+      position: relative; display: block; color: #fff; width: 100%;
+      min-height: 100vh; min-height: 100dvh; margin: 0;
+      font: 400 min(.92vw, 1.65vh)/1.45 var(--sans);
+    }
+    .ed-page { transform: translateY(100vh); transition: transform 1.4s cubic-bezier(.16, 1, .3, 1) 1s; }   /* after the title has turned white */
+    .about-lb.open .ed-page { transform: none; }
+    .about-lb:not(.open) .ed-page { transition-delay: .45s; }
+    /* David is revealed by a pixel-tile transition (JS draws it on a canvas over the cut-out) */
+    .ed-cut img.px-hide { visibility: hidden; }
+    .ed-cut canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    /* David: left, head tucked over the bottom of the title, standing to the bottom edge */
+    .ed-cut {
+      position: absolute; z-index: 3; pointer-events: none;
+      top: calc(var(--head) * .4); bottom: 0; left: .5vw;   /* head well into the title, as in the mockup */ aspect-ratio: 1076 / 1444;
+    }
+    .ed-cut img { display: block; width: 100%; height: 100%; }
+    /* one centred column on the right */
+    .ed-page {
+      position: relative; z-index: 4; width: 29%; margin-left: 50.6%;
+      padding: max(43vh, calc(var(--head) + 6vh)) 0 7vh;
+    }
+    .ed-text p { margin: 0 0 1.1em; text-align: left; hyphens: manual; }
+    .ed-text p + p { text-indent: 3.2em; }
+    .ed-text a { color: inherit; text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: .06em; }
+    .ed-text a:hover { opacity: .7; }
+    /* drop cap: the swash F, with the same frame-swap glitch as the A and W in the title */
+    /* hangs off the first line: only that line is indented and the F rises above it */
+    .ed-drop { display: inline-block; position: relative; width: 4.5em; height: .7em; vertical-align: baseline; }
+    /* the F's lowest point sits on the first line's baseline, so it never reaches the line below */
+    .ed-drop .ed-f { position: absolute; left: -.2em; bottom: .05em; height: 4.2em; width: auto; fill: currentColor; overflow: visible; }
+    .ed-drop .df { display: none; }
+    .ed-f:not([data-f]) .df1, .ed-f[data-f="1"] .df1, .ed-f[data-f="2"] .df2, .ed-f[data-f="3"] .df3,
+    .ed-f[data-f="4"] .df4 { display: inline; }
+    /* clients: a loose smile-shaped fan under the heading */
+    .ed-clients { position: relative; margin-top: 3.4em; height: 7.4em; text-align: center; }
+    .ed-clients h3 { font: 700 1em/1 var(--sans); margin: 0; }
+    .ed-clients ul { list-style: none; margin: 0; padding: 0; }
+    .ed-clients li { position: absolute; left: calc(50% + var(--x)); top: calc(2.2em + var(--y)); transform: translateX(-50%); font-size: .92em; white-space: nowrap;
+      /* a sine wave travelling along the arc: same motion, phase-shifted per name */
+      animation: ed-wave 2.8s cubic-bezier(.37, 0, .63, 1) infinite alternate; animation-delay: calc(var(--i) * -.4s - 2.8s); }
+    @keyframes ed-wave { from { translate: 0 -.55em; } to { translate: 0 .55em; } }
+    @media (prefers-reduced-motion: reduce) { .ed-clients li { animation: none; } }
+    .ed-clients li:nth-child(1) { --i: 0; --x: -40%; --y: 3.3em; }
+    .ed-clients li:nth-child(2) { --i: 1; --x: -26%; --y: 1.6em; }
+    .ed-clients li:nth-child(3) { --i: 2; --x: -12%; --y: .55em; }
+    .ed-clients li:nth-child(4) { --i: 3; --x: 0%;   --y: 0em; }
+    .ed-clients li:nth-child(5) { --i: 4; --x: 12%;  --y: .65em; }
+    .ed-clients li:nth-child(6) { --i: 5; --x: 27%;  --y: 1.8em; }
+    .ed-clients li:nth-child(7) { --i: 6; --x: 41%;  --y: 3.7em; }
+    .about-lb .wm-ghost {
+      position: absolute; z-index: 2; margin: 0; pointer-events: none; transform-origin: 0 0;
+      color: var(--red); transition: color 1.6s ease .1s, transform 1.4s cubic-bezier(.16, 1, .3, 1) .25s;
+    }
+    .about-lb.open .wm-ghost.on { color: #fff; transform: var(--grow, none); }
+    .about-lb.ed .about-close { top: 6px; right: 6px; padding: 4px; color: #fff; z-index: 5; }
+    .about-lb.ed .about-close svg { width: clamp(14px, 1.1vw, 22px); }
+    @media (max-width: 760px) {
+      /* phone: the whole article fits one screen, no scrolling */
+      .about-lb.ed { overflow: hidden; }
+      .ed-spread { height: 100vh; height: 100svh; min-height: 0; overflow: hidden; font-size: min(3vw, 1.38svh); line-height: 1.4; }
+      /* David big and centred; the text sits over his jacket */
+      .ed-cut {
+        top: calc(var(--head) * .4 - 4.4vw); bottom: auto; left: calc(50% - 59.5vw); width: 119vw;
+        -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent);
+      }
+      .ed-page { position: absolute; left: 50%; width: 80%; margin: 0 0 0 -40%; padding: 0; bottom: max(14px, 2.2svh); }   /* text anchored to the bottom, over the jacket */
+      .ed-text p { margin-bottom: .75em; }
+      .ed-clients { height: 6.4em; margin-top: 1.9em; }
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    /* theme square: mostly red, now and then blinks white (black on the white theme); flips the page to white */
+    .theme-btn { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0; display: grid; place-items: center; }
+    .stage > .theme-btn {
+      --sz: calc(var(--btn) * .92);   /* same box as the social icons, so centres line up */
+      position: absolute; z-index: 3; bottom: calc(1.6 * var(--u));
+      left: calc(50% - var(--sz) / 2); width: var(--sz); height: var(--sz);
+    }
+    .theme-btn span {
+      display: block; width: clamp(15px, 1.3vw, 24px); height: clamp(15px, 1.3vw, 24px);
+      background: var(--red); animation: sq-blink 4.5s ease-in-out infinite;
+    }
+    .theme-btn:hover span { animation-play-state: paused; opacity: .6; }
+    @keyframes sq-blink { 0%, 72%, 100% { background: var(--red); } 82%, 88% { background: var(--blink); } }
+    @keyframes sq-blink-light { 0%, 72%, 100% { background: var(--red); } 82%, 88% { background: #000; } }
+    html.light .theme-btn span { animation-name: sq-blink-light; }
+    @media (prefers-reduced-motion: reduce) { .theme-btn span { animation: none; } }
+    .mail-btn { background: none; border: 0; padding: 0; color: inherit; cursor: pointer; line-height: 0; }
+    .mail-btn:hover { opacity: .6; }
+    /* contact form, same small bold red type as About */
+    .contact-form { width: min(30em, 86vw); display: flex; flex-direction: column; gap: 1.6em; }
+    .contact-form label { display: flex; flex-direction: column; gap: .5em; letter-spacing: .02em; }
+    .contact-form input, .contact-form textarea {
+      font: inherit; color: var(--red); background: transparent; text-align: center;
+      border: 0; border-bottom: 2px solid var(--red); padding: .5em .2em; border-radius: 0; resize: none;
+      font-size: max(16px, 1em);   /* 16px+ stops iPhones zooming in on focus */
+    }
+    .contact-form textarea { text-align: left; border: 2px solid var(--red); padding: .7em; }
+    .contact-form input:focus, .contact-form textarea:focus { outline: none; background: rgba(238, 65, 55, .08); }
+    .contact-form .send {
+      align-self: center; font: inherit; font-size: 1.4em; color: #000; background: var(--red);
+      border: 0; padding: .55em 1.6em; cursor: pointer; letter-spacing: .06em; transition: opacity .2s;
+    }
+    .contact-form .send:hover { opacity: .75; }
+    .contact-form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }   /* honeypot: bots fill it, people never see it */
+    .form-note { min-height: 1.3em; }
+
+    /* ---- Bust gallery (click the bust): page copy fades, the bust stays, images swirl into a ring ---- */
+    .wordmark, .bio, .clients { transition: opacity .6s ease; }
+    .action { transition: opacity .6s ease; }
+    body.gallery-open .wordmark, body.gallery-open .action,
+    body.gallery-open .bio, body.gallery-open .clients { opacity: 0 !important; pointer-events: none; }
+    body.gallery-open { overflow: hidden; }
+    body.gallery-open .bust {
+      position: fixed; inset: 0; height: 100vh; height: 100dvh; margin: 0;
+      z-index: 5; pointer-events: auto; cursor: grab; touch-action: none;
+    }
+    html.bust-hover, html.bust-hover * { cursor: pointer !important; }
+    .g-close {
+      position: fixed; top: max(20px, calc(2.6 * var(--u))); right: max(16px, calc(2.6 * var(--u)));
+      z-index: 9; background: none; border: 0; padding: 6px; line-height: 0; cursor: pointer;
+      color: var(--red); opacity: 0; visibility: hidden; transition: opacity .5s ease .4s, visibility 0s linear .9s;
+    }
+    .g-close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
+    body.gallery-open .g-close { opacity: 1; visibility: visible; transition: opacity .5s ease 1.2s, visibility 0s; }
+    .g-close:hover { opacity: .6 !important; }
+
+    /* ---- Image viewer (click a card): modelled on the DRGNFLEYE project-gallery viewer ---- */
+    .gv {
+      position: fixed; inset: 0; z-index: 30; background: #0a0a0a;
+      opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .gv.open { opacity: 1; visibility: visible; transition: opacity .55s ease; }
+    .gv canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: zoom-out; }
+    .gv canvas.on-image { cursor: default; }
+    .gv-count {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
+      font: 500 12px/1 var(--helv); letter-spacing: .2em; color: #f0ede6;
+    }
+    /* caption: desktop — left of the picture, right-aligned to its edge; phone — under it, left-aligned */
+    .gv-title {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: normal; text-align: right;
+      font: 400 12px/1.3 var(--helv); color: #f0ede6;
+    }
+    .gv-title span { display: block; }
+    .gv-title .gv-mq { display: inline-block; }
+    .gv-title.scroll .gv-mq { animation: gv-mq var(--dur, 8s) ease-in-out infinite; }
+    .gv-title.scroll { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+    @keyframes gv-mq { 0%, 18% { transform: none; } 50%, 68% { transform: translateX(var(--dx)); } 100% { transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .gv-title.scroll .gv-mq { animation: none; } }
+    /* "tap for sound" sits on the video, near its bottom edge: small, grey, slowly pulsing */
+    .gv-hint {
+      position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
+      font: 700 10px/1 var(--helv); letter-spacing: .18em; color: rgba(240, 237, 230, .55);
+      text-shadow: 0 1px 6px rgba(0, 0, 0, .5);
+    }
+    .gv-hint:not(:empty) { animation: gv-hint 2.4s ease-in-out infinite; }
+    @keyframes gv-hint { 0%, 100% { color: rgba(240, 237, 230, .25); } 50% { color: rgba(240, 237, 230, .7); } }
+    @media (prefers-reduced-motion: reduce) { .gv-hint:not(:empty) { animation: none; } }   /* desktop: one caption part per line */
+    .gv-close {
+      position: absolute; top: 1.1rem; right: 1.1rem; width: 2.6rem; height: 2.6rem;
+      border: 0; background: none; padding: 0;
+      color: #f0ede6; display: grid; place-items: center; cursor: pointer;
+      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .7)); transition: color .2s;
+    }
+    .gv-close svg { width: 18px; height: 18px; }
+    .gv-close:hover { color: var(--red); }
+
+    /* archived for this direction (not in the mockup) — remove these lines to bring them back */
+    .foot, .strip { display: none !important; }
+
+    /* bust sits on top of the type (it overlaps the wordmark in the mockup)
+       but lets clicks fall through to the links underneath */
+    .bust { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    .bust-space { display: none; }
+
+    /* ---- Work strip: bottom right, bleeds off the edge, runs left → right ---- */
+    .strip {
+      position: absolute; z-index: 1;
+      left: 28.9vw; right: 0; bottom: 3vw;
+      height: clamp(64px, 6.7vw, 150px);
+      overflow: hidden;
+    }
+    .strip .track {
+      display: flex; height: 100%; width: max-content;
+      animation: strip-run var(--dur, 40s) linear infinite;
+    }
+    .strip:hover .track, .strip:focus-within .track { animation-play-state: paused; }
+    @keyframes strip-run { from { transform: translateX(-50%); } to { transform: none; } }
+    .tile {
+      flex: none; height: 100%; aspect-ratio: var(--ar, 16 / 9);
+      border: 0; padding: 0; cursor: pointer;
+      background: var(--c, #222) center / cover no-repeat;
+      color: rgba(255, 255, 255, .55);
+      font: 700 11px/1 var(--helv); letter-spacing: .15em;
+      display: grid; place-items: center;
+      transition: filter .25s;
+    }
+    .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .strip:hover .tile { filter: brightness(.55); }
+    .strip:hover .tile:hover { filter: none; }
+    .tile:focus-visible { outline: 2px solid #000; outline-offset: -2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .strip { overflow-x: auto; }
+      .strip .track { animation: none; }
+    }
+    #stage { width: 100%; height: 100%; display: block; }
+
+
+    /* ---- Phones: everything on one screen, no scrolling, any aspect ratio ----
+       logo · two short lines · bust + ring (takes whatever height is left) · REEL / CAMPAIGNS */
+    @media (max-width: 760px) {
+      html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+      .page { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding: 14px 14px max(22px, env(safe-area-inset-bottom)); }
+      .stage {
+        width: auto; height: 100%; display: grid; grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        grid-template-areas: "logo logo" "reel camp" "space space" "about social";   /* tagline sits in the gap above the bust */
+        justify-items: center; align-items: end;
+      }
+      .wordmark, .action, .tagline, .social { position: static; width: auto; }
+      .wordmark { grid-area: logo; justify-self: stretch; align-self: start; }
+      .wordmark .wm-line { flex-direction: column; align-items: stretch; gap: 2.4vw; }
+      .wordmark .wm-line > svg { width: 100%; height: auto; }   /* aspect-ratio (above) gives Safari the height */
+      .wordmark .wm-row2 { gap: 2.4vw; }
+      .wordmark .wm-row2 > svg:first-child { flex: 1 1 0; min-width: 0; width: auto; height: auto; }
+      .wordmark .wm-wink { height: 13vw; margin-bottom: 1.2vw; }
+      .wordmark .wm-wink.w3d { font-size: 1.364vw; width: calc(13vw * 124.33 / 118.5); }
+      .tagline {
+        grid-area: space; align-self: start; justify-self: center; margin-top: var(--tag-y, 4vh); transition: margin-top .5s ease;
+        font-size: clamp(10px, 2.9vw, 13px);
+      }
+      /* mirrors desktop: REEL / CAMPAIGNS in the top corners, ABOUT / icons in the bottom corners */
+      .stage { --btn: clamp(12px, 3.5vw, 19.5px); }   /* 35% smaller */
+      .reel   { grid-area: reel; justify-self: start; margin-top: clamp(10px, 2vh, 20px); }
+      /* the 3D canvas covers the whole screen (bust + ring can overlap the type);
+         .bust-space holds its place in the column and the camera centres on it */
+      .bust-space { display: block; grid-area: space; min-height: 0; align-self: stretch; justify-self: stretch; }
+      .bust { position: absolute; inset: -14px -14px calc(-1 * max(22px, env(safe-area-inset-bottom))); margin: 0; z-index: 2; pointer-events: auto; touch-action: none; }
+      .studio { grid-area: camp; justify-self: end; margin-top: clamp(10px, 2vh, 20px); }
+      .about  { grid-area: about; justify-self: start; }
+      .social { grid-area: social; justify-self: end; gap: 12px; margin-bottom: .25em; }
+      .stage > .theme-btn { position: static; grid-row: 4; grid-column: 1 / -1; justify-self: center; margin-bottom: .25em; }
+      .about-body { font-size: clamp(10px, 2.9vw, 13px); }
+    }
+
+    /* ---- Loading lockup: spinning 3D smiley, shared by the page loader
+       (black on orange) and the Studio Work loader (white on black) ---- */
+    .lockup {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 22px;
+      pointer-events: none;
+    }
+    .lockup .lockup-logo { width: min(54px, 14vw); height: auto; display: block; }
+    /* the smiley mostly smiles, then winks for a beat */
+    .wink .w-shut { opacity: 0; animation: wink-shut 2.6s step-end infinite; }
+    .wink .w-open { animation: wink-open 2.6s step-end infinite; }
+    @keyframes wink-open { 0% { opacity: 1; } 82% { opacity: 0; } 94% { opacity: 1; } }
+    @keyframes wink-shut { 0% { opacity: 0; } 82% { opacity: 1; } 94% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .wink .w-open, .wink .w-shut { animation: none; } }
+    /* 3D smiley: a stack of flat layers (solid faces front and back, darker
+       sides) turning slowly on its vertical axis */
+    .lockup .w3d { width: min(54px, 14vw); font-size: min(5.4px, 1.4vw); perspective: 60em; }
+    .w3d-spin { position: relative; transform-style: preserve-3d; animation: w3d-spin 5s linear infinite; }
+    .w3d-l { display: block; width: 100%; height: auto; }
+    .w3d-l + .w3d-l { position: absolute; inset: 0; }
+    .w3d-l.side { filter: brightness(.55); }
+    @keyframes w3d-spin { to { transform: rotateY(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .w3d-spin { animation: none; } }
+    .lockup p {
+      font: 500 11px/1 var(--helv); letter-spacing: .3em; color: inherit;
+      padding-left: .3em; /* balance trailing letter-spacing */
+    }
+    .lockup .dots span { animation: dot 1.4s infinite both; }
+    .lockup .dots span:nth-child(2) { animation-delay: .2s; }
+    .lockup .dots span:nth-child(3) { animation-delay: .4s; }
+
+    #loader {
+      z-index: 10; background: var(--bg); color: var(--red);
+      position: fixed; inset: 0; transition: opacity .6s ease;
+    }
+    #loader.done { opacity: 0; }
+    @keyframes dot { 0%, 20% { opacity: 0; } 40%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ---- Reel lightbox ---- */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 20;
+      display: grid; place-items: center;
+      background: rgba(0, 0, 0, .92);
+      opacity: 0; visibility: hidden;
+      transition: opacity .45s ease, visibility 0s linear .45s;
+    }
+    .lightbox.open { opacity: 1; visibility: visible; transition: opacity .45s ease, visibility 0s; }
+    .lightbox .frame {
+      width: min(90vw, calc(82svh * var(--ar, 16 / 9)));
+      aspect-ratio: var(--ar, 16 / 9);
+      background: #000;
+      transform: scale(.08); opacity: 0;
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
+    }
+    .lightbox.open .frame { transform: none; opacity: 1; }
+    .lightbox video, .lightbox .frame > img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    /* Studio Work: a whole page (the DRGNFLEYE index) instead of a picture */
+    /* full screen (Studio Work + reel); the X floats on top */
+    .lightbox .frame.is-full { width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; position: relative; }
+    .lightbox .frame.is-site iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
+      background: #000; opacity: 0; transition: opacity .5s ease;
+    }
+    .lightbox .frame.is-site iframe.ready { opacity: 1; }
+    .site-loading { position: absolute; inset: 0; color: var(--red); background: var(--bg); transition: opacity .4s ease; }
+    .site-loading.gone { opacity: 0; pointer-events: none; }
+    .is-site iframe.ready + .site-loading { opacity: 0; }
+    .lightbox .placeholder {
+      width: 100%; height: 100%; background: var(--c);
+      display: grid; place-items: center;
+      color: rgba(255, 255, 255, .6); font: 700 clamp(12px, 1vw, 16px)/1.6 var(--helv);
+      letter-spacing: .2em; text-align: center;
+    }
+    .lightbox .close {
+      position: absolute; top: var(--pad-y); right: var(--pad-x);
+      background: none; border: 0; cursor: pointer;
+      color: var(--orange); padding: 6px; line-height: 0;
+      z-index: 3;   /* stays above full-screen content */
+      transition: opacity .2s;
+    }
+    .lightbox .close svg { width: clamp(20px, 1.8vw, 35px); height: auto; display: block; }
+    .lightbox .close:hover { opacity: .6; }
+    @media (prefers-reduced-motion: reduce) {
+      .lightbox .frame { transition: opacity .3s ease; transform: none; }
+    }
+  </style>
+  <link rel="preload" href="../fonts/AirbnbCereal-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&display=swap" rel="stylesheet">
+  <script>try { const t = localStorage.getItem('dm_theme'); if (t === 'light' || t === 'gold') document.documentElement.classList.add(t); } catch (e) {}</script>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body class="intro-pending">
+  <main class="page">
+    <div class="stage">
+      <h1 class="wordmark" data-in="left" style="--d:.15s" aria-label="David Maxwell"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><path id="dm-logo" d="M0 232.77V0H100.65Q127.86 0 150.48 8.52Q173.1 17.05 189.66 32.46Q206.21 47.87 215.23 69.01Q224.25 90.16 224.25 115.73Q224.25 141.3 215.07 162.78Q205.89 184.25 189.17 199.99Q172.45 215.72 149.66 224.25Q126.88 232.77 99.66 232.77ZM65.57 175.07H96.39Q115.07 175.07 128.52 167.86Q141.96 160.64 149.17 147.53Q156.38 134.42 156.38 116.39Q156.38 98.35 149.17 85.24Q141.96 72.13 128.52 64.91Q115.07 57.7 96.39 57.7H65.57Z M504.07 232.77 416.54 0H488.66L541.44 163.27L593.9 0H663.08L575.87 232.77Z M667.68 232.77V0H733.25V232.77Z M753.44 232.77V0H854.09Q881.3 0 903.92 8.52Q926.54 17.05 943.1 32.46Q959.65 47.87 968.67 69.01Q977.69 90.16 977.69 115.73Q977.69 141.3 968.51 162.78Q959.33 184.25 942.61 199.99Q925.89 215.72 903.1 224.25Q880.32 232.77 853.1 232.77ZM819.01 175.07H849.83Q868.51 175.07 881.96 167.86Q895.4 160.64 902.61 147.53Q909.82 134.42 909.82 116.39Q909.82 98.35 902.61 85.24Q895.4 72.13 881.96 64.91Q868.51 57.7 849.83 57.7H819.01Z M0 499.69V271H64.74L123.36 389.21L181.98 271H245.44V499.69H184.24V370.85L144.62 452.02H100.82L61.2 371.17V499.69Z M251.15 499.69 341.01 271H409.62L499.8 499.69H432.49L418.31 459.75H330.06L316.21 499.69ZM347.77 409.18H400.6L374.19 334.13Z M494.13 499.69 574 379.55 504.11 271H575.29L610.4 334.77L645.51 271H715.08L645.19 379.55L725.07 499.69H650.99L608.47 426.57L566.6 499.69Z M1061.76 499.69V271H1214.11V323.82H1122.96V357H1202.83V409.5H1122.96V447.19H1217.65V499.69Z M1231.23 499.69V271H1295.65V443H1382.29V499.69Z M1394.58 499.69V271H1459V443H1545.64V499.69Z"/></defs></svg><svg class="wm-stack" viewBox="0 0 1545.67 506" aria-hidden="true" focusable="false"><use href="#dm-logo"/><g class="wm-a" transform="translate(215.76 17.01) scale(0.49240)"><path class="af af1" transform="rotate(-9.00 245.82 218.57)" d="M491.37,320.5c-1.62-12.69-9.68-22.13-18.08-21.3-10.47-13.36-29.06-21.07-49.02-18.52-28.54,3.64-39.04,11.31-111.05,69.78-2.21-1.64-5.73-4.15-8.91-6.4,52.12-39.51,68.59-98.34,70.15-112.16.44-4.37.39-20.94.37-25.74,9.66-4.96,74.13-40.76,65.47-108.63-6.36-49.87-54.85-84.77-115.33-86.64-2.11-7.91-13.25-12.52-25.55-10.36-10.7,1.88-18.82,8.29-20.28,15.29-27.95,7.15-53.05,21.87-72.02,42.53-21.05,22.93-31.83,50.63-28.83,74.1,7.58,59.4,53.45,68.51,53.91,68.6l1.36.25c2.18,1.13,4.72,1.64,7.34,1.3,6.89-.88,11.76-7.17,10.88-14.06-.88-6.89-7.17-11.76-14.06-10.88-6.23.79-10.76,6.03-10.93,12.11-11.49-4.93-34.26-19.48-39.24-58.5-5.17-40.53,33.22-91.04,93.83-106.4,4.26,5.29,13.47,8,23.43,6.24,8.41-1.48,15.22-5.76,18.47-10.93,56.56,1.22,101.95,32.93,107.76,78.52,7.29,57.17-43.8,89.12-56.46,96.1-2.19-59.16,18.67-84.06,31.23-99.04,5.5-6.56,9.14-10.9,8.53-15.65-.43-3.34-3.01-7.72-6.76-7.24l-.44.1c-.53.19-53.1,19.8-98.41,94.71-13,21.7-20.91,44.13-22.75,49.6l-91.07,11.62c-55.32,7.06-95.64,49.48-89.89,94.57,3.89,30.53,30.07,47.23,66.68,42.56,58.62-7.48,94.66-83.89,114.02-124.94,2.74-5.8,5.13-10.87,7.19-14.91,11.02-1.47,30.28-4.87,41.69-8.29,1.45,22.32-11.92,67.23-17.07,84.54-.78,2.61-1.37,4.59-1.71,5.83-1.14,4.67-19.28,25.74-23.63,27.63-4.97-1.59-29.76-8.99-38.27-1.96-1.63,1.34-3.45,3.86-2.9,8.22.49,3.87,2.35,6.82,5.53,8.78,9.98,6.15,30.48,0,35.3-1.58l11.72,8.02c-10.43,8.16-56.98,43.18-104.18,57.05-3.28-6.71-13.58-10.4-24.84-8.42-10.36,1.82-18.33,7.89-20.15,14.63-58.07-.4-106.73-31.71-127.21-80.44,3.74-4.82,5.44-12.68,3.96-21.09-1.76-9.97-7.44-17.7-13.88-19.89-4.98-59.82,26.65-126.46,109.96-137.08,2.05-.26,4.27-.29,6.51-.19-1.23,2.25-1.82,4.87-1.47,7.6.88,6.89,7.17,11.76,14.06,10.88,6.89-.88,11.76-7.17,10.88-14.06-.54-4.27-3.17-7.75-6.73-9.58,0,0-8.14-5.04-24.29-2.81C48.61,164.74,2.15,222.03,9.01,299.64c-6.74,3.25-10.46,13.58-8.48,24.86,2.24,12.75,10.91,21.87,19.36,20.39.03,0,.07-.02.1-.03,21.9,51.81,72.98,84.01,135.27,83.69,3.47,6.47,13.6,10,24.65,8.05,9.99-1.76,17.73-7.47,19.91-13.92,33.14-8.88,69.63-28.47,108.79-58.49,1.07-.82,1.95-1.5,2.64-2.01.68.38,1.46.83,2.34,1.34,14.7,8.48,53.85,30.96,105.79,23.31h0c22.46-3.43,46.53-20.3,57.11-41.13.81.09,1.62.11,2.44,0,8.51-1.09,14.08-12.37,12.44-25.21ZM276.94,235.7c-17.7,37.2-49.6,104.17-95.79,118.7-27.13,1.48-56.06-25.41-42.18-62.36,10.9-29.02,40.09-44.85,57.24-51.9,4.34-1.11,8.8-1.98,13.35-2.56l70.79-9.03c-1.07,2.22-2.21,4.62-3.41,7.15ZM334.03,208.05c-10.19,3.07-28.07,6.39-36.36,7.69,2.83-10.07,11.68-33.78,29.63-60.22h0c17.15-25.63,43.83-52.8,55.23-59.01-1.3,2.08-3.21,4.91-5.2,7.84-13.56,20.02-41.6,61.42-43.31,103.71ZM264.17,343.67c-.69-.39-1.05-.98-1.17-1.9-.06-.44.04-.51.08-.54.26-.21.68-.34,1.21-.41,2.27-.29,6.74.58,11.36,1.99-4.36,1.31-9.22,2.14-11.48.85ZM418.15,377.58c-48.33,6.16-87.54-15.76-97.26-21.81l11.24-9c56.47-45.26,66.65-53.42,93.68-56.86,16.48-2.1,31.11,3.48,39.52,13.87-3.85,4.66-5.84,12.32-4.77,20.66.91,7.13,3.85,13.22,7.74,17.06-8.69,17.55-28.99,33.39-50.15,36.09Z"/><path class="af af2" d="M422.4 103.9 422.8 94.1 422.4 86 421.2 77.7 419.1 69 416.8 62.1 413.4 54.4 409.3 47.1 404.5 40.2 399.1 33.9 393.1 28 386.5 22.7 379.5 17.9 371.9 13.6 363.9 9.8 354 6.2 345.1 3.7 332.8 1.3 319.9 0 306.6 -0.1 291.5 0.9 290.2 -1.1 287.5 -3.7 285.2 -5 281.1 -6.4 276.5 -7 273.2 -6.9 266.2 -5.7 259.6 -3 256.7 -1.2 253 1.7 251 3.9 248.6 7.4 246.7 13.3 233 20 220.2 28 207.3 38.2 196.6 48.5 188 58.8 180.9 68.8 175.1 79 169.9 90.8 166.1 102.6 163.8 114.3 163.1 125.7 163.8 135.2 165 141.7 166.6 147.1 171.4 159.5 177.1 169.9 183.5 178.6 191.6 186.8 199.9 193 209.2 198 219.6 201.7 225.6 202.9 234.3 204.1 238.8 203.5 241.6 202.2 244.9 199.2 246.4 196.7 247.3 193.9 247.3 189.4 245.7 185 242.8 181.7 239 179.6 234.6 178.9 231.6 179.4 227.4 181.4 224.4 184.7 222.7 188.7 222.5 193.1 215.6 190.9 208.6 187.5 202.1 183.4 195.4 177.8 190 171.9 184.9 164.8 180.2 156.2 176.9 148.4 174 139.3 172.7 132.1 172.2 123.5 172.8 114.5 173.9 108 175.6 101.4 180.4 88.3 187.3 75.2 195.2 63.9 205.8 51.9 216.9 42 229.4 33 243.2 25.1 249.8 22.1 251.1 22.1 253.1 23.5 256.8 25 261.1 25.9 267.4 25.9 272.4 24.9 278.9 22.5 284.3 19.1 288.5 15.1 291.2 10.6 306.6 9.2 321.5 9.5 337.5 11.5 350.9 15 358.1 17.5 364.8 20.5 371.3 23.8 377.4 27.6 387.4 35.4 395.9 44.4 402.9 54.6 406.1 60.8 408.3 65.9 410.6 73.4 412 79.6 413.4 91.5 413.4 97.3 412.8 104.7 410.3 116.9 408.2 123.5 405.5 130 390 130 390 154.6 388.8 156 366.4 156 365.5 143.9 365.6 130.8 366.8 119.2 369.1 107.4 371.7 98.5 375.3 89.5 380.1 80.1 388.3 65.9 390.2 61.7 390.8 59.3 390.7 55.8 388.7 51.8 386.4 49.8 385 49.3 382.4 49.5 375.2 54.3 367 60.8 358.6 68.5 350.2 77.1 342.3 86.2 335.3 95.1 328.1 105.2 320.9 116.5 315 126.8 309.2 138 303.5 150.1 298.7 161.9 294.6 173.3 290.9 185.8 287.9 198.1 285.3 210.7 284.8 211.2 195.3 237.3 184 241.4 173.5 246.4 162.5 253.1 152.5 260.8 143.7 269.4 137.9 276.3 132.9 283.6 128.7 291.2 125.3 299 122.8 307 121.2 315.1 120.5 323.4 120.7 331.6 122 339.8 124.5 348.3 127.6 355 131.4 360.9 135.9 366 142.3 371.1 148.3 374.5 156 377.3 156 390 208 390 208 364 182 364 182 361.9 176.6 359.8 171.6 357.2 166.9 354 162.7 350.2 157.3 343.4 153.3 335.3 151.3 327.6 150.6 320.9 150.9 313.8 152.1 306.4 154 299.7 157.2 291.9 161.1 284.7 165.7 278 172.8 269.5 180.4 262.2 190.2 254.3 200.1 247.7 211.3 243.5 280.4 223.3 281.4 223.4 270.2 260 260 260 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 416 156 416 104.0ZM281.1 260 286 244 286 234 288.9 234 293.6 218.7 312 212.6 312 208 324.2 208 333 204.2 333.6 204.8 334.1 208 338 208 338 260 312 260 312 312 286 312 286 260.0ZM320.2 199.1 306.3 204.4 296.6 207.5 299.6 191.3 304.6 173.6 310.9 156.2 318.9 138.4 329.1 119.7 340.3 102.2 352.7 85.8 358 80 361.7 76.8 351.3 99.4 345.5 113.3 339.9 129.1 335.8 143.1 333 156 331.1 169.3 330.6 182.7 331.3 194.4ZM104 421.5 90.6 414.3 83.3 409.5 70.9 399.5 64.7 393.4 58.9 386.8 53.5 379.8 49.4 373.6 49.1 372.4 50.1 370.1 51.1 366 51.4 361.6 50.6 355.2 49.1 350.3 46 344.2 42.1 339.3 37.6 335.8 32.9 334 31.3 327.5 29.4 315.1 28.6 302.6 28.9 290 30.3 277.5 32.3 267.9 34.7 259.7 38.1 250.4 41.6 242.7 46.6 234 51.5 226.7 57 219.8 63.2 213.3 68.9 208.1 75 203.2 81.6 198.6 88.7 194.3 96.3 190.3 104.4 186.8 113 183.5 121.6 180.9 126 180.2 125.5 184.3 126.3 188.8 127.7 191.5 130.8 194.7 134.8 196.5 137.7 197 140.8 196.7 143.7 195.6 147.3 193 149.6 189.3 150.6 185 150.4 182 149.4 179 146.8 175.3 143.1 172.9 138.4 171.5 134.2 171.1 128.5 171.3 121.3 172.5 115 174.3 105.6 177.6 96.7 181.3 88.2 185.5 80.1 190.1 67.8 198.6 55.7 209.1 45.3 220.8 36.6 233.6 30.1 246.1 25.7 258.1 22.4 270.5 20.4 283.5 19.7 297 20.2 309.3 21.8 322 24.4 334.9 24.1 336 21.6 338.7 19.7 342.2 18.6 346.4 18.3 351.1 18.7 356.1 19.5 359.5 20.7 363 23 367.9 27 373.2 31.6 377 36.6 379 39.1 379.2 42.6 378.8 49.4 388.6 56.9 397.7 65 406 73.8 413.4 80.9 418.5 88.2 423.2 95.8 427.3 104 431.1 104 442 260 442 260 416 286 416 286 390 234 390 234 416 104 416.0ZM208 364 234 364 234 338 208 338.0ZM468 234 416 234 416 260 468 260.0ZM390 286 416 286 416 260 390 260.0ZM494 338 494 312 520 312 520 260 468 260 468 338.0Z"/><path class="af af3" d="M208 52 234 52 234 26 208 26.0ZM208 78 208 52 182 52 182 78.0ZM26 208 26 286 52 286 52 234 78 234 78 208 104 208 104 182 52 182 52 208.0ZM26 312 26 286 0 286 0 312.0ZM26 390 52 390 52 312 26 312 26 338 0 338 0 364 26 364.0ZM234 364 234 338 208 338 208 364.0ZM78 416 78 390 52 390 52 416.0ZM78 442 260 442 260 416 286 416 286 390 234 390 234 416 78 416.0ZM234 26 390 26 390 0 286 0 286 -26 260 -26 260 0 234 0.0ZM442 104 442 78 416 78 416 104.0ZM416 156 416 104 390 104 390 156.0ZM156 156 104 156 104 182 130 182 130 208 156 208 156 182 182 182 182 208 208 208 208 234 156 234 156 260 130 260 130 286 104 286 104 338 130 338 130 390 208 390 208 364 182 364 182 338 156 338 156 286 182 286 182 260 234 260 234 234 260 234 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 364 156 364 104 390 104 390 78 416 78 416 26 390 26 390 52 338 52 338 104 312 104 312 130 286 130 286 208 260 208 260 182 208 182 208 156 182 156 182 78 156 78.0ZM312 208 338 208 338 260 312 260 312 312 286 312 286 234 312 234.0ZM468 234 416 234 416 260 468 260.0ZM416 286 416 260 390 260 390 286.0ZM520 312 520 260 468 260 468 338 494 338 494 312.0Z"/><path class="af af4" d="M234 52 234 26 208 26 208 52.0ZM208 52 182 52 182 78 208 78.0ZM34.6 260 39.8 246.5 43.7 238.9 48.1 231.5 53.3 224.4 59 217.6 65.4 211.2 72.5 205.1 78.9 200.4 90.2 193.5 102.7 187.4 116.6 182.4 121.6 180.9 126 180.2 125.5 184.3 125.8 187.3 126.9 190.2 129.7 193.7 133.4 196.1 136.2 196.8 139.2 196.9 142.3 196.2 145 194.9 147.3 193 149 190.6 150.1 187.9 150.6 185 150.4 182 148.7 177.7 146.8 175.3 143.1 172.9 138.4 171.5 132.5 171.1 126.2 171.5 121.3 172.5 107.1 177 90.9 184.1 76.3 192.5 63.2 202.3 56.7 208.1 50.8 214.3 42.7 224.2 35.2 236.1 29.6 247.4 25.1 260 26 260 26 286 52 286 52 260.0ZM156 257.9 153.5 260 130 260 130 286 104 286 104 338 130 338 130 390 208 390 208 364 182 364 182 338 156 338 156 286 182 286 182 260 234 260 234 234 260 234 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 364 156 364 104 390 104 390 78 416 78 416 26 390 26 390 52 338 52 338 104 312 104 312 130 286 130 286 208 260 208 260 182 208 182 208 156 182 156 182 78 156 78 156 182 182 182 182 208 208 208 208 234 156 234.0ZM312 208 338 208 338 260 312 260 312 312 286 312 286 234 312 234.0ZM26 312 26 286 0 286 0 312.0ZM52 390 52 312 26 312 26 338 0 338 0 364 26 364 26 390.0ZM78 416 78 390 52 390 52 416.0ZM286 416 286 390 234 390 234 416 78 416 78 442 260 442 260 416.0ZM390 26 390 0 286 0 286 -26 260 -26 260 0 234 0 234 26.0ZM416 78 416 104 442 104 442 78.0ZM390 104 390 156 416 156 416 104.0ZM416 260 468 260 468 234 416 234.0ZM416 286 416 260 390 260 390 286.0ZM520 260 468 260 468 338 494 338 494 312 520 312.0ZM208 364 234 364 234 338 208 338.0Z"/></g><g class="wm-w" transform="translate(687.08 271.00) scale(0.77750 0.69060)"><path class="wf wf1" d="M476.51,27.07c-1.75-22.68-30.18-31.42-46.52-17.91-16.03,13.26-25.05,50.23-29.41,70.15-17.89,81.8-30.89,210.42-120.34,246.4-1.34.54-7.67,3.08-8.53,3.07-.48,0-.59-.19-.87-.53,18.33-15.11,28.4-35.35,35.38-57.66,19.18-61.34,13.36-126.67,17.48-189.95,1.18-18.18,2.52-47.89,13.77-62.61.91-1.2,3.67-3.63,4.16-4.53.17-.31.32-.71.13-1.04-1.93-.66-3.46-4.27-5.72-3.48-45.04,24.92-66.21,75.2-81.14,121.98-16.84,52.75-25.15,112.1-56.91,158.49-10.67,15.59-22.81,27.23-40.24,35.06-2.32,1.04-8.84,3.96-11.01,4.21-.64.07-.77.09-1.18-.47,13.67-11.63,24.18-25.28,31.3-41.82,24.36-56.56,18.51-122.09,27.04-182.2,4.48-31.57,11.99-64.68,31.64-90.39.26-.39.19-.66.01-1.06-.34-.73-4.25-4.16-5.01-3.96-7.17,5.98-12.98,13.41-20.56,18.94-13.32,9.7-24.83,11.94-40.61,6.27C128.19,19.25,78.5-19.39,35.15,11.9-9.88,44.4-9.43,124.82,23.9,165.33c22.5,27.35,71.78,31.9,97.05,6.18,23.14-23.55,21.51-61.91,12.39-91.34-.47-1.5-2.86-9.26-3.71-9.68-.7-.35-4.92-.42-5.07.38-.05.24,1.4,3.72,1.63,4.52,9.71,33.19.65,82.25-31.21,100.92-40.88,23.96-82.3-21.26-86.65-59.84-3.57-31.65,2.07-72.1,29.36-92.27,23.45-17.34,46.85-6.69,70.46,3.34,25.83,10.98,66.92,36.24,92.82,15.45l18.09-16.67,1.45.74c-25.28,27.72-37,64.84-44.06,101.11-8.8,45.24-9.13,91.06-16.47,136.3-3.61,22.24-9.27,50.84-26.73,66.31-.77.69-4.55,3.2-4.68,3.68-.13.49.06.67.31,1.04.38.56,3.86,4.33,4.27,4.45,22.68-3.24,42.63-13.31,58.22-29.98,35.76-38.23,45.73-90.37,59.74-139.01,13.49-46.85,29.88-100.07,63-136.84,2.32-2.57,5.6-6.34,8.15-8.51.58-.5,2.44-2.16,3.08-1.99l.39,1.46c-21.86,39.39-27.77,86.82-32.07,131.22-3.89,40.17-4.09,82.79-12.49,122.18-2.83,13.26-11.36,44.01-20.44,53.4-.63.65-3.1,2.26-3.28,2.88v5.25c87.06-13.8,117.93-109.31,135.61-183.53,8.52-35.74,13.52-74.03,24.79-108.79,3.54-10.91,10.47-30.23,20.54-36.3,3.02-1.82,12.46-5.73,10.89,1.11-.53,2.31-2.97,2.04-4.52,2.71-16.21,7.03-11.94,36.77,6.24,38.44,18.25,1.68,26.88-8.95,25.52-26.6Z"/><path class="wf wf2" d="M476.24,24.29c-3.63-20.6-30.98-27.2-46.06-14.75-14.74,12.17-23.54,44.78-27.83,63.04-5.79,24.64-9.72,49.83-15.2,74.57-6.63,29.88-13.89,60.43-25.78,88.62h-24.99l-.54-.54v-51.58h-15.21c.05-4.29.21-8.58.35-12.87,1.28-38.63.04-80.15,5.5-118.3,2-13.99,4.94-29.29,15.87-39.15l-5.44-4.38c-18.51,10.55-34.19,25.01-45.98,42.75-29.74,44.75-39.69,94.99-54.13,145.71-1.17,4.11-2.34,8.42-3.98,12.31h-27.34v-52.13h25.53l.54-.54V52.97h25.53l.54-.54V1.02l-.54-.54h-51.42l-.54.54v25.34l-.54.54h-51.06l-.54-.54V1.02l-1.25-.56c-27.31,1.15-55.79-1.47-82.96,0C26.75,2.74,1.98,45.03.16,83.54c-2.22,46.96,18.43,102.92,72.6,105.19,66.14,2.77,77.93-64.29,58.59-114.68-.26-.69-.89-2.67-1.33-3.01-.69-.54-5.13-.61-5.28.23-.07.39,2.18,6.35,2.51,7.62,8.33,32.53-1.18,79.44-31.87,97.68-39.35,23.39-81.25-18.95-86.47-56.49-4.55-32.73,1.41-78.21,31.71-97.44,19.52-12.4,40.38-6.89,59.86,2.28v27.51l.54.54h78.03v78.19h-25.53l-.54.54v156.02l-.54.54h-25.53v52.13c9.2.43,18.83-2.24,27.44-5.33,47.74-17.15,71.04-72.21,84.27-117.38,14.33-48.92,24.97-97.99,48.51-143.72,7.76-15.06,22.42-37.03,35.31-47.96,1.01-.86,3.54-3.38,3.57-.8-13.1,22.63-19.63,47.8-24.4,73.37-5.23,28.08-7.72,56.6-9.95,85.08h-7.97v78.01l-.54.54h-25.53v78.19h52.14v-25.52l.54-.54h25.53v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-85.79c11.14-38.48,15.78-78.62,26.54-117.18,3.85-13.82,13.94-49.3,31.71-49.66,4.43-.09,3.79,4.75.68,6.02-5.48,2.23-9.5,4.44-11.38,10.7-4.19,13.95,3.62,28.83,19.25,28.69,17.56-.15,23.86-14.51,21.1-30.14Z"/><path class="wf wf3" d="M418.78,0l-.54.54v51.4l-.54.54h-25.53v104.25h-25.53l-.54.54v78.01h-26.07V52.49h25.53l.54-.54V.54l-.54-.54h-51.42l-.54.54v25.52h-25.53l-.54.54v25.34l-.54.54h-24.62c-.12,0-.55-.48-.91-.36V.54l-.54-.54h-51.42l-.54.54v25.52h-52.14V0H26.07v26.06H.54l-.54.54v104.07h25.17c.12,0,.55.48.91.36v52.13h52.14v25.52l.54.54h25.35l.54-.54v-25.52h51.6l.54.54v103.53l-.54.54h-25.53v52.13h52.14v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-25.52h26.07v78.19h52.14v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-25.52h25.53l.54-.54v-51.4l.54-.54h25.53v-104.07l.54-.54h25.53v-25.52l.54-.54h51.96V0h-78.03ZM130.72,156.74H52.14v-52.13h-26.07v-52.13h25.53l.54-.54v-25.52h51.96l.54.54v77.65h25.53l.54.54v51.58ZM182.86,130.68h-25.53l-.54-.54V53.03l.54-.54h25.53v78.19ZM235.37,208.69l-.54.54h-25.53v-52.13h25.71c-.12.36.36.79.36.9v50.68ZM235.37,130.68V52.49h26.07v78.19h-26.07ZM287.51,261.18l-.54.54h-24.99l-.54-.54v-77.47l.54-.54h24.99l.54.54v77.47Z"/><path class="wf wf4" d="M445.03,3.38c-20.92,1.73-31.1,29.33-36.49,46.41-9.84,31.17-14.26,65.31-21.38,97.36-6.63,29.88-13.89,60.43-25.78,88.62h-24.99l-.54-.54v-51.58h-15.21c.05-4.29.21-8.58.35-12.87.83-25.06,1.16-50.21,2.18-75.28.85-20.92,1.71-60.04,14.34-76.89,1.4-1.87,3.2-3.37,4.51-5.29l-5.11-4.37c-18.51,10.55-34.19,25.01-45.98,42.75-29.71,44.7-39.74,95.02-54.13,145.71-1.17,4.11-2.29,8.44-3.98,12.31h-27.34v-52.13h25.53l.54-.54V52.97h25.53l.54-.54V1.02l-.54-.54h-51.42l-.54.54v25.34l-.54.54h-51.06l-.54-.54V1.02l-1.25-.56c-27.31,1.15-55.79-1.47-82.96,0C26.75,2.74,1.98,45.03.16,83.54c-2.22,46.95,18.43,102.92,72.6,105.19,66.13,2.77,77.93-64.3,58.59-114.68-.26-.69-.89-2.67-1.33-3.01-.69-.54-5.13-.61-5.28.23-.07.39,2.18,6.35,2.51,7.62,8.33,32.53-1.18,79.44-31.87,97.68-40.89,24.31-82.49-21.03-86.87-59.7-3.65-32.22,2.55-75.33,32.11-94.23,19.43-12.42,40.45-6.87,59.86,2.28v27.51l.54.54h78.03v78.19h-25.53l-.54.54v156.02l-.54.54h-25.53v52.13c9.2.43,18.83-2.24,27.44-5.33,47.74-17.15,71.04-72.21,84.27-117.38,14.33-48.92,24.97-97.99,48.51-143.72,7.75-15.04,22.44-37.04,35.31-47.96,1.01-.86,3.54-3.38,3.57-.8-13.1,22.62-19.63,47.81-24.4,73.37-5.23,28.08-7.73,56.6-9.95,85.08h-7.97v78.01l-.54.54h-25.53v78.19h52.14v-25.52l.54-.54h25.53v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-85.79c11.14-38.49,15.78-78.62,26.54-117.18,3.76-13.5,11.98-41.08,25.06-47.71,3.01-1.52,10.53-4.31,9.57,1.61-.43,2.65-2.87,2.28-4.58,3.02-15.14,6.57-12.39,33.34,2.96,37.74,12.92,3.7,26.09-2.39,28.33-16.23,3.4-21.02-9.97-35.49-31.21-33.74Z"/><path class="wf wf5" d="M476.51,27.07c-1.97-25.44-35.06-32.05-50.68-13.75-19.88,23.29-26.51,74.27-32.71,104.14-15.11,72.87-33.76,173.9-110.09,207.05-1.74.76-10.1,4.29-11.32,4.26-.48,0-.59-.19-.87-.53,13.77-11.67,23.72-26.4,30.33-43.16,25.2-63.92,18.14-137.12,22.53-204.44,1.3-19.86,2.33-48.53,15.22-64.42.61-.75,3.39-2.82,2.84-3.77l-5.04-3.89c-45.48,24.82-66.79,75.34-81.82,122.39-16.09,50.35-24.2,106.02-52.35,151.47-11.54,18.63-24.47,32.94-44.81,42.09-2.32,1.04-8.84,3.96-11.01,4.21-.64.07-.77.09-1.18-.47,12.69-10.94,23.11-23.71,30.11-39.03,22.66-49.58,20.09-106.53,25.28-159.7,3.6-36.82,9.5-77.35,29.76-108.89,1.06-1.66,4.27-5.36,4.82-6.79.18-.47.24-.56.01-1.06-.34-.73-4.25-4.16-5.01-3.96-7.55,6.47-13.63,14.05-21.86,19.81-13.04,9.11-24.15,10.85-39.31,5.41C128.19,19.26,78.51-19.39,35.15,11.9-9.86,44.39-9.45,124.86,23.9,165.33c22.62,27.45,71.58,31.8,97.05,6.18,23.45-23.58,21.43-62.99,12.03-92.42-.45-1.41-2.5-8.17-3.35-8.6-.7-.35-4.92-.42-5.07.38,8.14,21.94,7.1,48.47-1.53,70.13-18.11,45.47-63.86,57.8-96.23,17.45-12.3-15.33-18.25-30.54-19.2-50.31-1.34-28.01,3.81-60.53,25.51-80.19,25.22-22.84,50.68-10.83,77.56.67,25.34,10.84,64.78,34.85,90.28,14.37l18.09-16.67,1.45.74c-25.24,27.62-37.01,64.94-44.06,101.11-7.84,40.28-8.98,80.62-14.28,121.11-3.37,25.75-8.71,63.59-28.92,81.5-.77.69-4.55,3.2-4.68,3.68-.23.86,3.61,4.79,4.57,5.49,22.67-3.26,42.63-13.33,58.22-29.99,32.77-35.01,42.96-79.97,55.68-124.61,14.56-51.1,30.68-110.57,66.7-150.88,2.4-2.68,5.85-6.61,8.51-8.87,1.05-.9,3.85-3.57,3.47-.52-20.69,37.12-27.02,81.7-31.35,123.61-5.72,55.34-3.75,120.38-26.37,171.64-2.26,5.13-5.56,11.06-10.56,13.87v5.79c81.18-12.49,113.64-97.78,131.7-167.52,10.6-40.91,15.83-84.94,28.7-124.79,3.53-10.92,10.47-30.23,20.54-36.3,2.97-1.79,12.47-5.8,10.89,1.11-.52,2.29-3.12,2.13-4.77,2.83-15.57,6.7-12.14,35.51,6.16,38.29,18.1,2.74,27.16-9.5,25.84-26.56Z"/><path class="wf wf6" d="M489.39,28.11c-13.72-22.87-49.36-37.52-67.94-11.95-18.8,25.88-24.49,72.11-30.96,103.35-15,72.39-33.97,172.02-109.72,204.88-1.64.71-10.64,4.48-11.65,4.28-.28-.05-.77-.61-.19-.91,22.97-18.88,33.4-47.29,40.02-75.47,13.97-59.47,7.91-119.62,12.85-179.73,1.43-17.4,3.51-43.58,15.38-57.02.72-.82,1.79-1.4,2.34-2,.36-.39.52-.3.21-.9-.13-.25-3.93-3.68-4.19-3.8-.61-.28-.85-.18-1.44-.02-1.82.5-8.16,4.88-10.1,6.21-56.17,38.47-72.43,119.96-89.57,181.59-12.98,46.66-33.29,108.88-81.74,128.96-1.43.59-7.48,3.09-8.53,3.07-.48,0-.59-.19-.87-.53,12.49-10.86,22.73-23.22,29.75-38.31,23.89-51.37,20.43-112.38,26.37-167.66,3.72-34.65,9.99-71.99,29.03-101.65.78-1.21,5.16-6.81,4.96-7.6-.19-.73-4.34-4.41-5.14-4.2-7.53,6.43-13.68,14.08-21.87,19.81-14.98,10.48-26.49,10.63-43.19,3.86C119.22,14.52,65.41-23.33,23.06,20.07-17.69,61.83.1,137.41,41.17,172.48c29.37,25.08,86.44,29.47,96.44-16.9,5.23-24.27-4.02-53.49-14.77-75.24-.61-1.23-4.14-8.31-4.69-8.71-1.06-.77-3.57-.14-4.92-.33,1.53,4.39,3.99,8.54,5.71,12.93,10.89,27.76,14.13,81.59-17.64,97.31-38.11,18.85-81.42-33.28-91.36-65.44C.34,85.05,8.66,43.29,35.99,23.58c22.34-16.11,44.81-6.69,67.35,2.77,26.32,11.04,69.04,37.67,95.36,16.54l18.09-16.67,1.45.74c-23.71,25.86-35.33,60.05-42.61,93.87-10.07,46.74-10.22,94.08-17.55,141.01-3.53,22.61-9.17,52.61-26.74,68.47-.81.73-4.9,3.52-5.04,4.04-.28,1.06,3.6,4.18,4.02,5.47,19.11-2.53,38.16-10.63,52.44-23.63,45.64-41.57,56.66-116.79,74.49-173.5,12.73-40.46,29.75-84.44,60.43-114.61.86-.85,4.38-4.85,5.38-4.57l.49,1.18c-20.72,37.43-27.1,82.08-31.44,124.25-4.22,40.94-4.45,83.65-12.12,123.99-4.15,21.8-10.77,47.7-29.52,61.36l4.14,5.26,1.09.35c86.68-14.36,117.39-109.05,135.09-183.18,7.76-32.51,12.72-66.07,21.64-98.18,4.31-15.51,13.52-49.25,33.01-50.25,2.67-.14,6.11,0,7.51,2.66,2.04,3.89-.91,3.17-2.95,4.43-7.24,4.45-1.05,16.04,2.44,21.06,7.67,11.04,21.25,20.21,35.28,16.65,12.95-3.29,6.25-17.34,1.67-24.98Z"/></g></svg><span class="wm-line" aria-hidden="true"><svg viewBox="0 -1 980.08 235" focusable="false"><use href="#dm-logo"/><g class="wm-a" transform="translate(215.76 17.01) scale(0.49240)"><path class="af af1" transform="rotate(-9.00 245.82 218.57)" d="M491.37,320.5c-1.62-12.69-9.68-22.13-18.08-21.3-10.47-13.36-29.06-21.07-49.02-18.52-28.54,3.64-39.04,11.31-111.05,69.78-2.21-1.64-5.73-4.15-8.91-6.4,52.12-39.51,68.59-98.34,70.15-112.16.44-4.37.39-20.94.37-25.74,9.66-4.96,74.13-40.76,65.47-108.63-6.36-49.87-54.85-84.77-115.33-86.64-2.11-7.91-13.25-12.52-25.55-10.36-10.7,1.88-18.82,8.29-20.28,15.29-27.95,7.15-53.05,21.87-72.02,42.53-21.05,22.93-31.83,50.63-28.83,74.1,7.58,59.4,53.45,68.51,53.91,68.6l1.36.25c2.18,1.13,4.72,1.64,7.34,1.3,6.89-.88,11.76-7.17,10.88-14.06-.88-6.89-7.17-11.76-14.06-10.88-6.23.79-10.76,6.03-10.93,12.11-11.49-4.93-34.26-19.48-39.24-58.5-5.17-40.53,33.22-91.04,93.83-106.4,4.26,5.29,13.47,8,23.43,6.24,8.41-1.48,15.22-5.76,18.47-10.93,56.56,1.22,101.95,32.93,107.76,78.52,7.29,57.17-43.8,89.12-56.46,96.1-2.19-59.16,18.67-84.06,31.23-99.04,5.5-6.56,9.14-10.9,8.53-15.65-.43-3.34-3.01-7.72-6.76-7.24l-.44.1c-.53.19-53.1,19.8-98.41,94.71-13,21.7-20.91,44.13-22.75,49.6l-91.07,11.62c-55.32,7.06-95.64,49.48-89.89,94.57,3.89,30.53,30.07,47.23,66.68,42.56,58.62-7.48,94.66-83.89,114.02-124.94,2.74-5.8,5.13-10.87,7.19-14.91,11.02-1.47,30.28-4.87,41.69-8.29,1.45,22.32-11.92,67.23-17.07,84.54-.78,2.61-1.37,4.59-1.71,5.83-1.14,4.67-19.28,25.74-23.63,27.63-4.97-1.59-29.76-8.99-38.27-1.96-1.63,1.34-3.45,3.86-2.9,8.22.49,3.87,2.35,6.82,5.53,8.78,9.98,6.15,30.48,0,35.3-1.58l11.72,8.02c-10.43,8.16-56.98,43.18-104.18,57.05-3.28-6.71-13.58-10.4-24.84-8.42-10.36,1.82-18.33,7.89-20.15,14.63-58.07-.4-106.73-31.71-127.21-80.44,3.74-4.82,5.44-12.68,3.96-21.09-1.76-9.97-7.44-17.7-13.88-19.89-4.98-59.82,26.65-126.46,109.96-137.08,2.05-.26,4.27-.29,6.51-.19-1.23,2.25-1.82,4.87-1.47,7.6.88,6.89,7.17,11.76,14.06,10.88,6.89-.88,11.76-7.17,10.88-14.06-.54-4.27-3.17-7.75-6.73-9.58,0,0-8.14-5.04-24.29-2.81C48.61,164.74,2.15,222.03,9.01,299.64c-6.74,3.25-10.46,13.58-8.48,24.86,2.24,12.75,10.91,21.87,19.36,20.39.03,0,.07-.02.1-.03,21.9,51.81,72.98,84.01,135.27,83.69,3.47,6.47,13.6,10,24.65,8.05,9.99-1.76,17.73-7.47,19.91-13.92,33.14-8.88,69.63-28.47,108.79-58.49,1.07-.82,1.95-1.5,2.64-2.01.68.38,1.46.83,2.34,1.34,14.7,8.48,53.85,30.96,105.79,23.31h0c22.46-3.43,46.53-20.3,57.11-41.13.81.09,1.62.11,2.44,0,8.51-1.09,14.08-12.37,12.44-25.21ZM276.94,235.7c-17.7,37.2-49.6,104.17-95.79,118.7-27.13,1.48-56.06-25.41-42.18-62.36,10.9-29.02,40.09-44.85,57.24-51.9,4.34-1.11,8.8-1.98,13.35-2.56l70.79-9.03c-1.07,2.22-2.21,4.62-3.41,7.15ZM334.03,208.05c-10.19,3.07-28.07,6.39-36.36,7.69,2.83-10.07,11.68-33.78,29.63-60.22h0c17.15-25.63,43.83-52.8,55.23-59.01-1.3,2.08-3.21,4.91-5.2,7.84-13.56,20.02-41.6,61.42-43.31,103.71ZM264.17,343.67c-.69-.39-1.05-.98-1.17-1.9-.06-.44.04-.51.08-.54.26-.21.68-.34,1.21-.41,2.27-.29,6.74.58,11.36,1.99-4.36,1.31-9.22,2.14-11.48.85ZM418.15,377.58c-48.33,6.16-87.54-15.76-97.26-21.81l11.24-9c56.47-45.26,66.65-53.42,93.68-56.86,16.48-2.1,31.11,3.48,39.52,13.87-3.85,4.66-5.84,12.32-4.77,20.66.91,7.13,3.85,13.22,7.74,17.06-8.69,17.55-28.99,33.39-50.15,36.09Z"/><path class="af af2" d="M422.4 103.9 422.8 94.1 422.4 86 421.2 77.7 419.1 69 416.8 62.1 413.4 54.4 409.3 47.1 404.5 40.2 399.1 33.9 393.1 28 386.5 22.7 379.5 17.9 371.9 13.6 363.9 9.8 354 6.2 345.1 3.7 332.8 1.3 319.9 0 306.6 -0.1 291.5 0.9 290.2 -1.1 287.5 -3.7 285.2 -5 281.1 -6.4 276.5 -7 273.2 -6.9 266.2 -5.7 259.6 -3 256.7 -1.2 253 1.7 251 3.9 248.6 7.4 246.7 13.3 233 20 220.2 28 207.3 38.2 196.6 48.5 188 58.8 180.9 68.8 175.1 79 169.9 90.8 166.1 102.6 163.8 114.3 163.1 125.7 163.8 135.2 165 141.7 166.6 147.1 171.4 159.5 177.1 169.9 183.5 178.6 191.6 186.8 199.9 193 209.2 198 219.6 201.7 225.6 202.9 234.3 204.1 238.8 203.5 241.6 202.2 244.9 199.2 246.4 196.7 247.3 193.9 247.3 189.4 245.7 185 242.8 181.7 239 179.6 234.6 178.9 231.6 179.4 227.4 181.4 224.4 184.7 222.7 188.7 222.5 193.1 215.6 190.9 208.6 187.5 202.1 183.4 195.4 177.8 190 171.9 184.9 164.8 180.2 156.2 176.9 148.4 174 139.3 172.7 132.1 172.2 123.5 172.8 114.5 173.9 108 175.6 101.4 180.4 88.3 187.3 75.2 195.2 63.9 205.8 51.9 216.9 42 229.4 33 243.2 25.1 249.8 22.1 251.1 22.1 253.1 23.5 256.8 25 261.1 25.9 267.4 25.9 272.4 24.9 278.9 22.5 284.3 19.1 288.5 15.1 291.2 10.6 306.6 9.2 321.5 9.5 337.5 11.5 350.9 15 358.1 17.5 364.8 20.5 371.3 23.8 377.4 27.6 387.4 35.4 395.9 44.4 402.9 54.6 406.1 60.8 408.3 65.9 410.6 73.4 412 79.6 413.4 91.5 413.4 97.3 412.8 104.7 410.3 116.9 408.2 123.5 405.5 130 390 130 390 154.6 388.8 156 366.4 156 365.5 143.9 365.6 130.8 366.8 119.2 369.1 107.4 371.7 98.5 375.3 89.5 380.1 80.1 388.3 65.9 390.2 61.7 390.8 59.3 390.7 55.8 388.7 51.8 386.4 49.8 385 49.3 382.4 49.5 375.2 54.3 367 60.8 358.6 68.5 350.2 77.1 342.3 86.2 335.3 95.1 328.1 105.2 320.9 116.5 315 126.8 309.2 138 303.5 150.1 298.7 161.9 294.6 173.3 290.9 185.8 287.9 198.1 285.3 210.7 284.8 211.2 195.3 237.3 184 241.4 173.5 246.4 162.5 253.1 152.5 260.8 143.7 269.4 137.9 276.3 132.9 283.6 128.7 291.2 125.3 299 122.8 307 121.2 315.1 120.5 323.4 120.7 331.6 122 339.8 124.5 348.3 127.6 355 131.4 360.9 135.9 366 142.3 371.1 148.3 374.5 156 377.3 156 390 208 390 208 364 182 364 182 361.9 176.6 359.8 171.6 357.2 166.9 354 162.7 350.2 157.3 343.4 153.3 335.3 151.3 327.6 150.6 320.9 150.9 313.8 152.1 306.4 154 299.7 157.2 291.9 161.1 284.7 165.7 278 172.8 269.5 180.4 262.2 190.2 254.3 200.1 247.7 211.3 243.5 280.4 223.3 281.4 223.4 270.2 260 260 260 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 416 156 416 104.0ZM281.1 260 286 244 286 234 288.9 234 293.6 218.7 312 212.6 312 208 324.2 208 333 204.2 333.6 204.8 334.1 208 338 208 338 260 312 260 312 312 286 312 286 260.0ZM320.2 199.1 306.3 204.4 296.6 207.5 299.6 191.3 304.6 173.6 310.9 156.2 318.9 138.4 329.1 119.7 340.3 102.2 352.7 85.8 358 80 361.7 76.8 351.3 99.4 345.5 113.3 339.9 129.1 335.8 143.1 333 156 331.1 169.3 330.6 182.7 331.3 194.4ZM104 421.5 90.6 414.3 83.3 409.5 70.9 399.5 64.7 393.4 58.9 386.8 53.5 379.8 49.4 373.6 49.1 372.4 50.1 370.1 51.1 366 51.4 361.6 50.6 355.2 49.1 350.3 46 344.2 42.1 339.3 37.6 335.8 32.9 334 31.3 327.5 29.4 315.1 28.6 302.6 28.9 290 30.3 277.5 32.3 267.9 34.7 259.7 38.1 250.4 41.6 242.7 46.6 234 51.5 226.7 57 219.8 63.2 213.3 68.9 208.1 75 203.2 81.6 198.6 88.7 194.3 96.3 190.3 104.4 186.8 113 183.5 121.6 180.9 126 180.2 125.5 184.3 126.3 188.8 127.7 191.5 130.8 194.7 134.8 196.5 137.7 197 140.8 196.7 143.7 195.6 147.3 193 149.6 189.3 150.6 185 150.4 182 149.4 179 146.8 175.3 143.1 172.9 138.4 171.5 134.2 171.1 128.5 171.3 121.3 172.5 115 174.3 105.6 177.6 96.7 181.3 88.2 185.5 80.1 190.1 67.8 198.6 55.7 209.1 45.3 220.8 36.6 233.6 30.1 246.1 25.7 258.1 22.4 270.5 20.4 283.5 19.7 297 20.2 309.3 21.8 322 24.4 334.9 24.1 336 21.6 338.7 19.7 342.2 18.6 346.4 18.3 351.1 18.7 356.1 19.5 359.5 20.7 363 23 367.9 27 373.2 31.6 377 36.6 379 39.1 379.2 42.6 378.8 49.4 388.6 56.9 397.7 65 406 73.8 413.4 80.9 418.5 88.2 423.2 95.8 427.3 104 431.1 104 442 260 442 260 416 286 416 286 390 234 390 234 416 104 416.0ZM208 364 234 364 234 338 208 338.0ZM468 234 416 234 416 260 468 260.0ZM390 286 416 286 416 260 390 260.0ZM494 338 494 312 520 312 520 260 468 260 468 338.0Z"/><path class="af af3" d="M208 52 234 52 234 26 208 26.0ZM208 78 208 52 182 52 182 78.0ZM26 208 26 286 52 286 52 234 78 234 78 208 104 208 104 182 52 182 52 208.0ZM26 312 26 286 0 286 0 312.0ZM26 390 52 390 52 312 26 312 26 338 0 338 0 364 26 364.0ZM234 364 234 338 208 338 208 364.0ZM78 416 78 390 52 390 52 416.0ZM78 442 260 442 260 416 286 416 286 390 234 390 234 416 78 416.0ZM234 26 390 26 390 0 286 0 286 -26 260 -26 260 0 234 0.0ZM442 104 442 78 416 78 416 104.0ZM416 156 416 104 390 104 390 156.0ZM156 156 104 156 104 182 130 182 130 208 156 208 156 182 182 182 182 208 208 208 208 234 156 234 156 260 130 260 130 286 104 286 104 338 130 338 130 390 208 390 208 364 182 364 182 338 156 338 156 286 182 286 182 260 234 260 234 234 260 234 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 364 156 364 104 390 104 390 78 416 78 416 26 390 26 390 52 338 52 338 104 312 104 312 130 286 130 286 208 260 208 260 182 208 182 208 156 182 156 182 78 156 78.0ZM312 208 338 208 338 260 312 260 312 312 286 312 286 234 312 234.0ZM468 234 416 234 416 260 468 260.0ZM416 286 416 260 390 260 390 286.0ZM520 312 520 260 468 260 468 338 494 338 494 312.0Z"/><path class="af af4" d="M234 52 234 26 208 26 208 52.0ZM208 52 182 52 182 78 208 78.0ZM34.6 260 39.8 246.5 43.7 238.9 48.1 231.5 53.3 224.4 59 217.6 65.4 211.2 72.5 205.1 78.9 200.4 90.2 193.5 102.7 187.4 116.6 182.4 121.6 180.9 126 180.2 125.5 184.3 125.8 187.3 126.9 190.2 129.7 193.7 133.4 196.1 136.2 196.8 139.2 196.9 142.3 196.2 145 194.9 147.3 193 149 190.6 150.1 187.9 150.6 185 150.4 182 148.7 177.7 146.8 175.3 143.1 172.9 138.4 171.5 132.5 171.1 126.2 171.5 121.3 172.5 107.1 177 90.9 184.1 76.3 192.5 63.2 202.3 56.7 208.1 50.8 214.3 42.7 224.2 35.2 236.1 29.6 247.4 25.1 260 26 260 26 286 52 286 52 260.0ZM156 257.9 153.5 260 130 260 130 286 104 286 104 338 130 338 130 390 208 390 208 364 182 364 182 338 156 338 156 286 182 286 182 260 234 260 234 234 260 234 260 286 234 286 234 338 260 338 260 364 286 364 286 390 312 390 312 364 468 364 468 338 364 338 364 312 390 312 390 286 364 286 364 260 390 260 390 156 364 156 364 104 390 104 390 78 416 78 416 26 390 26 390 52 338 52 338 104 312 104 312 130 286 130 286 208 260 208 260 182 208 182 208 156 182 156 182 78 156 78 156 182 182 182 182 208 208 208 208 234 156 234.0ZM312 208 338 208 338 260 312 260 312 312 286 312 286 234 312 234.0ZM26 312 26 286 0 286 0 312.0ZM52 390 52 312 26 312 26 338 0 338 0 364 26 364 26 390.0ZM78 416 78 390 52 390 52 416.0ZM286 416 286 390 234 390 234 416 78 416 78 442 260 442 260 416.0ZM390 26 390 0 286 0 286 -26 260 -26 260 0 234 0 234 26.0ZM416 78 416 104 442 104 442 78.0ZM390 104 390 156 416 156 416 104.0ZM416 260 468 260 468 234 416 234.0ZM416 286 416 260 390 260 390 286.0ZM520 260 468 260 468 338 494 338 494 312 520 312.0ZM208 364 234 364 234 338 208 338.0Z"/></g></svg><span class="wm-row2"><svg viewBox="0 269 1545.67 235" focusable="false"><use href="#dm-logo" transform="translate(0 0)"/><g class="wm-w" transform="translate(687.08 271.00) scale(0.77750 0.69060)"><path class="wf wf1" d="M476.51,27.07c-1.75-22.68-30.18-31.42-46.52-17.91-16.03,13.26-25.05,50.23-29.41,70.15-17.89,81.8-30.89,210.42-120.34,246.4-1.34.54-7.67,3.08-8.53,3.07-.48,0-.59-.19-.87-.53,18.33-15.11,28.4-35.35,35.38-57.66,19.18-61.34,13.36-126.67,17.48-189.95,1.18-18.18,2.52-47.89,13.77-62.61.91-1.2,3.67-3.63,4.16-4.53.17-.31.32-.71.13-1.04-1.93-.66-3.46-4.27-5.72-3.48-45.04,24.92-66.21,75.2-81.14,121.98-16.84,52.75-25.15,112.1-56.91,158.49-10.67,15.59-22.81,27.23-40.24,35.06-2.32,1.04-8.84,3.96-11.01,4.21-.64.07-.77.09-1.18-.47,13.67-11.63,24.18-25.28,31.3-41.82,24.36-56.56,18.51-122.09,27.04-182.2,4.48-31.57,11.99-64.68,31.64-90.39.26-.39.19-.66.01-1.06-.34-.73-4.25-4.16-5.01-3.96-7.17,5.98-12.98,13.41-20.56,18.94-13.32,9.7-24.83,11.94-40.61,6.27C128.19,19.25,78.5-19.39,35.15,11.9-9.88,44.4-9.43,124.82,23.9,165.33c22.5,27.35,71.78,31.9,97.05,6.18,23.14-23.55,21.51-61.91,12.39-91.34-.47-1.5-2.86-9.26-3.71-9.68-.7-.35-4.92-.42-5.07.38-.05.24,1.4,3.72,1.63,4.52,9.71,33.19.65,82.25-31.21,100.92-40.88,23.96-82.3-21.26-86.65-59.84-3.57-31.65,2.07-72.1,29.36-92.27,23.45-17.34,46.85-6.69,70.46,3.34,25.83,10.98,66.92,36.24,92.82,15.45l18.09-16.67,1.45.74c-25.28,27.72-37,64.84-44.06,101.11-8.8,45.24-9.13,91.06-16.47,136.3-3.61,22.24-9.27,50.84-26.73,66.31-.77.69-4.55,3.2-4.68,3.68-.13.49.06.67.31,1.04.38.56,3.86,4.33,4.27,4.45,22.68-3.24,42.63-13.31,58.22-29.98,35.76-38.23,45.73-90.37,59.74-139.01,13.49-46.85,29.88-100.07,63-136.84,2.32-2.57,5.6-6.34,8.15-8.51.58-.5,2.44-2.16,3.08-1.99l.39,1.46c-21.86,39.39-27.77,86.82-32.07,131.22-3.89,40.17-4.09,82.79-12.49,122.18-2.83,13.26-11.36,44.01-20.44,53.4-.63.65-3.1,2.26-3.28,2.88v5.25c87.06-13.8,117.93-109.31,135.61-183.53,8.52-35.74,13.52-74.03,24.79-108.79,3.54-10.91,10.47-30.23,20.54-36.3,3.02-1.82,12.46-5.73,10.89,1.11-.53,2.31-2.97,2.04-4.52,2.71-16.21,7.03-11.94,36.77,6.24,38.44,18.25,1.68,26.88-8.95,25.52-26.6Z"/><path class="wf wf2" d="M476.24,24.29c-3.63-20.6-30.98-27.2-46.06-14.75-14.74,12.17-23.54,44.78-27.83,63.04-5.79,24.64-9.72,49.83-15.2,74.57-6.63,29.88-13.89,60.43-25.78,88.62h-24.99l-.54-.54v-51.58h-15.21c.05-4.29.21-8.58.35-12.87,1.28-38.63.04-80.15,5.5-118.3,2-13.99,4.94-29.29,15.87-39.15l-5.44-4.38c-18.51,10.55-34.19,25.01-45.98,42.75-29.74,44.75-39.69,94.99-54.13,145.71-1.17,4.11-2.34,8.42-3.98,12.31h-27.34v-52.13h25.53l.54-.54V52.97h25.53l.54-.54V1.02l-.54-.54h-51.42l-.54.54v25.34l-.54.54h-51.06l-.54-.54V1.02l-1.25-.56c-27.31,1.15-55.79-1.47-82.96,0C26.75,2.74,1.98,45.03.16,83.54c-2.22,46.96,18.43,102.92,72.6,105.19,66.14,2.77,77.93-64.29,58.59-114.68-.26-.69-.89-2.67-1.33-3.01-.69-.54-5.13-.61-5.28.23-.07.39,2.18,6.35,2.51,7.62,8.33,32.53-1.18,79.44-31.87,97.68-39.35,23.39-81.25-18.95-86.47-56.49-4.55-32.73,1.41-78.21,31.71-97.44,19.52-12.4,40.38-6.89,59.86,2.28v27.51l.54.54h78.03v78.19h-25.53l-.54.54v156.02l-.54.54h-25.53v52.13c9.2.43,18.83-2.24,27.44-5.33,47.74-17.15,71.04-72.21,84.27-117.38,14.33-48.92,24.97-97.99,48.51-143.72,7.76-15.06,22.42-37.03,35.31-47.96,1.01-.86,3.54-3.38,3.57-.8-13.1,22.63-19.63,47.8-24.4,73.37-5.23,28.08-7.72,56.6-9.95,85.08h-7.97v78.01l-.54.54h-25.53v78.19h52.14v-25.52l.54-.54h25.53v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-85.79c11.14-38.48,15.78-78.62,26.54-117.18,3.85-13.82,13.94-49.3,31.71-49.66,4.43-.09,3.79,4.75.68,6.02-5.48,2.23-9.5,4.44-11.38,10.7-4.19,13.95,3.62,28.83,19.25,28.69,17.56-.15,23.86-14.51,21.1-30.14Z"/><path class="wf wf3" d="M418.78,0l-.54.54v51.4l-.54.54h-25.53v104.25h-25.53l-.54.54v78.01h-26.07V52.49h25.53l.54-.54V.54l-.54-.54h-51.42l-.54.54v25.52h-25.53l-.54.54v25.34l-.54.54h-24.62c-.12,0-.55-.48-.91-.36V.54l-.54-.54h-51.42l-.54.54v25.52h-52.14V0H26.07v26.06H.54l-.54.54v104.07h25.17c.12,0,.55.48.91.36v52.13h52.14v25.52l.54.54h25.35l.54-.54v-25.52h51.6l.54.54v103.53l-.54.54h-25.53v52.13h52.14v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-25.52h26.07v78.19h52.14v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-25.52h25.53l.54-.54v-51.4l.54-.54h25.53v-104.07l.54-.54h25.53v-25.52l.54-.54h51.96V0h-78.03ZM130.72,156.74H52.14v-52.13h-26.07v-52.13h25.53l.54-.54v-25.52h51.96l.54.54v77.65h25.53l.54.54v51.58ZM182.86,130.68h-25.53l-.54-.54V53.03l.54-.54h25.53v78.19ZM235.37,208.69l-.54.54h-25.53v-52.13h25.71c-.12.36.36.79.36.9v50.68ZM235.37,130.68V52.49h26.07v78.19h-26.07ZM287.51,261.18l-.54.54h-24.99l-.54-.54v-77.47l.54-.54h24.99l.54.54v77.47Z"/><path class="wf wf4" d="M445.03,3.38c-20.92,1.73-31.1,29.33-36.49,46.41-9.84,31.17-14.26,65.31-21.38,97.36-6.63,29.88-13.89,60.43-25.78,88.62h-24.99l-.54-.54v-51.58h-15.21c.05-4.29.21-8.58.35-12.87.83-25.06,1.16-50.21,2.18-75.28.85-20.92,1.71-60.04,14.34-76.89,1.4-1.87,3.2-3.37,4.51-5.29l-5.11-4.37c-18.51,10.55-34.19,25.01-45.98,42.75-29.71,44.7-39.74,95.02-54.13,145.71-1.17,4.11-2.29,8.44-3.98,12.31h-27.34v-52.13h25.53l.54-.54V52.97h25.53l.54-.54V1.02l-.54-.54h-51.42l-.54.54v25.34l-.54.54h-51.06l-.54-.54V1.02l-1.25-.56c-27.31,1.15-55.79-1.47-82.96,0C26.75,2.74,1.98,45.03.16,83.54c-2.22,46.95,18.43,102.92,72.6,105.19,66.13,2.77,77.93-64.3,58.59-114.68-.26-.69-.89-2.67-1.33-3.01-.69-.54-5.13-.61-5.28.23-.07.39,2.18,6.35,2.51,7.62,8.33,32.53-1.18,79.44-31.87,97.68-40.89,24.31-82.49-21.03-86.87-59.7-3.65-32.22,2.55-75.33,32.11-94.23,19.43-12.42,40.45-6.87,59.86,2.28v27.51l.54.54h78.03v78.19h-25.53l-.54.54v156.02l-.54.54h-25.53v52.13c9.2.43,18.83-2.24,27.44-5.33,47.74-17.15,71.04-72.21,84.27-117.38,14.33-48.92,24.97-97.99,48.51-143.72,7.75-15.04,22.44-37.04,35.31-47.96,1.01-.86,3.54-3.38,3.57-.8-13.1,22.62-19.63,47.81-24.4,73.37-5.23,28.08-7.73,56.6-9.95,85.08h-7.97v78.01l-.54.54h-25.53v78.19h52.14v-25.52l.54-.54h25.53v-25.52l.54-.54h25.35l.54-.54v-25.52h25.53l.54-.54v-85.79c11.14-38.49,15.78-78.62,26.54-117.18,3.76-13.5,11.98-41.08,25.06-47.71,3.01-1.52,10.53-4.31,9.57,1.61-.43,2.65-2.87,2.28-4.58,3.02-15.14,6.57-12.39,33.34,2.96,37.74,12.92,3.7,26.09-2.39,28.33-16.23,3.4-21.02-9.97-35.49-31.21-33.74Z"/><path class="wf wf5" d="M476.51,27.07c-1.97-25.44-35.06-32.05-50.68-13.75-19.88,23.29-26.51,74.27-32.71,104.14-15.11,72.87-33.76,173.9-110.09,207.05-1.74.76-10.1,4.29-11.32,4.26-.48,0-.59-.19-.87-.53,13.77-11.67,23.72-26.4,30.33-43.16,25.2-63.92,18.14-137.12,22.53-204.44,1.3-19.86,2.33-48.53,15.22-64.42.61-.75,3.39-2.82,2.84-3.77l-5.04-3.89c-45.48,24.82-66.79,75.34-81.82,122.39-16.09,50.35-24.2,106.02-52.35,151.47-11.54,18.63-24.47,32.94-44.81,42.09-2.32,1.04-8.84,3.96-11.01,4.21-.64.07-.77.09-1.18-.47,12.69-10.94,23.11-23.71,30.11-39.03,22.66-49.58,20.09-106.53,25.28-159.7,3.6-36.82,9.5-77.35,29.76-108.89,1.06-1.66,4.27-5.36,4.82-6.79.18-.47.24-.56.01-1.06-.34-.73-4.25-4.16-5.01-3.96-7.55,6.47-13.63,14.05-21.86,19.81-13.04,9.11-24.15,10.85-39.31,5.41C128.19,19.26,78.51-19.39,35.15,11.9-9.86,44.39-9.45,124.86,23.9,165.33c22.62,27.45,71.58,31.8,97.05,6.18,23.45-23.58,21.43-62.99,12.03-92.42-.45-1.41-2.5-8.17-3.35-8.6-.7-.35-4.92-.42-5.07.38,8.14,21.94,7.1,48.47-1.53,70.13-18.11,45.47-63.86,57.8-96.23,17.45-12.3-15.33-18.25-30.54-19.2-50.31-1.34-28.01,3.81-60.53,25.51-80.19,25.22-22.84,50.68-10.83,77.56.67,25.34,10.84,64.78,34.85,90.28,14.37l18.09-16.67,1.45.74c-25.24,27.62-37.01,64.94-44.06,101.11-7.84,40.28-8.98,80.62-14.28,121.11-3.37,25.75-8.71,63.59-28.92,81.5-.77.69-4.55,3.2-4.68,3.68-.23.86,3.61,4.79,4.57,5.49,22.67-3.26,42.63-13.33,58.22-29.99,32.77-35.01,42.96-79.97,55.68-124.61,14.56-51.1,30.68-110.57,66.7-150.88,2.4-2.68,5.85-6.61,8.51-8.87,1.05-.9,3.85-3.57,3.47-.52-20.69,37.12-27.02,81.7-31.35,123.61-5.72,55.34-3.75,120.38-26.37,171.64-2.26,5.13-5.56,11.06-10.56,13.87v5.79c81.18-12.49,113.64-97.78,131.7-167.52,10.6-40.91,15.83-84.94,28.7-124.79,3.53-10.92,10.47-30.23,20.54-36.3,2.97-1.79,12.47-5.8,10.89,1.11-.52,2.29-3.12,2.13-4.77,2.83-15.57,6.7-12.14,35.51,6.16,38.29,18.1,2.74,27.16-9.5,25.84-26.56Z"/><path class="wf wf6" d="M489.39,28.11c-13.72-22.87-49.36-37.52-67.94-11.95-18.8,25.88-24.49,72.11-30.96,103.35-15,72.39-33.97,172.02-109.72,204.88-1.64.71-10.64,4.48-11.65,4.28-.28-.05-.77-.61-.19-.91,22.97-18.88,33.4-47.29,40.02-75.47,13.97-59.47,7.91-119.62,12.85-179.73,1.43-17.4,3.51-43.58,15.38-57.02.72-.82,1.79-1.4,2.34-2,.36-.39.52-.3.21-.9-.13-.25-3.93-3.68-4.19-3.8-.61-.28-.85-.18-1.44-.02-1.82.5-8.16,4.88-10.1,6.21-56.17,38.47-72.43,119.96-89.57,181.59-12.98,46.66-33.29,108.88-81.74,128.96-1.43.59-7.48,3.09-8.53,3.07-.48,0-.59-.19-.87-.53,12.49-10.86,22.73-23.22,29.75-38.31,23.89-51.37,20.43-112.38,26.37-167.66,3.72-34.65,9.99-71.99,29.03-101.65.78-1.21,5.16-6.81,4.96-7.6-.19-.73-4.34-4.41-5.14-4.2-7.53,6.43-13.68,14.08-21.87,19.81-14.98,10.48-26.49,10.63-43.19,3.86C119.22,14.52,65.41-23.33,23.06,20.07-17.69,61.83.1,137.41,41.17,172.48c29.37,25.08,86.44,29.47,96.44-16.9,5.23-24.27-4.02-53.49-14.77-75.24-.61-1.23-4.14-8.31-4.69-8.71-1.06-.77-3.57-.14-4.92-.33,1.53,4.39,3.99,8.54,5.71,12.93,10.89,27.76,14.13,81.59-17.64,97.31-38.11,18.85-81.42-33.28-91.36-65.44C.34,85.05,8.66,43.29,35.99,23.58c22.34-16.11,44.81-6.69,67.35,2.77,26.32,11.04,69.04,37.67,95.36,16.54l18.09-16.67,1.45.74c-23.71,25.86-35.33,60.05-42.61,93.87-10.07,46.74-10.22,94.08-17.55,141.01-3.53,22.61-9.17,52.61-26.74,68.47-.81.73-4.9,3.52-5.04,4.04-.28,1.06,3.6,4.18,4.02,5.47,19.11-2.53,38.16-10.63,52.44-23.63,45.64-41.57,56.66-116.79,74.49-173.5,12.73-40.46,29.75-84.44,60.43-114.61.86-.85,4.38-4.85,5.38-4.57l.49,1.18c-20.72,37.43-27.1,82.08-31.44,124.25-4.22,40.94-4.45,83.65-12.12,123.99-4.15,21.8-10.77,47.7-29.52,61.36l4.14,5.26,1.09.35c86.68-14.36,117.39-109.05,135.09-183.18,7.76-32.51,12.72-66.07,21.64-98.18,4.31-15.51,13.52-49.25,33.01-50.25,2.67-.14,6.11,0,7.51,2.66,2.04,3.89-.91,3.17-2.95,4.43-7.24,4.45-1.05,16.04,2.44,21.06,7.67,11.04,21.25,20.21,35.28,16.65,12.95-3.29,6.25-17.34,1.67-24.98Z"/></g></svg><svg class="wink wm-wink" viewBox="0 0 124.33 118.5" fill="currentColor" aria-hidden="true"><g class="w-open"><path d="M17.63,75.86l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M69.66,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M107.18,51.07c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,107.87c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g><g class="w-shut" transform="translate(0 15.67)"><path d="M17.63,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27L27.93,0c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><rect x="67.39" y="29.09" width="27.62" height="11.69" transform="translate(-6.62 24.91) rotate(-16.77)"/><path d="M107.18,35.39c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,92.2c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g></svg></span></span></h1>
+
+      <p class="tagline" data-in="left" style="--d:.35s">Filmmaker :: Creative Director :: Designer<br><br>Paris <svg class="tg-arrow" viewBox="0 0 16 10" aria-label="to" role="img"><path d="M0 5h14M10 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg> Los Angeles</p>
+
+      <a class="action reel" data-in="left" style="--d:.55s" href="../reel/dm-reel.mp4" aria-haspopup="dialog">REEL<svg class="px-diag" viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg></a>
+
+      <a class="action studio" data-in="right" style="--d:.65s" href="https://satorxrotas.github.io/drgnfleyetest/" aria-haspopup="dialog">CAMPAIGNS<svg class="px-diag" viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg></a>
+
+      <button class="action about" type="button" data-in="left" style="--d:.8s" aria-haspopup="dialog" aria-controls="about">ABOUT<svg class="px-diag" viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/></svg></button>
+      <nav class="social" data-in="right" style="--d:.9s" aria-label="Social">
+        <a href="https://www.instagram.com/davidmaxwell.work/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg></a>
+        <a href="https://www.linkedin.com/in/david-maxwell-bb79314b/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="li-cut"><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="#fff"/><g fill="#000"><rect x="5.3" y="9.6" width="3.1" height="9.1"/><circle cx="6.85" cy="6.5" r="1.8"/><path d="M10.7 9.6h3v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.1 1.7 3.1 4v5.4h-3.1v-4.8c0-1.1 0-2.5-1.6-2.5s-1.8 1.2-1.8 2.4v4.9h-3.1z"/></g></mask></defs><rect x="1.5" y="1.5" width="21" height="21" rx="3.5" fill="currentColor" mask="url(#li-cut)"/></svg></a>
+        <button class="mail-btn" type="button" aria-label="Email" aria-haspopup="dialog" aria-controls="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4" width="21" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button>
+      </nav>
+      <!-- theme square: centred on the bottom line, between ABOUT and the icons -->
+      <button class="theme-btn" type="button" data-in="up" style="--d:.95s" aria-label="Switch to white background" aria-pressed="false"><span></span></button>
+
+      <div class="bust-space" aria-hidden="true"></div>
+      <div class="bust"><canvas id="stage"></canvas></div>
+    </div>
+
+    <button class="g-close" type="button" aria-label="Close gallery"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+
+    <!-- archived for this direction (hidden in CSS) -->
+    <nav class="foot" aria-label="Contact">
+      <a href="#">Email</a><span>|</span><a href="#" target="_blank" rel="noopener">Instagram</a><span>|</span><a href="#" target="_blank" rel="noopener">LinkedIn</a>
+    </nav>
+    <section class="strip" aria-label="Selected work">
+      <div class="track"></div>
+    </section>
+  </main>
+
+  <div class="about-lb" id="contact" role="dialog" aria-modal="true" aria-label="Contact">
+    <button class="about-close" type="button" aria-label="Close contact"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <form class="about-body contact-form" novalidate>
+      <label>Name<input name="name" type="text" autocomplete="name" required></label>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Message<textarea name="message" rows="5" required></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+      <button class="send" type="submit">SEND</button>
+      <p class="form-note" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <div class="about-lb ed" id="about" role="dialog" aria-modal="true" aria-label="About">
+    <button class="about-close" type="button" aria-label="Close about"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <article class="ed-spread">
+      <div class="ed-bg" aria-hidden="true"></div>
+      <div class="ed-cut"><img src="about/david-full.webp" alt="Portrait of David Maxwell" width="1076" height="1444" loading="lazy"></div>
+      <div class="ed-page">
+        <div class="ed-text">
+          <p><span class="ed-drop" aria-hidden="true"><svg class="ed-f" viewBox="-6 -6 490.05 302.47" aria-hidden="true" focusable="false"><path class="df df1" d="M478.05,38.07c0-1.4-.3-2.73-.82-3.93l-.79-1.45c-1.77-2.73-4.83-4.54-8.32-4.54-5.48,0-9.93,4.44-9.93,9.93,0,4.58,3.12,8.4,7.34,9.54-6.73,6.83-17.18,14.32-30.76,14.32-24.44,0-45.51-12.84-67.81-26.43C339.66,18.86,308.71,0,264.72,0s-75.52,27.49-81.25,32.47c-5.15-2.61-28.55-13.73-53.98-13.73C56.88,18.74,0,76.51,0,150.24c0,60.33,33.98,107.57,85.22,124.77-.09.35-.16.7-.2,1.07-.74,6.73,6.9,13.1,17.06,14.21,9.27,1.02,17.42-2.69,19.34-8.46,2.66.14,5.35.24,8.06.24,43.57,0,94.19-22.28,117.75-51.82,21.7-27.05,42.06-102.62,45.13-114.34l17.16,2.57-.33,4.89c-1.31,19.68-2.8,41.98-11.34,41.98-3.02,0-4.18-.45-7.61-1.78l-2.17-.83-4.28,4.28,1.23,1.14c4.25,3.95,8.22,5.79,12.48,5.79,7.77,0,14.18-2.63,19.07-7.81,10.45-11.08,11.85-31.39,11.08-47.02,8.51-1.81,19.68-9.82,19.68-19.76,0-8.54-6.2-13-12.33-13-13.88,0-19.61,11.16-23.21,22.52l-16.38-3.05c2.83-6.77,13.59-30.62,27.6-37.49,5.24-2.62,15.07-4.19,23.73-5.58,11.1-1.78,16.5-2.74,17.8-5.13l.2-.36v-3.43l-1.68.06c-39.77,1.39-52.27,3.79-74.27,22.46-8.05,6.56-17.92,20.79-20.47,24.56l-13.73-2.75-2.7,8.1,12.66,2.67c-42.78,115.7-46.28,119.09-60.77,133.15l-2.13,2.08c-19.35,19.03-47.68,31.33-72.17,31.33-2.92,0-5.79-.14-8.63-.33-2.34-4.65-8.51-8.41-16.1-9.24-5.36-.59-10.33.41-13.96,2.46-11.8-6.06-28.68-16.63-40.36-31.97h0c-22.41-32.49-52.61-97.68-1.21-167.37,15.33-19.18,45.43-44.52,96.58-42.33,16.76,2.78,28.7,9.07,32.78,11.46-.48.53-1.07,1.16-1.72,1.86-9.38,10.11-34.28,36.98-34.28,73.06,0,18.19,5.82,33.13,16.39,42.07,9.31,7.87,21.66,10.77,35.71,8.4l1.35-.23v-.06c4.86-.64,8.62-4.76,8.62-9.8,0-5.48-4.44-9.93-9.93-9.93s-9.93,4.44-9.93,9.93c0,1.38.28,2.69.79,3.88-8.36-.15-15.77-2.8-21.76-7.85-9.23-7.79-14.32-20.72-14.32-36.41,0-27.3,24.34-63.4,36.7-70.39,11.05,8.72,37.05,37.68,37.05,77.42,0,48-39.16,95.12-79.05,95.12-24.98,0-48.59-20.85-48.59-42.9,0-8.39,1.16-14.3,3.2-20.72,1.62,1.16,3.6,1.86,5.75,1.86,5.48,0,9.93-4.44,9.93-9.93s-4.44-9.93-9.93-9.93c-4.17,0-7.72,2.57-9.19,6.21h0s-2.23,7.01-2.23,7.01c-2.87,8.92-4.45,13.83-4.45,25.49,0,25.61,26.98,49.82,55.52,49.82,38.94,0,85.97-45.52,85.97-102.04,0-42.24-27.2-74.04-37.2-81.56,5.05-4.35,24.85-18.24,71.73-18.24,30.57,0,46.12,3.95,76.84,13.65,12.63,4,23.59,9.91,34.18,15.63,18.04,9.73,35.09,18.92,59.03,18.92,20.36,0,35.27-12.53,40.3-23.37,1.83-1.8,2.98-4.3,2.98-7.08ZM327.08,108.31c.44-2.26,2.63-7.43,5.35-10.68,1.24-1.48,2.17-2,2.58-2,.35,0,3.4.06,3.4,2.06,0,7.32-8.14,10.02-11.34,10.62ZM137.42,25.67c2.88.23,5.66.58,8.31,1.02l-8.31-1.02Z"/><path class="df df2" d="M458.8 34.5 458.3 36.9 458.4 40 460 40 460 60 480 60 480 20 460 20 460 32.4ZM460 60 417.2 59.8 409.4 57.5 401.7 54.5 394.1 51 381.3 44.1 345.8 23 334.8 17.2 324.3 12.4 313.2 8.2 302.6 4.9 291.5 2.4 279.7 0.7 265.8 0 253.9 0.5 242.5 2.3 230.4 5.5 218.2 10.3 206.4 16.2 194.3 23.9 183.5 32.4 171.6 27.3 159.7 23.3 146.9 20.3 136 19 124.4 18.8 112 19.9 100 22 88.4 25.2 76.2 30 64.7 35.8 53.9 42.8 43.9 50.8 34.8 59.7 26.6 69.5 19.3 80.2 13.1 91.6 8 103.7 4.1 116.5 1.5 129.8 0.2 142.3 0.1 155.3 1.2 169.6 3.6 183.3 7.3 196.4 12.6 209.8 19.2 222.3 27.1 233.9 37 245.2 48.2 255.1 59.6 263.1 72 269.7 85.2 275 85 277.2 85.5 280 80 280 80 300 120 300 120 280 200 280 200 260 240 260 240 240 260 240 260 200 280 200 280 180 320 180 320 160 340 160 340 120 327.7 120 327.7 119.4 334.9 116.3 340 112.9 340 100 347.3 100 346.8 95.3 344.6 90.9 342.1 88.6 338.1 86.7 333.3 86.4 328.3 87.4 323.2 90 320.6 92.2 318.4 94.8 314.8 100.9 311.8 108.9 295.4 105.8 300.7 94.6 306.8 84.3 312.8 76.6 318.5 71.2 323.5 68.1 329.4 66.1 338 64.2 356.1 61.1 361.7 59.7 364.4 57.8 364.7 54.6 364.3 53.9 359.6 54 334.8 55.7 322.5 57.8 312.8 60.8 306.6 63.8 300.4 67.5 294 72.1 287.3 77.6 278.9 86.7 268.4 100.9 254.5 98.4 252 106.3 263.8 108.8 264.2 109.9 243.4 165.4 229.6 200 220 200 220 220 200 220 200 240 180 240 180 260 120 260 120 273.8 117.8 271.3 114 268.7 110.5 267.2 106.5 266.2 102.5 265.8 98.7 265.9 95.1 266.6 91 268.2 90.2 268.1 82.2 263.6 74.4 258.6 67.5 253.5 60.7 247.7 55.1 242.1 50.9 237 41.5 222.2 37 213.7 32.7 204.5 29.3 195.6 26.6 187.3 24.3 178.6 22.6 169.5 21.5 161.4 21 153 21.1 144.3 21.6 136.8 22.9 127.8 24.6 120 26.8 112 29.7 104 33.2 95.9 37.3 87.6 43.1 78 48.8 69.6 57.7 59.5 64.1 53.5 70.7 48.3 78 43.4 85 39.4 92.7 35.7 99.8 33 108.7 30.3 116.9 28.6 131.6 26.8 146.2 26.8 154.4 28.5 162.9 31.1 170.9 34.3 178.2 38 178.5 38.3 168.9 49 161.8 58.3 155.8 67.5 151 76.8 147.4 85.7 144.6 95.3 142.9 105.6 142.6 114.7 143.3 124.1 145.5 133.9 149.1 142.6 153.3 149.2 158.4 154.7 164.9 159.3 172.3 162.4 180.3 164.1 186.5 164.4 191.7 164 196.7 163.2 200 161.9 202.6 159.5 204.2 156.3 204.6 153.9 204.1 150.3 202.4 147.2 200.7 145.6 198.7 144.4 195.2 143.6 191.5 144.1 188.4 145.8 186.8 147.5 185.6 149.5 184.8 153 185.2 157.4 181.4 157.1 174.4 155.5 169 153.1 164.1 149.8 159.5 145.1 155.7 139.6 152.8 133.3 150.8 126.3 149.8 119.9 149.5 111.9 150 105.7 151.6 98 154 90.2 157 82.5 160.6 75.1 168.8 61.4 173.1 55.5 178.1 49.6 182.7 45.2 186.2 42.7 192.6 48.5 199.7 56.5 205.7 64.7 211.5 74.4 215.5 82.9 218.9 92.1 221.1 100.6 222.6 109.6 223.2 119 222.9 128.2 221.7 137 219.3 146.9 216.5 155.4 212.4 164.7 207.5 173.5 201.8 181.7 195.5 189.3 188.7 196.1 181.4 202 173.7 207 165.6 210.9 157.4 213.6 148.9 215 141 215.1 133.6 214 125.3 211.3 117.5 207.3 110.7 202.2 106.4 197.9 103.4 194.2 100.8 190.3 98.7 186.2 97.1 182 96.1 177.7 95.6 173.2 95.7 168 96.7 159.6 98.7 152 104 153.5 106.5 153.3 109.8 152 112.4 149.7 113.6 147.6 114.5 144.1 114.3 141.6 113 138.3 110.7 135.7 107.5 134.1 105.1 133.6 102.6 133.8 99.3 135.1 96.7 137.5 95.5 139.6 90.1 157.3 89.1 163.9 88.7 170.7 89 176.8 90 182.3 91.8 187.7 95 193.9 99 199.7 103.8 205 110.3 210.6 116.5 214.6 123.2 217.9 130.2 220.3 137.6 221.7 143.8 222.2 149.7 221.9 155.6 220.9 161.5 219.4 168.4 216.8 174.3 214 181.1 210.1 187.6 205.5 193.1 201 199.2 195.2 204.1 189.7 213 177.6 216.9 171.1 220.4 164.2 223.4 157 225.9 149.5 228.9 136.5 230.1 122.9 229.7 110.4 227.4 96.7 225 88.1 222 80.1 218.7 72.6 214.3 64.6 209.2 56.6 204 49.8 198.1 43.2 193 38.5 199.4 34.1 207.9 29.9 218.7 26 229.8 23.4 243.2 21.4 256.9 20.5 273.3 20.4 287.6 21.3 300.6 23.1 310.2 25 321.3 27.9 340.2 33.5 348.7 36.5 360.8 41.8 387.7 55.9 400 61.5 400 80 460 80.0ZM280 140 285.6 140 292.4 115.9 308.9 118.4 309.5 119.1 307.9 140 300 140 300 160 279.3 160 280 157.7ZM329.6 102 332.6 97.4 334.7 95.7 337.6 96.3 338.4 97.4 338 100.3 336 103.8 331.9 106.7 327.1 108.3ZM137.4 25.7 143 26.3 145.7 26.7Z"/><path class="df df3" d="M480 60 480 20 460 20 460 60.0ZM460 80 460 60 400 60 400 80.0ZM20 60 20 80 0 80 0 220 20 220 20 240 40 240 40 260 60 260 60 280 80 280 80 300 120 300 120 280 200 280 200 260 240 260 240 240 260 240 260 200 280 200 280 180 320 180 320 160 340 160 340 100 360 100 360 80 340 80 340 60 400 60 400 40 360 40 360 20 340 20 340 0 200 0 200 20 60 20 60 40 40 40 40 60.0ZM60 240 60 220 40 220 40 180 20 180 20 120 40 120 40 80 60 80 60 60 80 60 80 40 160 40 160 60 140 60 140 160 180 160 180 200 100 200 100 220 200 220 200 240 180 240 180 260 80 260 80 240.0ZM200 200 220 200 220 220 200 220.0ZM160 140 160 80 180 80 180 60 200 60 200 80 220 80 220 140.0ZM220 80 220 40 240 40 240 20 300 20 300 40 320 40 320 60 280 60 280 80 260 80 260 120 240 120 240 80.0ZM220 160 240 160 240 180 220 180.0ZM280 160 280 140 300 140 300 160.0ZM100 200 100 160 120 160 120 120 100 120 100 140 80 140 80 200.0Z"/><path class="df df4" d="M480 60 480 20 460 20 460 60.0ZM400 80 460 80 460 60 400 60.0ZM160 23.4 143.8 19.8 132.8 18.8 120.7 19 108.4 20.4 96.5 22.9 83.9 26.8 73 31.4 61.7 37.6 52.1 44.1 42.2 52.3 33.2 61.4 25.9 70.5 18.7 81.2 13.1 91.6 8.5 102.6 4.8 114.1 1.7 128.5 0.2 143.6 0 152.6 0.4 161.9 1.4 170.9 2.9 180 0 180 0 220 20 220 20 240 40 240 40 260 60 260 60 280 80 280 80 300 120 300 120 280 200 280 200 260 240 260 240 240 260 240 260 200 280 200 280 180 320 180 320 160 340 160 340 100 360 100 360 80 340 80 340 60 400 60 400 40 360 40 360 20 340 20 340 0 200 0 200 20 160 20.0ZM24.6 180 21.9 164.9 21 149.3 21.9 134.2 23.2 126.5 24.9 118.6 29.7 104 36.6 89 45.8 73.8 49.5 68.7 53.9 63.5 64.1 53.5 69.8 49 76.1 44.6 88.2 37.8 95 34.8 102.3 32.2 110 30 118.3 28.3 127.1 27.2 134.8 26.7 146.2 26.8 160 30.1 160 60.8 155.2 68.6 151.5 75.5 148.3 83.1 145.7 91.1 143.7 99.6 142.8 107.1 142.6 114.7 143.2 122.8 144.8 131.5 148.1 140.5 150.7 145.5 153.3 149.2 156.1 152.5 160 156 160 160 180 160 180 200 100 200 100 220 200 220 200 240 180 240 180 260 80 260 80 240 60 240 60 220 40 220 40 180.0ZM200 200 220 200 220 220 200 220.0ZM137.4 25.7 143 26.3 145.7 26.7ZM158.2 143.4 154.7 137.6 151.7 129.9 150 121.2 149.5 111.9 150.2 104.4 152.3 95.4 155.4 86.4 160 76.3 160 80 180 80 180 60 200 60 200 80 220 80 220 140 160 140 160 145.7ZM220 80 220 40 240 40 240 20 300 20 300 40 320 40 320 60 280 60 280 80 260 80 260 120 240 120 240 80.0ZM240 180 220 180 220 160 240 160.0ZM280 160 280 140 300 140 300 160.0ZM95.9 176.6 95.6 170.6 96 164.2 97 158.5 98.7 152 104 153.5 107.6 153 109.8 152 111.6 150.5 113.1 148.7 114 146.5 114.5 142.9 113.6 139.4 112.3 137.4 110.7 135.7 107.5 134.1 103.9 133.7 100.3 134.6 97.5 136.6 95.5 139.6 90.9 154.2 89.3 161.6 88.7 172.2 89.5 180 80 180 80 200 100 200 100 180 96.5 180.0Z"/></svg></span><span class="sr-only">F</span>ilmmaker and creative director, born in Lomé, raised in Paris, and based in Los Angeles. Currently at Amazon, his work spans visual storytelling, campaigns, and design.</p>
+          <p>With an unconventional background in pre-med and accounting, Maxwell found his way into the creative world through curiosity and a self-taught approach to design, filmmaking, and storytelling. His multidisciplinary practice is shaped by a life lived across continents, bringing together different perspectives, disciplines, and ways of thinking.</p>
+          <p>His work moves fluidly between music, sports, entertainment, and technology, connecting strategic thinking with artistic instinct. He is also the founder of <a href="https://drgnfleye.com" target="_blank" rel="noopener">DRGNFLEYE</a>, an independent multimedia studio.</p>
+        </div>
+        <div class="ed-clients">
+          <h3>Selected Clients</h3>
+          <ul><li>TikTok</li><li>Warner</li><li>Airbnb</li><li>Disney</li><li>Nike</li><li>DreamWorks</li><li>Red Bull</li></ul>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="gv" id="gv" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <canvas></canvas>
+    <div class="gv-title" aria-live="polite"></div>
+    <div class="gv-count" aria-hidden="true"></div>
+    <div class="gv-hint" aria-live="polite"></div>
+    <button class="gv-close" type="button" aria-label="Close image"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+  </div>
+
+  <div class="lightbox" id="reel" role="dialog" aria-modal="true" aria-label="Reel">
+    <button class="close" type="button" aria-label="Close"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/></svg></button>
+    <div class="frame">
+      <video src="../reel/dm-reel.mp4" poster="../reel/dm-reel-poster.jpg" controls playsinline preload="none"></video>
+    </div>
+  </div>
+
+  <script>
+    // ---- Loading spinner that never stops speeding up ---------------------
+    // Starts at the old pace (one turn per 8s) and doubles its speed every
+    // 0.8s, up to a silly 60 turns a second. Stops once the logo leaves the page.
+    const WINK_SVG = '<svg class="lockup-logo wink" viewBox="0 0 124.33 118.5" fill="currentColor" aria-hidden="true"><g class="w-open"><path d="M17.63,75.86l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M69.66,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27l-2.92-9.68c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><path d="M107.18,51.07c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,107.87c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g><g class="w-shut" transform="translate(0 15.67)"><path d="M17.63,60.19l26.44-7.97-7.38-24.49-14.53,4.38c-.98-2.35-1.29-5.06-.93-8.15.58-5.73,3.78-10.48,9.61-14.27L27.93,0c-7.87,4.2-13.26,9.63-16.17,16.3-2.9,6.66-2.92,14.74-.06,24.24l5.92,19.65Z"/><rect x="67.39" y="29.09" width="27.62" height="11.69" transform="translate(-6.62 24.91) rotate(-16.77)"/><path d="M107.18,35.39c-7.21,22.69-19.1,37.74-35.36,44.73-29.04,12.49-63.58-3.94-63.92-4.1L0,92.2c1.21.59,22.13,10.63,47.35,10.63,10.12,0,20.94-1.62,31.45-6.11,21.34-9.13,36.66-27.92,45.53-55.87l-17.16-5.45Z"/></g></svg>';
+    // turn the flat wink SVG into an extruded 3D stack (used by both loaders)
+    function wink3D(svg, cls = 'lockup-logo') {
+      const n = 18, T = 1.3;   // layers, depth in em (≈ 7px at full size)
+      let out = `<div class="${cls} w3d" aria-hidden="true"><div class="w3d-spin">`;
+      for (let i = 0; i < n; i++) {
+        const z = ((i / (n - 1)) - .5) * T, face = i === 0 || i === n - 1 ? 'face' : 'side';
+        out += svg.replace(/class="[^"]*\bwink\b[^"]*"/, `class="wink w3d-l ${face}" style="transform:translateZ(${z.toFixed(3)}em)"`);
+      }
+      return out + '</div></div>';
+    }
+    // logo smiley after MAXWELL: the same 3D spinning version as the loader
+    addEventListener('DOMContentLoaded', () => {
+      const w = document.querySelector('.wordmark svg.wm-wink');
+      if (w) w.outerHTML = wink3D(w.outerHTML, 'wm-wink');
+    });
+    // MAXWELL's W: frame / seconds, matching the reference clip (4.06s loop)
+    (function () {
+      const SEQ = [[1,.56],[2,.20],[4,.31],[3,.49],[4,.51],[1,.48],[5,.51],[6,.54],[5,.46]];
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let k = 0;
+      const step = () => {
+        document.querySelectorAll('.wm-w').forEach(g => g.setAttribute('data-f', SEQ[k][0]));
+        setTimeout(step, SEQ[k][1] * 1000);
+        k = (k + 1) % SEQ.length;
+      };
+      if (document.readyState === 'loading') addEventListener('DOMContentLoaded', step); else step();
+      // the A in DAVID: same rhythm (clean / half pixel / pixel / half / clean / slant), offset so they don't glitch together
+      const ASEQ = [[1,.56],[2,.20],[4,.31],[3,.49],[4,.51],[1,1.99]];   // no slanted frames for the A
+      let ka = 0;
+      const astep = () => {
+        document.querySelectorAll('.wm-a').forEach(g => g.setAttribute('data-f', ASEQ[ka][0]));
+        setTimeout(astep, ASEQ[ka][1] * 1000);
+        ka = (ka + 1) % ASEQ.length;
+      };
+      setTimeout(astep, 2030);
+    })();
+    function spinUp(el) {   // (old spinning-logo loader, no longer used)
+      if (!el) return;
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const t0 = performance.now();
+      let last = t0, angle = 0;
+      (function tick(now) {
+        if (!el.isConnected) return;
+        const t = (now - t0) / 1000;
+        const turnsPerSec = calm ? 0.125 : Math.min(60, 0.125 * Math.pow(2, t / 0.8));
+        angle = (angle + turnsPerSec * 360 * (now - last) / 1000) % 360;
+        last = now;
+        el.style.transform = `rotate(${angle}deg)`;
+        requestAnimationFrame(tick);
+      })(t0);
+    }
+
+    // ---- Work strip content ------------------------------------------------
+    // Placeholders for now. To add real work, give an item an `img` (thumbnail
+    // and lightbox image) and optionally a `full` (bigger lightbox image) or a
+    // `video` (mp4 that plays in the lightbox).
+    // Every tile shares one crop — set it here to match the supplied images.
+    const STRIP_AR = 16 / 9;   // width / height
+    const STRIP = [
+      { title: 'Project 01', c: '#1b1b1d' },
+      { title: 'Project 02', c: '#b8321f' },
+      { title: 'Project 03', c: '#1f5fa8' },
+      { title: 'Project 04', c: '#2f8f84' },
+      { title: 'Project 05', c: '#d9b44a' },
+      { title: 'Project 06', c: '#5b2d7a' },
+      { title: 'Project 07', c: '#3d3d3d' },
+      { title: 'Project 08', c: '#8a1538' },
+    ];
+
+    // ---- Lightbox (reel + strip items) --------------------------------------
+    // Grows out of whatever was clicked; closes on the X, a click outside the
+    // content, or Esc.
+    const Lightbox = (() => {
+      const box = document.getElementById('reel');
+      const frame = box.querySelector('.frame');
+      const closeBtn = box.querySelector('.close');
+      let trigger = null;
+
+      function originFrom(el) {
+        const r = el.getBoundingClientRect();
+        // frame is centred; express the trigger's centre in the frame's own coords
+        const left = (innerWidth - frame.offsetWidth) / 2, top = (innerHeight - frame.offsetHeight) / 2;
+        frame.style.transformOrigin = `${r.left + r.width / 2 - left}px ${r.top + r.height / 2 - top}px`;
+      }
+      function open(from, node, ar = 16 / 9, label = '', mode = '') {
+        trigger = from;
+        frame.classList.toggle('is-site', mode === 'site');
+        frame.classList.toggle('is-full', mode === 'site' || mode === 'full');
+        frame.style.setProperty('--ar', ar);
+        frame.replaceChildren(node);
+        box.setAttribute('aria-label', label);
+        originFrom(from);
+        box.classList.add('open');
+        document.body.classList.add('lb-open');   // the bust render loop pauses while this is set
+        document.body.style.overflow = 'hidden';
+        const v = frame.querySelector('video');
+        if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+        closeBtn.focus({ preventScroll: true });
+      }
+      function close() {
+        if (!box.classList.contains('open')) return;
+        if (trigger) originFrom(trigger);
+        box.classList.remove('open');
+        document.body.classList.remove('lb-open');
+        document.body.style.overflow = '';
+        frame.querySelectorAll('video').forEach(v => v.pause());
+        // embedded pages are unloaded once the lightbox has faded, so they stop running
+        setTimeout(() => { if (!box.classList.contains('open')) frame.querySelectorAll('iframe').forEach(f => f.remove()); }, 500);
+        trigger?.focus({ preventScroll: true });
+      }
+      closeBtn.addEventListener('click', close);
+      box.addEventListener('click', (e) => { if (!frame.contains(e.target)) close(); });
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      // an embedded page (DRGNFLEYE) can ask to be closed
+      addEventListener('message', (e) => {
+        const f = frame.querySelector('iframe');
+        if (f && e.source === f.contentWindow && e.data && e.data.type === 'drg-embed-close') close();
+      });
+      return { open, close };
+    })();
+
+    // STUDIO WORK → the DRGNFLEYE project index, inside the lightbox
+    (() => {
+      // bump v= after changing the DRGNFLEYE embed so browsers can't serve an old cached copy
+      const STUDIO_URL = 'https://satorxrotas.github.io/drgnfleyetest/?embed&view=index&v=2';
+      const link = document.querySelector('.studio');
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const wrap = document.createDocumentFragment();
+        const f = document.createElement('iframe');
+        f.title = 'DRGNFLEYE — project index';
+        f.src = STUDIO_URL;
+        f.allow = 'autoplay; fullscreen';
+        f.addEventListener('load', () => setTimeout(() => f.classList.add('ready'), 250));
+        const spin = document.createElement('div');
+        spin.className = 'site-loading lockup';
+        spin.innerHTML = wink3D(WINK_SVG);
+        wrap.append(f, spin);
+        Lightbox.open(link, wrap, 16 / 9, 'DRGNFLEYE campaigns', 'site');
+      });
+    })();
+
+    // theme square cycles: black → white → gold → black (remembered for next visit)
+    (() => {
+      const b = document.querySelector('.theme-btn'), root = document.documentElement;
+      const ORDER = ['dark', 'light', 'gold'], NAME = { dark: 'black', light: 'white', gold: 'gold' };
+      const cur = () => root.classList.contains('gold') ? 'gold' : root.classList.contains('light') ? 'light' : 'dark';
+      const sync = () => { const n = ORDER[(ORDER.indexOf(cur()) + 1) % 3]; b.setAttribute('aria-pressed', cur() !== 'dark'); b.setAttribute('aria-label', 'Switch to ' + NAME[n] + ' background'); };
+      b.addEventListener('click', () => {
+        const n = ORDER[(ORDER.indexOf(cur()) + 1) % 3];
+        root.classList.remove('light', 'gold'); if (n !== 'dark') root.classList.add(n);
+        try { localStorage.setItem('dm_theme', n); } catch (e) {}
+        dispatchEvent(new CustomEvent('dm-theme', { detail: n }));   // the 3D scene swaps the bust finish
+        sync();
+      });
+      sync();
+    })();
+
+    // ABOUT + EMAIL lightboxes
+    function textBox(btn, box, focusSel) {
+      const open = () => { box.classList.add('open'); document.body.classList.add('lb-open'); (box.querySelector(focusSel) || box.querySelector('.about-close')).focus({ preventScroll: true }); };
+      const close = () => { if (!box.classList.contains('open')) return; box.classList.remove('open'); document.body.classList.remove('lb-open'); btn.focus({ preventScroll: true }); };
+      btn.addEventListener('click', open);
+      box.querySelector('.about-close').addEventListener('click', close);
+      box.addEventListener('click', (e) => { if (!e.target.closest('.about-body, .ed-spread, .about-close')) close(); });
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    }
+    textBox(document.querySelector('.about'), document.getElementById('about'));
+    textBox(document.querySelector('.mail-btn'), document.getElementById('contact'), matchMedia('(hover: hover)').matches ? 'input' : null);
+
+    // line the backdrop up with the cut-out (same "cover, top" maths the cut-out img uses).
+    // backdrop.jpg = the portrait's 1076x1444 frame extended 600 left, 1500 right, 1500 up, 2400 down.
+    (() => {
+      const bg = document.querySelector('.ed-bg'), cut = document.querySelector('.ed-cut'), box = document.getElementById('about');
+      if (!bg || !cut) return;
+      const fit = () => {
+        const cw = cut.offsetWidth, ch = cut.offsetHeight; if (!cw) return;
+        const sc = Math.max(cw / 1076, ch / 1444), off = (cw - 1076 * sc) / 2;
+        bg.style.backgroundSize = `${3176 * sc}px ${5344 * sc}px`;
+        bg.style.backgroundPosition = `${cut.offsetLeft + off - 600 * sc}px ${cut.offsetTop - 1500 * sc}px`;
+      };
+      new MutationObserver(() => { if (box.classList.contains('open')) requestAnimationFrame(fit); }).observe(box, { attributes: true, attributeFilter: ['class'] });
+      addEventListener('resize', fit);
+    })();
+    // ABOUT intro: copy the hero title (+ smiley) into the About layer at the same spot and turn it white
+    (() => {
+      const box = document.getElementById('about'), src = document.querySelector('.page .wordmark');
+      if (!box || !src) return;
+      let ghost = null, gone = null;
+      const place = () => {
+        if (!ghost) return;
+        const r = src.getBoundingClientRect();
+        Object.assign(ghost.style, { left: r.left + 'px', top: (r.top + box.scrollTop) + 'px', width: r.width + 'px' });
+        // grow it to span the screen (small margin), anchored top-left
+        const m = innerWidth <= 760 ? 10 : innerWidth * .012, k = (innerWidth - 2 * m) / r.width;
+        ghost.style.setProperty('--grow', `translate(${m - r.left}px, ${m - r.top}px) scale(${k})`);
+        box.style.setProperty('--wm-b', (m + r.height * k) + 'px');
+      };
+      const sync = (from, to) => {   // keep the clone's smiley spin / wink in step with the original
+        const a = from && from.getAnimations && from.getAnimations()[0];
+        if (a && to) to.style.animationDelay = (-(a.currentTime % 100000)) + 'ms';
+      };
+      new MutationObserver(() => {
+        if (box.classList.contains('open')) {
+          clearTimeout(gone);
+          if (!ghost) {
+            ghost = src.cloneNode(true);
+            ghost.querySelector('defs')?.closest('svg')?.remove();
+            ghost.removeAttribute('data-in'); ghost.removeAttribute('style'); ghost.removeAttribute('aria-label');
+            ghost.setAttribute('aria-hidden', 'true');
+            ghost.classList.add('wm-ghost');
+            box.appendChild(ghost);
+            sync(src.querySelector('.w3d-spin'), ghost.querySelector('.w3d-spin'));
+            const so = src.querySelectorAll('.w-open, .w-shut'), go = ghost.querySelectorAll('.w-open, .w-shut');
+            go.forEach((g, i) => sync(so[i], g));
+          }
+          box.scrollTop = 0; place();
+          requestAnimationFrame(() => requestAnimationFrame(() => ghost && ghost.classList.add('on')));
+        } else if (ghost) {
+          gone = setTimeout(() => { ghost && ghost.remove(); ghost = null; }, 600);
+        }
+      }).observe(box, { attributes: true, attributeFilter: ['class'] });
+      addEventListener('resize', place);
+    })();
+
+    // ABOUT: David appears through a grid of tiles — each block flashes solid red, then a red-tinted
+    // black-and-white piece of the photo, then the clean photo; sweeps head-down, with stray tiles around him
+    (() => {
+      const box = document.getElementById('about'), cut = document.querySelector('.ed-cut'), img = cut && cut.querySelector('img');
+      if (!box || !img) return;
+      const RED = '#ee4137', reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let cv = null, run = 0, timer = null, alphaMap = null;
+      const coverage = () => {   // how much of each cell David fills (computed once, from the image's alpha)
+        if (alphaMap) return alphaMap;
+        const c = document.createElement('canvas'); c.width = 108; c.height = 145;
+        const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, 108, 145);
+        alphaMap = x.getImageData(0, 0, 108, 145).data; return alphaMap;
+      };
+      const cellCov = (u0, v0, u1, v1) => {
+        const a = coverage(); let s = 0, n = 0;
+        for (let y = Math.floor(v0 * 145); y < Math.min(145, Math.ceil(v1 * 145)); y++)
+          for (let x = Math.floor(u0 * 108); x < Math.min(108, Math.ceil(u1 * 108)); x++) { s += a[(y * 108 + x) * 4 + 3]; n++; }
+        return n ? s / n / 255 : 0;
+      };
+      const reveal = () => {
+        const my = ++run; clearTimeout(timer);
+        if (reduce) { img.classList.remove('px-hide'); return; }
+        img.classList.add('px-hide'); img.loading = 'eager';
+        (img.decode ? img.decode() : Promise.resolve()).catch(() => {}).then(() => {
+          if (my !== run || !box.classList.contains('open')) return;
+          const W = cut.clientWidth, H = cut.clientHeight; if (!W) { img.classList.remove('px-hide'); return; }
+          const dpr = Math.min(devicePixelRatio || 1, 2);
+          if (!cv) { cv = document.createElement('canvas'); cut.appendChild(cv); }
+          cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.display = '';
+          const ctx = cv.getContext('2d');
+          const cols = W > 300 ? 11 : 9, cs = W / cols, rows = Math.ceil(H / cs);
+          const cells = [];
+          for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+            const cov = cellCov(c / cols, r * cs / H, (c + 1) / cols, (r + 1) * cs / H);
+            const body = cov > .06, edge = !body && cov > 0 || (!body && Math.random() < .05);
+            if (!body && !(edge && Math.random() < .35)) continue;
+            const start = .75 + (r / rows) * .7 + Math.random() * .45;   // seconds after opening
+            const red = .1 + Math.random() * .16, tint = body ? .12 + Math.random() * .22 : 0;
+            const flick = body && Math.random() < .18;
+            cells.push({ c, r, body, start, red, tint, flick });
+          }
+          const t0 = performance.now();
+          const tick = () => {
+            if (my !== run) return;
+            const t = (performance.now() - t0) / 1000; let busy = false;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+            for (const k of cells) {
+              const x = k.c * cs, y = k.r * cs, e = t - k.start;
+              let st = 'off';
+              if (e < 0) { busy = true; continue; }
+              if (e < k.red) st = 'red';
+              else if (e < k.red + k.tint) st = 'tint';
+              else if (k.flick && e < k.red + k.tint + .14) st = 'clean';
+              else if (k.flick && e < k.red + k.tint + .26) st = 'tint';
+              else st = k.body ? 'clean' : 'off';
+              if (st !== 'clean' && st !== 'off') busy = true;
+              if (st === 'off') continue;
+              ctx.save(); ctx.beginPath(); ctx.rect(x, y, cs + .5, cs + .5); ctx.clip();
+              if (st === 'red') { ctx.globalAlpha = .94; ctx.fillStyle = RED; ctx.fillRect(x, y, cs, cs); }
+              else {
+                if (st === 'tint') ctx.filter = 'grayscale(1) contrast(1.25)';
+                ctx.drawImage(img, 0, 0, W, H);
+                ctx.filter = 'none';
+                if (st === 'tint') { ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .9; ctx.fillStyle = RED; ctx.fillRect(x, y, cs, cs); }
+              }
+              ctx.restore();
+            }
+            if (busy) timer = setTimeout(tick, 70);   // stepped, ~14fps, for a pixel-y feel
+            else { img.classList.remove('px-hide'); cv.style.display = 'none'; }
+          };
+          tick();
+        });
+      };
+      new MutationObserver(() => {
+        if (box.classList.contains('open')) reveal();
+        else { run++; clearTimeout(timer); setTimeout(() => { if (!box.classList.contains('open')) img.classList.add('px-hide'); }, 500); }
+      }).observe(box, { attributes: true, attributeFilter: ['class'] });
+    })();
+    // ABOUT drop cap: opens fully pixelated, resolves to the clean swash F, then glitches on the W's rhythm
+    (() => {
+      const f = document.querySelector('.ed-f'), box = document.getElementById('about');
+      if (!f || !box) return;
+      const INTRO = [[3, .5], [4, .3], [2, .2]];
+      const LOOP = [[1, 1.6], [2, .18], [4, .27], [3, .44], [4, .45]];   // same rhythm as the A, a touch quicker (≈2.9s loop)
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let t = null, k = 0, seq = INTRO;
+      const step = () => {
+        const [fr, dur] = seq[k]; f.setAttribute('data-f', fr);
+        k++; if (k >= seq.length) { seq = LOOP; k = 0; }
+        t = setTimeout(step, dur * 1000);
+      };
+      new MutationObserver(() => {
+        clearTimeout(t); t = null;
+        if (box.classList.contains('open') && !reduce) { seq = INTRO; k = 0; step(); }
+        else f.setAttribute('data-f', box.classList.contains('open') ? 1 : 3);
+      }).observe(box, { attributes: true, attributeFilter: ['class'] });
+      f.setAttribute('data-f', reduce ? 1 : 3);
+    })();
+
+    // Contact form. No server yet, so SEND opens the visitor's mail app with everything filled in.
+    // (To send straight from the page instead, point FORM_ENDPOINT at a form service such as Formspree.)
+    (() => {
+      const CONTACT_EMAIL = 'hello@davidmaxwell.work';   // fallback only (used if no endpoint)
+      // Google Apps Script web app (see _apps-script/contact-form.gs): logs to the Sheet, emails the visitor a thank-you
+      const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwXnOkXD05QDfuIrTxi2WiPQqakzLRT_PODH3TrB9MUkKKpGLzEyRmIrVfxg3zY9CDTyA/exec';
+      const form = document.querySelector('.contact-form'), note = form.querySelector('.form-note');
+      let openedAt = Date.now();
+      new MutationObserver(() => { if (document.getElementById('contact').classList.contains('open')) openedAt = Date.now(); })
+        .observe(document.getElementById('contact'), { attributes: true, attributeFilter: ['class'] });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const d = Object.fromEntries(new FormData(form));
+        if (!d.name.trim() || !/^\S+@\S+\.\S+$/.test(d.email) || !d.message.trim()) { note.textContent = 'Please fill in your name, a valid email and a message.'; return; }
+        if (FORM_ENDPOINT) {
+          note.textContent = 'Sending…';
+          const send = form.querySelector('.send'); send.disabled = true;
+          try {
+            const body = new URLSearchParams(new FormData(form)); body.set('t', Date.now() - openedAt);
+            // Apps Script doesn't allow reading the response cross-site, so this is fire-and-forget.
+            // sendBeacon hands the request to the browser and returns at once (iOS Safari can hang forever on
+            // Google's redirect if we wait for fetch); fetch is the fallback, capped at 4 s.
+            const queued = navigator.sendBeacon && navigator.sendBeacon(FORM_ENDPOINT, body);
+            if (!queued) await Promise.race([
+              fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }),
+              new Promise(r => setTimeout(r, 4000)),
+            ]);
+            form.reset(); note.textContent = 'Thank you — message sent. A confirmation is on its way to your inbox.';
+          } catch { note.textContent = 'Something went wrong. Please try again.'; }
+          send.disabled = false;
+          return;
+        }
+        const body = `${d.message}\n\n— ${d.name} (${d.email})`;
+        location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Website enquiry from ' + d.name)}&body=${encodeURIComponent(body)}`;
+        note.textContent = 'Opening your email app…';
+      });
+    })();
+
+    // REEL
+    (() => {
+      const link = document.querySelector('.reel');
+      const video = document.querySelector('#reel video');   // keep one element so it stays buffered
+      link.addEventListener('click', (e) => {
+        e.preventDefault(); Lightbox.open(link, video, 16 / 9, 'Reel', 'full');
+        if (video.readyState >= 3) return;                         // already buffered
+        const spin = document.createElement('div');
+        spin.className = 'site-loading lockup'; spin.setAttribute('role', 'status'); spin.setAttribute('aria-label', 'Loading reel');
+        spin.innerHTML = wink3D(WINK_SVG);
+        video.parentNode.appendChild(spin);
+        const done = () => { spin.classList.add('gone'); setTimeout(() => spin.remove(), 450); video.removeEventListener('canplay', done); video.removeEventListener('playing', done); };
+        video.addEventListener('canplay', done); video.addEventListener('playing', done);   // play() in open() starts the download
+      });
+    })();
+
+    // Strip: build tiles (twice, for a seamless loop) and wire them to the lightbox
+    (() => {
+      const strip = document.querySelector('.strip');
+      const track = strip.querySelector('.track');
+      const make = (item, dupe) => {
+        const b = document.createElement('button');
+        b.className = 'tile'; b.type = 'button';
+        b.style.setProperty('--ar', STRIP_AR);
+        b.style.setProperty('--c', item.c || '#222');
+        b.setAttribute('aria-label', 'Open ' + item.title);
+        if (dupe) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); }
+        if (item.img) { const i = new Image(); i.src = item.img; i.alt = ''; i.loading = 'lazy'; b.append(i); }
+        else b.textContent = item.title.toUpperCase();
+        b.addEventListener('click', () => {
+          let node;
+          if (item.video) {
+            node = document.createElement('video');
+            Object.assign(node, { src: item.video, controls: true, playsInline: true });
+            if (item.img) node.poster = item.img;
+          } else if (item.img) {
+            node = new Image(); node.src = item.full || item.img; node.alt = item.title;
+          } else {
+            node = document.createElement('div');
+            node.className = 'placeholder';
+            node.style.setProperty('--c', item.c);
+            node.innerHTML = `${item.title.toUpperCase()}<br>IMAGE COMING SOON`;
+          }
+          Lightbox.open(b, node, STRIP_AR, item.title);
+        });
+        return b;
+      };
+      // one "half" must be at least as wide as the strip, then it's doubled
+      STRIP.forEach(it => track.append(make(it, false)));
+      for (let n = 0; track.scrollWidth < strip.clientWidth && n < 6; n++) STRIP.forEach(it => track.append(make(it, true)));
+      [...track.children].forEach(t => { const c = t.cloneNode(true); c.tabIndex = -1; c.setAttribute('aria-hidden', 'true'); c.onclick = () => t.click(); track.append(c); });
+      // constant speed (~45px/s) whatever the screen size
+      const setSpeed = () => track.style.setProperty('--dur', (track.scrollWidth / 2 / 45) + 's');
+      setSpeed(); addEventListener('resize', setSpeed);
+    })();
+  </script>
+  <div id="loader" class="lockup" role="status">
+    <script>document.write(wink3D(WINK_SVG))</script>
+  </div>
+
+  <script>
+    // swaps the hidden state for the entrance animation (called when the bust
+    // starts its intro); the timeout is a safety net if 3D never loads
+    function revealText() {
+      document.body.classList.replace('intro-pending', 'intro-go');
+    }
+    setTimeout(revealText, 12000);
+  </script>
+  <script src="gallery/gallery.js"></script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+    const ORANGE = 0xee4137;   // page colour (used for the faint bounce light)
+    const canvas = document.getElementById('stage');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // ?look=chrome → black chrome, ?look=studio → silver chrome; default is the red satin of the new direction
+    const LOOK = { chrome: 'dark', studio: 'studio' }[new URLSearchParams(location.search).get('look')] || 'red';
+    const ENV = LOOK === 'studio' ? 'studio' : 'dark';
+    renderer.toneMapping = LOOK === 'red' ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;   // keep the red true
+    renderer.toneMappingExposure = 1.0;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 0, 9);
+
+    // --- Environment the chrome reflects ------------------------------------
+    // Chrome has no colour of its own; it is a mirror of this little scene.
+    // A mostly black room with a few bright softboxes gives the high-contrast
+    // "black chrome" look; the softboxes drift so highlights slide across it.
+    // ?look=studio brings back the earlier, brighter silver version.
+    const envScene = new THREE.Scene();
+    const movers = [];   // { group, update(t) }
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(20, 64, 32),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        uniforms: ENV === 'dark' ? {
+          top:    { value: new THREE.Color(0x111111) },
+          mid:    { value: new THREE.Color(0x020202) },
+          bottom: { value: new THREE.Color(0x000000) }
+        } : {
+          top:    { value: new THREE.Color(0xdcdcdc) },
+          mid:    { value: new THREE.Color(0x3a3634) },
+          bottom: { value: new THREE.Color(0x050505) }
+        },
+        vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+        fragmentShader: `uniform vec3 top, mid, bottom; varying vec3 vP;
+          void main(){
+            float y = vP.y;
+            vec3 c = y > 0. ? mix(mid, top, smoothstep(0.,.9,y)) : mix(mid, bottom, smoothstep(0.,.55,-y));
+            gl_FragColor = vec4(c,1.);
+          }`
+      })
+    );
+    envScene.add(room);
+
+    // a softbox: a plane with a soft falloff at its edges (round or rectangular)
+    function softbox({ w, h, color = 0xffffff, intensity = 6, round = false, pos, orbit = null }) {
+      const mat = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        uniforms: { col: { value: new THREE.Color(color).multiplyScalar(intensity) }, round: { value: round ? 1 : 0 } },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+        fragmentShader: `uniform vec3 col; uniform float round; varying vec2 vUv;
+          void main(){
+            vec2 d = abs(vUv - .5) * 2.;
+            float r = mix(max(d.x, d.y), length(d), round);
+            float a = 1. - smoothstep(.55, 1., r);
+            gl_FragColor = vec4(col * a, 1.);
+          }`
+      });
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+      m.position.copy(pos); m.lookAt(0, 0, 0);
+      const g = new THREE.Group(); g.add(m); envScene.add(g);
+      if (orbit) movers.push({ group: g, update: orbit });
+      return g;
+    }
+
+    let bounceBox = null;   // the coloured bounce from below; recoloured to match the page scheme
+    if (ENV === 'dark') {
+      // big soft overhead dome, slowly swinging front-to-back
+      softbox({ w: 16, h: 16, intensity: 5, round: true, pos: new THREE.Vector3(0, 14, 3),
+        orbit: (g, t) => { g.rotation.x = Math.sin(t * 0.21) * 0.35; g.rotation.z = Math.sin(t * 0.13) * 0.2; } });
+      // tall key strip orbiting around the bust
+      softbox({ w: 4, h: 16, intensity: 9, pos: new THREE.Vector3(-11, 1, 6),
+        orbit: (g, t) => { g.rotation.y = Math.sin(t * 0.17) * 1.1; } });
+      // thin rim strip on the other side, drifting the opposite way
+      softbox({ w: 1.6, h: 14, intensity: 10, pos: new THREE.Vector3(11, 2, -3),
+        orbit: (g, t) => { g.rotation.y = -Math.sin(t * 0.23 + 1.3) * 0.9; } });
+      // small hot spot that wanders, for a travelling glint
+      softbox({ w: 2.2, h: 2.2, intensity: 14, round: true, pos: new THREE.Vector3(4, 4, 13),
+        orbit: (g, t) => { g.rotation.y = t * 0.12; g.rotation.x = Math.sin(t * 0.31) * 0.4; } });
+      // faint orange bounce from below so it still belongs on the page
+      bounceBox = softbox({ w: 18, h: 5, color: ORANGE, intensity: 0.7, pos: new THREE.Vector3(0, -9, 8) });
+    } else {
+      softbox({ w: 6, h: 14, pos: new THREE.Vector3(-9, 3, 6), orbit: (g, t) => { g.rotation.y = Math.sin(t * 0.17) * 0.8; } });
+      softbox({ w: 3, h: 12, intensity: 4, pos: new THREE.Vector3(10, 2, -2), orbit: (g, t) => { g.rotation.y = -Math.sin(t * 0.23) * 0.7; } });
+      softbox({ w: 14, h: 2, intensity: 5, pos: new THREE.Vector3(0, 12, 2) });
+      softbox({ w: 4, h: 4, intensity: 2, pos: new THREE.Vector3(3, -2, 12) });
+      softbox({ w: 14, h: 5, color: ORANGE, intensity: 1.4, pos: new THREE.Vector3(-8, -5, 8) });
+      softbox({ w: 14, h: 5, color: ORANGE, intensity: 1.4, pos: new THREE.Vector3(9, -4, 4) });
+    }
+
+    // the environment is re-captured whenever the lights move;
+    // three.js re-blurs it (PMREM) automatically when flagged
+    const envRT = new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType });
+    const envCam = new THREE.CubeCamera(0.1, 100, envRT);
+    envScene.add(envCam);
+    function updateEnv(t) {
+      for (const m of movers) m.update(m.group, t);
+      envCam.update(renderer, envScene);
+      envRT.texture.needsPMREMUpdate = true;
+    }
+    updateEnv(0);
+    scene.environment = envRT.texture;
+
+    let chrome = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      metalness: 1,
+      roughness: 0.06,
+      clearcoat: 1,
+      clearcoatRoughness: 0.04,
+      envMapIntensity: ENV === 'dark' ? 1.3 : 1.15
+    });
+    // red satin: the page red, shaded darker by a slowly circling key light, with a soft
+    // sheen from the same moving softboxes the chrome used
+    const redLights = [], redLightObjs = [];
+    if (LOOK === 'red') {
+      chrome = new THREE.MeshPhysicalMaterial({
+        color: 0xd0202a,
+        metalness: 0.55, roughness: 0.3,        // part chrome: darker body, glossy highlights
+        clearcoat: 0.6, clearcoatRoughness: 0.12,
+        envMapIntensity: 1.1                     // picks up the moving softboxes
+      });
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x6a1a1a, 0.6);
+      const key = new THREE.DirectionalLight(0xffffff, 0.75);
+      const rim = new THREE.DirectionalLight(0xffffff, 0.3);
+      scene.add(hemi, key, rim);
+      redLightObjs.push([hemi, .6], [key, .75], [rim, .3]);
+      redLights.push((t) => {
+        key.position.set(Math.sin(t * 0.25) * 6 - 2, 5 + Math.sin(t * 0.17) * 2, 6);
+        rim.position.set(6 + Math.sin(t * 0.2) * 2, 2, -4);
+      });
+      redLights.forEach(f => f(0));
+    }
+
+    // --- Model -------------------------------------------------------------
+    const pivot = new THREE.Group();   // receives cursor/idle rotation
+    scene.add(pivot);
+    // entrance: bust turns in from the side, rises and fades up
+    const intro = new THREE.Group();
+    intro.visible = false;
+    pivot.add(intro);
+    let introStart = null;
+    const INTRO_MS = 2000;
+    const easeOut = (x) => 1 - Math.pow(1 - x, 4);
+
+    // --- Busts: load, chrome them, and cycle through with a glitch -------
+    const dbg = new URLSearchParams(location.search);
+    // raw/ = the scans without smoothing (the smoothed set is still alongside: bust.glb, bust2.glb …)
+    const BUSTS = [dbg.get('m') || 'raw/bust1.glb', 'raw/bust2.glb', 'raw/bust3.glb', 'raw/bust4.glb', 'raw/bust6.glb', 'raw/bust8.glb', 'raw/bust9.glb'];
+    // per-bust size tweak on top of the shared normalisation
+    const BUST_SCALE = { 'bust2.glb': 1.15, 'bust3.glb': 1.15, 'bust4.glb': 1.15, 'bust6.glb': 1.15, 'bust7.glb': 1.15, 'bust8.glb': 1.15, 'bust9.glb': 1.15 };
+    const HOLD_MS = +(dbg.get('hold') || 5000), SWAP_MS = 1600;
+    // How busts change: 'wheel' = vertical ferris-wheel carousel (scroll / drag / auto).
+    // The earlier glitch dissolve is archived — open the page with ?fx=glitch to see it.
+    const FX = dbg.get('fx') === 'glitch' ? 'glitch' : 'wheel';
+    const WHEEL = {
+      R: 8.5,          // wheel radius — recalculated every frame so the neighbours sit just out of view
+      tilt: 0.35,      // how much a car leans with the wheel (0 = stays perfectly upright)
+      perScroll: 0.0022, // busts advanced per pixel of scroll
+      pos: 0, target: 0, dragging: null, snapT: 0
+    };
+    const slots = BUSTS.map(() => null);   // wrap groups, filled as they load
+    let current = 0;
+
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+
+    function prepare(gltf, url) {
+      const model = gltf.scene;
+      const mat = dbg.has('normal') ? new THREE.MeshNormalMaterial() : chrome.clone();   // own copy so each can fade
+      model.traverse(o => { if (o.isMesh) o.material = mat; });
+      // centre it and scale every bust to the same height (and a max width)
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      model.position.sub(box.getCenter(new THREE.Vector3()));
+      const wrap = new THREE.Group();
+      wrap.add(model);
+      wrap.scale.setScalar(Math.min(3.35 / size.y, 3.56 / size.x) * (BUST_SCALE[url.split('/').pop()] || 1));
+      wrap.visible = false;
+      const car = new THREE.Group();   // the wheel moves the car; the cursor turns the wrap
+      car.add(wrap);
+      intro.add(car);
+      wrap.userData = { car, mat };
+      return wrap;
+    }
+
+    // Gold scheme → the busts switch to the earlier black chrome; other schemes keep the red satin.
+    const FINISH = {
+      red:   { color: 0xd0202a, metalness: .55, roughness: .3,  clearcoat: .6, clearcoatRoughness: .12, envMapIntensity: 1.1, tone: THREE.NoToneMapping, lights: 1 },
+      black: { color: 0xffffff, metalness: 1,   roughness: .06, clearcoat: 1,  clearcoatRoughness: .04, envMapIntensity: 1.3, tone: THREE.ACESFilmicToneMapping, lights: 0 }
+    };
+    function applyFinish() {
+      if (LOOK !== 'red' || dbg.has('normal')) return;              // debug looks stay as asked
+      const f = FINISH[document.documentElement.classList.contains('gold') ? 'black' : 'red'];
+      const set = (m) => { m.color.setHex(f.color); m.metalness = f.metalness; m.roughness = f.roughness; m.clearcoat = f.clearcoat;
+        m.clearcoatRoughness = f.clearcoatRoughness; m.envMapIntensity = f.envMapIntensity; m.needsUpdate = true; };
+      set(chrome); slots.forEach(w => w && set(w.userData.mat));
+      renderer.toneMapping = f.tone;
+      // the bounce from below takes the page colour: red on the red schemes, gold on gold
+      if (bounceBox) bounceBox.children[0].material.uniforms.col.value.set(f === FINISH.black ? 0xf8931d : ORANGE).multiplyScalar(0.7);
+      redLightObjs.forEach(([l, i]) => { l.intensity = i * f.lights; });
+    }
+    addEventListener('dm-theme', applyFinish);
+    applyFinish();
+
+    // Which bust a visitor sees: the first ever visit gets bust 1, each later visit the next
+    // one in order (counted once per browser session, so refreshing doesn't skip ahead).
+    // If the page stays open, the wheel turns to the next bust every AUTO_MS.
+    const AUTO_MS = +(dbg.get('every') || 10 * 60 * 1000);
+    const START = FX !== 'wheel' ? 0 : (() => {
+      if (dbg.has('start')) return (+dbg.get('start')) % BUSTS.length;
+      try {
+        let v = sessionStorage.getItem('dm_bust');
+        if (v === null) {
+          const visits = +(localStorage.getItem('dm_visits') || 0);
+          localStorage.setItem('dm_visits', visits + 1);
+          v = String(visits % BUSTS.length);
+          sessionStorage.setItem('dm_bust', v);
+        }
+        return +v || 0;
+      } catch (e) { return 0; }   // storage blocked (private mode etc.): always bust 1
+    })();
+    const loading = {};
+    function preload(i) {
+      if (slots[i] || loading[i]) return;
+      loading[i] = loader.loadAsync(BUSTS[i]).then(g => { slots[i] = prepare(g, BUSTS[i]); }).catch(console.error);
+    }
+    WHEEL.pos = WHEEL.target = START; current = START;
+
+    loader.load(BUSTS[START], (gltf) => {
+      slots[START] = prepare(gltf, BUSTS[START]);
+      slots[START].visible = true;
+
+      // keep the wheel up for at least a beat so it doesn't just flash
+      const wait = Math.max(0, 900 - performance.now());
+      setTimeout(() => {
+        const el = document.getElementById('loader');
+        el.classList.add('done');
+        introStart = performance.now();
+        startGallery();                                      // images tornado in as the page animates in
+        nextSwapAt = introStart + INTRO_MS + (FX === 'wheel' ? AUTO_MS : HOLD_MS);
+        revealText();
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
+      }, wait);
+
+      // wheel: only the next bust is fetched ahead of time. glitch (archived): all of them, in order
+      if (FX === 'wheel') preload((START + 1) % BUSTS.length);
+      else if (!dbg.has('m')) BUSTS.slice(1).reduce((chain, url, i) => chain.then(() =>
+        loader.loadAsync(url).then(g => { slots[i + 1] = prepare(g, url); }).catch(console.error)
+      ), Promise.resolve());
+    }, undefined, (e) => {
+      const el = document.getElementById('loader');
+      const logo = el.querySelector('img'); logo.replaceWith(logo.cloneNode());   // stop the spin where it is
+      el.querySelector('p').textContent = 'COULD NOT LOAD MODEL';
+      startGallery();
+      revealText();
+      console.error(e);
+    });
+
+    // --- Swap pass: "two objects spawning into the same spot" -------------
+    // The outgoing (A) and incoming (B) busts render to separate textures.
+    // A shader then deletes A block-by-block from the top while B is built
+    // in behind it; where both exist they z-fight and flicker, the fronts
+    // flash white, bands tear sideways, and it all goes black & white.
+    const rtOpts = { type: THREE.HalfFloatType, samples: 4 };
+    const rtA = new THREE.WebGLRenderTarget(1, 1, rtOpts);
+    const rtB = new THREE.WebGLRenderTarget(1, 1, rtOpts);
+    const rtC = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });   // glitch test: finished frame before the glitch pass
+    const post = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        blending: THREE.NoBlending, depthTest: false, depthWrite: false,
+        uniforms: {
+          tA: { value: rtA.texture }, tB: { value: rtB.texture },
+          p: { value: 0 }, seed: { value: 0 }, dpr: { value: 1 },
+          res: { value: new THREE.Vector2(1, 1) }
+        },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
+        fragmentShader: `
+          uniform sampler2D tA, tB; uniform float p, seed, dpr; uniform vec2 res; varying vec2 vUv;
+          float h(vec2 q, float s){ return fract(sin(dot(q, vec2(127.1, 311.7)) + s * 43.17) * 43758.5453); }
+          // high-contrast greyscale that respects premultiplied alpha
+          vec4 mono(vec4 c){
+            float l = dot(c.rgb, vec3(.299, .587, .114)) / max(c.a, 1e-4);
+            return vec4(vec3(smoothstep(.03, .85, l) * c.a), c.a);
+          }
+          void main(){
+            if (p <= 0.) {
+              gl_FragColor = texture2D(tA, vUv);
+            } else {
+              float amt = sin(3.14159 * p);
+              vec2 px = vUv * res;
+
+              // horizontal tearing on random bands
+              float band = floor(px.y / (12. * dpr));
+              if (h(vec2(band, 0.), seed) > 1. - amt * .12)
+                px.x += (h(vec2(band, 1.), seed) - .5) * 16. * dpr * amt;
+
+              // stable block noise (coarse + fine) drives the dissolve order
+              vec2 coarse = floor(px / (14. * dpr));
+              vec2 fine = floor(px / (4. * dpr));
+              // each bust gets its own pattern so they interleave
+              float yk = (1. - vUv.y) * .4;                    // top goes first
+              float keyA = mix(h(coarse, 1.), h(fine, 2.), .45) * .6 + yk;
+              float keyB = mix(h(coarse, 3.), h(fine, 4.), .45) * .6 + yk;
+              float pA = smoothstep(.1, 1., p) * 1.24 - .1;   // old one dissolving out
+              float pB = smoothstep(0., .85, p) * 1.25 - .05;  // new one forms slightly ahead, so it never empties
+
+              // light pixelation around the dissolve fronts
+              float nearA = clamp(1. - abs(keyA - pA) * 6., 0., 1.);
+              float nearB = clamp(1. - abs(keyB - pB) * 6., 0., 1.);
+              float bs = mix(1., 4., max(nearA, nearB) * amt) * dpr;
+              vec2 q = (floor(px / bs) + .5) * bs / res;
+
+              float monoAmt = clamp(amt * 2., 0., 1.) * .7;
+              vec4 a = mix(texture2D(tA, q), mono(texture2D(tA, q)), monoAmt);
+              vec4 b = mix(texture2D(tB, q), mono(texture2D(tB, q)), monoAmt);
+
+              // blocks fade rather than pop
+              float visA = smoothstep(pA, pA + .12, keyA);
+              float visB = 1. - smoothstep(pB - .12, pB, keyB);
+
+              // incoming bust gets faint hologram scanlines while it forms
+              float scan = .88 + .12 * step(.5, fract(px.y / (3. * dpr)));
+              b.rgb *= mix(1., scan, (1. - visB) * .8 + .2 * amt);
+
+              // new over old, both partly see-through where they overlap
+              vec4 col = a * visA;
+              col = col * (1. - b.a * visB * .85) + b * visB;
+              // soft glow on the dissolving edges
+              col.rgb += (nearA * a.a * visA + nearB * b.a * visB) * .12 * amt;
+              // the odd stray pixel
+              if ((a.a > .3 || b.a > .3) && h(fine, seed + 9.) < .004 * amt) col = vec4(vec3(.8), 1.);
+
+              gl_FragColor = col;
+            }
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
+          }`
+      })
+    );
+    post.frustumCulled = false;
+    const postScene = new THREE.Scene(); postScene.add(post);
+    const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    let nextSwapAt = Infinity, swapStart = null, swapTo = -1;
+    function nextLoaded() {
+      for (let k = 1; k < slots.length; k++) {
+        const i = (current + k) % slots.length;
+        if (slots[i]) return i;
+      }
+      return -1;
+    }
+    // returns swap progress 0..1 (0 = no swap running)
+    function updateSwap(now) {
+      if (swapStart === null) {
+        if (now < nextSwapAt) return 0;
+        swapTo = nextLoaded();
+        if (swapTo < 0) { nextSwapAt = now + 1000; return 0; }   // others still loading
+        swapStart = now;
+      }
+      const lin = reduced ? 1 : Math.min(1, (now - swapStart) / SWAP_MS);
+      const p = lin * lin * (3 - 2 * lin);   // ease in and out
+      if (lin >= 1) {
+        current = swapTo; swapStart = null; nextSwapAt = now + HOLD_MS;
+        return 0;
+      }
+      // re-roll the noise ~14x a second so it stutters rather than flows
+      post.material.uniforms.seed.value = Math.floor(now / 140) % 97;
+      return p;
+    }
+    function renderAll(target) {
+      slots.forEach(w => { if (w) w.visible = true; });
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+      renderer.render(scene, camera);
+    }
+    function renderBust(i, target) {
+      slots.forEach((w, k) => { if (w) w.visible = k === i; });
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+      renderer.render(scene, camera);
+    }
+
+    // --- Interaction: head eases toward the cursor, sways when idle -------
+    const target = { x: 0, y: 0 };
+    let lastMove = -Infinity;
+    addEventListener('pointermove', (e) => {
+      target.x = (e.clientX / innerWidth) * 2 - 1;
+      target.y = (e.clientY / innerHeight) * 2 - 1;
+      lastMove = performance.now();
+    });
+    // touch devices: gentle device-tilt-free fallback is the idle sway
+
+    // (the wheel used to take scroll / drag / arrow-key input — removed; it now only turns on its own timer)
+    function updateWheel(now, dt, yaw, pitch) {
+      // turns to the next bust once the page has been open AUTO_MS (10 min), then every AUTO_MS after
+      const N0 = BUSTS.length;
+      if (now >= nextSwapAt) {
+        const nxt = ((Math.round(WHEEL.target) + 1) % N0 + N0) % N0;
+        if (slots[nxt]) {
+          WHEEL.target = Math.round(WHEEL.target) + 1;
+          nextSwapAt = now + AUTO_MS;
+          try { sessionStorage.setItem('dm_bust', String(nxt)); } catch (e) {}
+          preload((nxt + 1) % N0);
+        } else { preload(nxt); nextSwapAt = now + 2000; }   // not downloaded yet: check again shortly
+      }
+      WHEEL.pos += (WHEEL.target - WHEEL.pos) * (reduced ? 1 : 1 - Math.exp(-dt * 3.2));
+      if (dbg.has('wheelpos')) WHEEL.pos = WHEEL.target = +dbg.get('wheelpos');   // debug: freeze the wheel
+      const N = BUSTS.length, STEP = Math.PI * 2 / N;
+      // big enough that the next/previous bust (one STEP round) sits fully outside the frame:
+      // its near edge (centre ± ~2.3 units) must clear the visible half-height at its depth
+      const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+      WHEEL.R = 1.08 * (2.3 + tanHalf * camZ) / (Math.sin(STEP) - tanHalf * (1 - Math.cos(STEP)));
+      slots.forEach((wrap, i) => {
+        if (!wrap) return;
+        const { car, mat } = wrap.userData;
+        let d = (i - WHEEL.pos) % N; if (d < -N / 2) d += N; if (d >= N / 2) d -= N;
+        const th = d * STEP;                                   // 0 = facing you; + = below, coming up
+        car.position.set(0, -WHEEL.R * Math.sin(th), -WHEEL.R * (1 - Math.cos(th)));
+        car.rotation.x = th * WHEEL.tilt + pitch;
+        wrap.rotation.y = yaw;
+        // solid all the way; cars on the far side of the wheel (well off screen) are skipped
+        mat.opacity = introFade; mat.transparent = introFade < 0.999;
+        // only the current bust, except while the wheel is actually turning to the next one
+        const turning = Math.abs(WHEEL.target - WHEEL.pos) > 0.002;
+        car.visible = turning ? Math.abs(th) < Math.PI * 0.55 : i === current;
+      });
+      current = ((Math.round(WHEEL.pos) % N) + N) % N;
+    }
+
+    let camZ = 9;
+    const bustBox = document.querySelector('.bust');
+    const mobileMQ = matchMedia('(max-width: 760px)');
+    function resize() {
+      const w = bustBox.clientWidth, h = bustBox.clientHeight;
+      if (!w || !h) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      // close enough to fill the height, but back off if the width would clip
+      if (!document.body.classList.contains('gallery-open') || !camZ)
+        camZ = mobileMQ.matches ? Math.max(19, 9 / camera.aspect) : Math.max(13.8, 13 / camera.aspect);
+      // phones: centre the picture on the gap between REEL and CAMPAIGNS rather than the screen
+      const space = document.querySelector('.bust-space');
+      if (mobileMQ.matches && space.offsetHeight) {
+        const r = space.getBoundingClientRect(), b = bustBox.getBoundingClientRect();
+        const dy = (r.top + r.height / 2) - (b.top + h / 2);
+        camera.setViewOffset(w, h, 0, -dy, w, h);
+      } else camera.clearViewOffset();
+      camera.updateProjectionMatrix();
+      const dpr = renderer.getPixelRatio();
+      rtA.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      rtB.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      rtC.setSize(Math.round(w * dpr), Math.round(h * dpr));
+      if (window.__gx) window.__gx.resize(w * dpr, h * dpr, dpr);
+      post.material.uniforms.res.value.set(w * dpr, h * dpr);
+      post.material.uniforms.dpr.value = dpr;
+    }
+    { const ro = new ResizeObserver(resize); ro.observe(bustBox); ro.observe(document.querySelector('.bust-space')); } resize();
+
+    // phones: centre the tagline in the gap between the REEL / CAMPAIGNS line and the top of the bust
+    // (projects the current bust's top onto the screen; checked every few frames)
+    const tagEl = document.querySelector('.tagline'), stageEl = document.querySelector('.stage');
+    const tagBox = new THREE.Box3(), tagV = new THREE.Vector3();
+    let tagY = -1;
+    function placeTagline() {
+      if (!mobileMQ.matches) return;
+      const car = slots[current] && slots[current].userData.car; if (!car) return;
+      tagBox.setFromObject(car);
+      tagV.set((tagBox.min.x + tagBox.max.x) / 2, tagBox.max.y, (tagBox.min.z + tagBox.max.z) / 2).project(camera);
+      const b = bustBox.getBoundingClientRect(), sp = document.querySelector('.bust-space').getBoundingClientRect();
+      const top = b.top + (1 - tagV.y) / 2 * b.height;            // bust's top edge on screen
+      const lineB = document.querySelector('.reel').getBoundingClientRect().bottom;   // bottom of the REEL / CAMPAIGNS line
+      const y = Math.max(4, Math.round((lineB + top - tagEl.offsetHeight) / 2 - sp.top));
+      if (Math.abs(y - tagY) > 1) { tagY = y; stageEl.style.setProperty('--tag-y', y + 'px'); }
+    }
+
+
+
+
+    // ======================= Bust gallery =======================================
+    // Click the bust → page copy fades, the bust stays, and the images whirl up around it in a
+    // tornado that slows and settles into a slow ring of curved cards. Drag / scroll spins the
+    // ring; a card opens the viewer (below). The X (or Esc) sends everything back.
+    const GAL = window.DM_GALLERY || [];
+    const texLoader = new THREE.TextureLoader();
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+    const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+    const easeOut3 = (x) => 1 - Math.pow(1 - x, 3);
+
+    // a card bent onto a cylinder of radius R around the origin, centred at (0,0,R).
+    // axis 'y' = curves left↔right (ring), 'x' = curves up↕down (viewer drum)
+    function curvedPlane(w, h, R, axis, segs = 24) {
+      const pos = [], uv = [], nrm = [], idx = [];
+      const cols = axis === 'y' ? segs : 1, rows = axis === 'y' ? 1 : segs;
+      for (let r = 0; r <= rows; r++) for (let c = 0; c <= cols; c++) {
+        const u = c / cols, v = r / rows;
+        if (axis === 'y') { const a = (u - .5) * w / R; pos.push(R * Math.sin(a), (v - .5) * h, R * Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); }
+        else { const a = (v - .5) * h / R; pos.push((u - .5) * w, R * Math.sin(a), R * Math.cos(a)); nrm.push(0, Math.sin(a), Math.cos(a)); }
+        uv.push(u, v);
+      }
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1;
+        idx.push(a, b, d, b, e, d);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx);
+      return g;
+    }
+    const thumbTex = [], fullTex = [];
+    function tex(list, i, dir) {
+      if (!list[i]) { const t = texLoader.load(`gallery/${dir}/${GAL[i].id}.jpg`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; list[i] = t; }
+      return list[i];
+    }
+    // videos: the ring plays a small muted loop on the card (poster until it starts)
+    const loopVids = [];
+    function makeVideo(src, muted) {
+      const v = document.createElement('video');
+      Object.assign(v, { src, muted, loop: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous' });
+      v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+      if (muted) v.setAttribute('muted', '');
+      return v;
+    }
+    function videoTex(v) { const t = new THREE.VideoTexture(v); t.colorSpace = THREE.SRGBColorSpace; return t; }
+    function attachLoop(mat, i) {
+      let L = loopVids[i];
+      if (!L) {
+        const v = makeVideo(`gallery/video/${GAL[i].id}-loop.mp4`, true);
+        L = loopVids[i] = { v, tex: videoTex(v), mats: [] };
+        v.addEventListener('playing', () => L.mats.forEach(m => { m.map = L.tex; m.needsUpdate = true; }), { once: true });
+        v.play().catch(() => {});
+      }
+      L.mats.push(mat);
+    }
+    const ringVideos = (play) => loopVids.forEach(L => L && (play ? L.v.play().catch(() => {}) : L.v.pause()));
+
+    const PHONE = mobileMQ.matches;
+    const RING = PHONE
+      ? { R: 5.0, H: 1.2, gap: 0.12, rowGap: 1.4, y: -0.75, lift: 1.4, lookY: -0.3, twoRows: true, rowsN: 1, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 }
+      : { R: 5.2, H: 1.4, gap: 0.12, rowGap: 1.7, y: -0.55, lift: 1.5, lookY: 0.55, twoRows: true, rowsN: 1, slot: 0.8, spinSpeed: 0.09, TORNADO_MS: 2800 };
+    const G = { state: 'off', p: 0, anim: null, out: 0, outA: null, spin: 0, vel: 0, drag: null, hover: null, cards: [], group: new THREE.Group() };
+    G.group.visible = false;
+    scene.add(G.group);
+
+    function buildGallery() {
+      if (G.cards.length || !GAL.length) return;
+      const avgW = RING.H * 1.4 + RING.gap;
+      const perRowMax = Math.max(8, Math.floor(2 * Math.PI * RING.R / avgW));
+      const n = Math.max(perRowMax, GAL.length);                 // few images: repeat them round the ring
+      let rows = Math.ceil(n / perRowMax), perRow = Math.ceil(n / rows), cardH = RING.H;
+      if (RING.oneRow) { rows = 1; perRow = n; cardH = RING.H * Math.min(1, perRowMax / n); }   // desktop: always one ring, cards shrink to fit
+      let rowGap = RING.rowGap;
+      if (RING.twoRows) {                                        // phones: two even rows, same-size cards in aligned columns
+        rows = RING.rowsN || 2; perRow = Math.max(8, Math.ceil(GAL.length / rows));   // desktop: rowsN 1 = one even ring
+        cardH = Math.min(RING.H, (2 * Math.PI * RING.R / perRow - RING.gap) / RING.slot);
+        rowGap = cardH + RING.gap * 1.3;
+      }
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      const geos = {};
+      const make = (img, ring, row, k) => {
+        const a = GAL[img].w / GAL[img].h;
+        let geo;
+        if (RING.twoRows) {                                      // fixed slot, image cropped to fill it (like object-fit: cover)
+          const key = 'c' + a.toFixed(3);
+          geo = geos[key];
+          if (!geo) {
+            geo = geos[key] = curvedPlane(cardH * RING.slot, cardH, RING.R, 'y');
+            const uv = geo.attributes.uv, s = RING.slot;
+            const su = a > s ? s / a : 1, sv = a > s ? 1 : a / s;
+            for (let q = 0; q < uv.count; q++) uv.setXY(q, 0.5 + (uv.getX(q) - 0.5) * su, 0.5 + (uv.getY(q) - 0.5) * sv);
+          }
+        } else {
+          const w = cardH * Math.max(0.62, Math.min(1.9, a)), key = w.toFixed(3);
+          geo = geos[key] || (geos[key] = curvedPlane(w, cardH, RING.R, 'y'));
+        }
+        const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, img, 'thumb'), side: THREE.DoubleSide, transparent: true, opacity: 0, toneMapped: false, depthWrite: true });
+        if (GAL[img].video) attachLoop(mat, img);
+        const mesh = new THREE.Mesh(geo, mat);
+        const pivot = new THREE.Group(); pivot.add(mesh); G.group.add(pivot);
+        const yT = rnd(-6.5, 7.5);                                     // tornado: spread up the funnel…
+        const c = {
+          img, ring, mesh, mat, pivot,
+          dir: ring && rows === 2 && row === 1 ? -1 : 1,     // phones: the lower row turns the other way
+          base: ring ? (k / perRow) * Math.PI * 2 + (RING.twoRows ? 0 : row * (Math.PI / perRow)) : rnd(0, Math.PI * 2),
+          yRing: RING.y + (ring ? (row - (rows - 1) / 2) * rowGap : 0),
+          yT, sT: 0.28 + clamp01((yT + 6.5) / 14) * 1.15,                // …narrow at the bottom, wide at the top
+          spinT: rnd(5, 8) * Math.PI, tilt: rnd(-0.9, 0.9), delay: rnd(0, 0.28),
+          exitY: rnd(9, 14),
+          outY: (Math.random() < 0.5 ? -1 : 1) * rnd(6, 14), outSpin: rnd(1.5, 3) * Math.PI
+        };
+        mesh.userData.card = c;
+        G.cards.push(c);
+      };
+      // ring order: videos spread evenly round the lineup (each moving card has photos either side);
+      // the viewer keeps the gallery.js order
+      const vids = [], pics = [];
+      GAL.forEach((g, i) => (g.video ? vids : pics).push(i));
+      const order = [];
+      const slots = Math.max(1, vids.length);
+      let vi = 0;
+      for (let pos = 0, pi = 0; pos < GAL.length; pos++) {
+        const nextVidAt = Math.floor((vi + 0.5) * GAL.length / slots);
+        if (vi < vids.length && pos >= nextVidAt) order.push(vids[vi++]);
+        else if (pi < pics.length) order.push(pics[pi++]);
+        else order.push(vids[vi++]);
+      }
+      for (let k = 0; k < rows * perRow; k++) make(order[k % order.length], true, Math.floor(k / perRow), k % perRow);
+      for (let k = 0; k < 18; k++) make(k % GAL.length, false, 0, k);   // extra debris that only swirls, then leaves
+    }
+
+    // The ring is part of the homepage: it tornadoes in with the page, then settles.
+    // Clicking a photo whirls the ring back up into the tornado, then opens the viewer;
+    // closing the viewer lets it settle back into the ring.
+    function animateTo(to, dur, done) { G.anim = { from: G.p, to, t0: performance.now(), dur: reduced ? 1 : dur, done }; }
+    function outTo(to, dur) { G.outA = { from: G.out || 0, to, t0: performance.now(), dur: reduced ? 1 : dur }; }
+    function startGallery() {
+      if (!GAL.length || G.state !== 'off') return;
+      buildGallery();
+      G.group.visible = true; G.p = 0; G.state = 'in';
+      animateTo(1, RING.TORNADO_MS, () => { G.state = 'on'; });
+    }
+    function burst(img) {
+      if (G.state !== 'on') return;
+      G.state = 'busy'; G.hover = null;
+      document.documentElement.classList.remove('bust-hover');
+      // whirl up into the tornado and blow every photo off screen, then open the viewer;
+      // closing it brings them tornadoing back in and settling into the ring
+      outTo(1, 1000);
+      animateTo(0.35, 1000, () => Viewer.open(img, () => { outTo(0, 1500); animateTo(1, 2300, () => { G.state = 'on'; }); }));
+    }
+
+    function updateGallery(now, dt) {
+      if (G.state === 'off') return;
+      if (G.anim) {
+        const A = G.anim, t = clamp01((now - A.t0) / A.dur);
+        const k = A.to < A.from ? t * t * (3 - 2 * t) : t;     // whirling up eases in and out
+        G.p = A.from + (A.to - A.from) * k;
+        if (t >= 1) { G.anim = null; A.done && A.done(); }
+      }
+      if (G.outA) {
+        const A = G.outA, t = clamp01((now - A.t0) / A.dur), k = A.to > A.from ? t * t * t : 1 - Math.pow(1 - t, 3);
+        G.out = A.from + (A.to - A.from) * k;
+        if (t >= 1) G.outA = null;
+      }
+      const out = G.out || 0;
+      let p = G.p;
+      if (dbg.has('gp')) p = +dbg.get('gp');                   // debug: freeze the tornado at a point
+      // the ring keeps turning slowly; drags / scrolls add momentum that dies away
+      if (!G.drag) G.vel *= Math.exp(-dt * 1.8);
+      G.spin += (RING.spinSpeed * smooth(0.55, 1, p) + G.vel) * dt;
+
+      for (const c of G.cards) {
+        const pi = clamp01((p - c.delay * 0.35) / 0.65);
+        const e = easeOut3(pi);
+        const th = c.base + G.spin * c.dir;
+        let y, sc, rot, op;
+        if (c.ring) {
+          y = c.yT + (c.yRing - c.yT) * e;
+          sc = c.sT + (1 - c.sT) * e;
+          rot = th + Math.pow(1 - e, 2) * c.spinT;           // whips round, then slows into the ring
+          op = clamp01(pi * 6);
+        } else {
+          y = c.yT + e * c.exitY;                           // debris rides the funnel up and out
+          sc = c.sT * (1 + e * 0.6);
+          rot = th + (1 - Math.pow(1 - e, 2)) * c.spinT;
+          op = clamp01(pi * 6) * (1 - smooth(0.45, 0.95, pi));
+        }
+        if (out > 0) {                                      // blown off screen: outward, up/down and spinning
+          y += out * c.outY;
+          sc *= 1 + out * 3.2;
+          rot += out * c.outSpin;
+        }
+        c.pivot.position.y = y;
+        c.pivot.scale.setScalar(Math.max(0.001, sc));
+        c.pivot.rotation.set(0, rot, 0);
+        c.mesh.rotation.z = (1 - e) * c.tilt;               // cards lean in the wind, straighten as they settle
+        c.pivot.visible = op > 0.01;
+        // depth shading: cards round the back are darker (and you see them from behind)
+        const facing = (Math.cos(rot) + 1) / 2;
+        let b = 0.32 + 0.68 * facing;
+        if (G.hover === c) b = Math.min(1.15, b + 0.25);
+        c.mat.color.setScalar(b);
+        c.mat.opacity = op;
+        c.mat.transparent = op < 0.999;
+      }
+    }
+
+    // camera: lifted a little and looking slightly down, so the ring reads as an ellipse
+    function placeCamera() {
+      camera.position.set(0, RING.lift, camZ);
+      camera.lookAt(0, RING.lookY, 0);
+    }
+
+    // picking: the bust (to open) and the cards (hover / click)
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    function pick(e, objects) {
+      const r = canvas.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return null;
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      return ray.intersectObjects(objects, true)[0] || null;
+    }
+    const currentBust = () => { const w = slots[current]; return w ? [w] : []; };
+    const cardMeshes = () => G.cards.filter(c => c.ring && c.pivot.visible).map(c => c.mesh);
+    const overUI = (e) => e.target.closest && e.target.closest('a, button, .lightbox, .gv');   // the logo / copy don't block the bust
+    let downAt = null;
+    addEventListener('pointerdown', (e) => {
+      if (document.body.classList.contains('lb-open') || e.button) return;
+      // a press only counts as a tap if the finger / mouse never travelled (and the ring wasn't coasting —
+      // then the press just catches it); otherwise it's a drag and never opens a photo
+      downAt = { x: e.clientX, y: e.clientY, t: performance.now(), max: 0, coasting: Math.abs(G.vel) > 0.5 };
+      if (G.state === 'on' || G.state === 'in') {
+        if (overUI(e) || (e.pointerType === 'touch' && !e.target.closest('.bust'))) return;
+        G.drag = { x: e.clientX, y: e.clientY, spin0: G.spin, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0 };
+        G.vel = 0;
+      }
+    });
+    addEventListener('pointermove', (e) => {
+      if (document.body.classList.contains('lb-open')) return;
+      if (downAt) downAt.max = Math.max(downAt.max, Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y));
+      if (G.drag) {
+        const now = performance.now();
+        // sideways or up/down both turn the ring (down / right = clockwise)
+        const tot = (e.clientX - G.drag.x) - (e.clientY - G.drag.y);
+        const inc = (e.clientX - G.drag.lx) - (e.clientY - G.drag.ly);
+        G.spin = G.drag.spin0 + tot * 0.006;
+        G.drag.v = inc * 0.006 / Math.max(0.008, (now - G.drag.lt) / 1000);
+        G.drag.lx = e.clientX; G.drag.ly = e.clientY; G.drag.lt = now;
+        return;
+      }
+      if (e.pointerType === 'touch') return;
+      let hit = null;
+      if (G.state === 'on' && !overUI(e)) hit = pick(e, cardMeshes());
+      G.hover = hit ? hit.object.userData.card : null;
+      document.documentElement.classList.toggle('bust-hover', !!hit);   // pointer cursor over a photo
+    });
+    addEventListener('pointerup', (e) => {
+      const d = downAt; downAt = null;
+      const moved = d ? Math.max(d.max, Math.hypot(e.clientX - d.x, e.clientY - d.y)) : 99;
+      const TAP = e.pointerType === 'touch' ? 10 : 5;
+      const isDrag = moved > TAP || (d && performance.now() - d.t > 450 && moved > 3);
+      if (G.drag) { if (isDrag) G.vel = Math.max(-3, Math.min(3, G.drag.v)); G.drag = null; }
+      if (!d || isDrag || d.coasting || document.body.classList.contains('lb-open') || overUI(e)) return;
+      if (G.state === 'on') { const h = pick(e, cardMeshes()); if (h) burst(h.object.userData.card.img); }
+    });
+    addEventListener('pointercancel', () => { G.drag = null; downAt = null; });
+    addEventListener('wheel', (e) => {
+      if ((G.state !== 'on' && G.state !== 'in') || document.body.classList.contains('lb-open')) return;
+      // scroll up / down (or sideways on a trackpad) spins the ring left / right
+      const dd = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY) * (e.deltaMode === 1 ? 16 : 1);
+      G.vel = Math.max(-4, Math.min(4, G.vel + dd * 0.006));
+    }, { passive: true });
+
+    // ======================= Image viewer ======================================
+    // Like the DRGNFLEYE gallery viewer: the image large at the front of a drum, the rest bent
+    // round it above and below and darkening away; counter beside it; wheel / swipe / arrow keys
+    // step through (it loops); click outside the picture, the round X or Esc closes.
+    const Viewer = (() => {
+      const el = document.getElementById('gv'), cv = el.querySelector('canvas');
+      const countEl = el.querySelector('.gv-count'), titleEl = el.querySelector('.gv-title'), hintEl = el.querySelector('.gv-hint');
+      const vr = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+      vr.setPixelRatio(Math.min(devicePixelRatio, 2));
+      vr.setClearColor(0x0a0a0a, 1);
+      const vs = new THREE.Scene(), vc = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+      vc.position.set(0, 0, 10);
+      const V = { open: false, g: 0, f: 0, target: 0, raf: 0, last: 0, items: [], L: null, drag: null };
+      const n = () => GAL.length;
+      const wrap = (d) => { const m = n(); d = ((d % m) + m) % m; return d > m / 2 ? d - m : d; };
+
+      function layout() {
+        const w = innerWidth, h = innerHeight, mobile = w <= 760;
+        vr.setSize(w, h, false);
+        vc.aspect = w / h; vc.updateProjectionMatrix();
+        const hv = 2 * 10 * Math.tan(15 * Math.PI / 180), wv = hv * vc.aspect;
+        const maxH = hv * (mobile ? 0.44 : 0.56), maxW = wv * (mobile ? 0.88 : 0.68);
+        const RR = maxH * 1.05;
+        V.L = { w, h, hv, maxH, maxW, RR, step: (maxH * 1.18) / RR, px: h / hv };
+        V.items.forEach(it => it.mesh.geometry.dispose());
+        V.items.forEach((it, i) => {
+          const a = GAL[i].w / GAL[i].h;
+          let ih = Math.min(maxH, maxW / a); it.w = ih * a; it.h = ih;
+          it.mesh.geometry = curvedPlane(it.w, it.h, RR, 'x', 28);
+          it.pivot.position.z = -RR;
+        });
+      }
+      function build() {
+        if (V.items.length) return;
+        GAL.forEach((g, i) => {
+          const mat = new THREE.MeshBasicMaterial({ map: tex(thumbTex, i, 'thumb'), toneMapped: false });
+          const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+          const pivot = new THREE.Group(); pivot.add(mesh); vs.add(pivot);
+          mesh.userData.i = i;
+          V.items.push({ mat, mesh, pivot, full: false });
+        });
+        layout();
+        addEventListener('resize', () => { if (V.open) layout(); });
+      }
+      function sharpen(i) {                                 // swap the thumbnail for the full image
+        const it = V.items[i]; if (!it || it.full) return; it.full = true;
+        texLoader.load(`gallery/full/${GAL[i].id}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; if (!it.playing) { it.mat.map = t; it.mat.needsUpdate = true; } });
+        if (GAL[i].video) {                                  // the full video, with sound; plays when it's at the front
+          it.video = makeVideo(`gallery/video/${GAL[i].id}.mp4`, false);
+          it.vtex = videoTex(it.video);
+          it.video.addEventListener('playing', () => { it.playing = true; it.mat.map = it.vtex; it.mat.needsUpdate = true; tick(); });
+        }
+      }
+      // keep exactly the front video playing (with sound if the browser allows, else muted until tapped)
+      function syncVideos(fi) {
+        V.items.forEach((it, i) => {
+          if (!it.video) return;
+          const front = V.open && i === fi && Math.abs(V.f - V.target) < 0.05;
+          if (front && it.video.paused && !it.userPaused) it.video.play().catch(() => { it.video.muted = true; it.video.play().catch(() => {}); });
+          if (!front && !it.video.paused) { it.video.pause(); it.userPaused = false; }
+        });
+      }
+      function open(i, onClose) {
+        build();
+        V.onClose = onClose || null;
+        V.open = true; V.f = V.target = i; V.last = performance.now();
+        el.classList.add('open');
+        document.body.classList.add('lb-open');               // the bust scene rests underneath
+        ringVideos(false);
+        [i, i + 1, i - 1].forEach(k => sharpen(((k % n()) + n()) % n()));
+        tick();
+      }
+      function close() { if (!V.open) return; V.open = false; tick(); }
+      function step(dir) { V.target = Math.round(V.target) + dir; tick(); }
+      function tick() {
+        if (V.raf) return;
+        V.raf = requestAnimationFrame(frame);
+      }
+      function frame() {
+        V.raf = 0;
+        const now = performance.now(), dt = Math.min(64, now - V.last); V.last = now;
+        V.g = clamp01(V.g + (V.open ? 1 : -1) * dt / (V.open ? 650 : 420));
+        V.f += (V.target - V.f) * Math.min(1, dt / (V.drag ? 40 : 140));
+        if (Math.abs(V.target - V.f) < 0.002) V.f = V.target;
+        const L = V.L, gE = V.g * V.g * (3 - 2 * V.g);
+        V.items.forEach((it, i) => {
+          const d = wrap(i - V.f);
+          it.pivot.rotation.x = d * L.step;                   // next one waits below, laid back
+          it.pivot.visible = Math.abs(d) < 2.6;
+          it.mat.color.setScalar(Math.max(0, 1 - Math.abs(d) * 0.55) * gE);
+          it.pivot.scale.setScalar(0.92 + 0.08 * gE);
+        });
+        const fi = ((Math.round(V.f) % n()) + n()) % n();
+        sharpen(fi); sharpen((fi + 1) % n()); sharpen((fi - 1 + n()) % n());
+        const it = V.items[fi];
+        syncVideos(fi);
+        const vid = it.video && !it.video.paused;
+        countEl.textContent = String(fi + 1).padStart(2, '0') + ' / ' + String(n()).padStart(2, '0');
+        // hint over the video itself (grey, slowly pulsing) instead of in the counter
+        const hint = it.video ? (it.video.paused ? 'TAP TO PLAY' : it.video.muted ? 'TAP FOR SOUND' : '') : '';
+        if (hintEl.textContent !== hint) hintEl.textContent = hint;
+        const mobile = L.w <= 760, iw = it.w * L.px, ih = it.h * L.px;
+        // desktop: a narrow stack — each "::" part and each side of a collaboration "x" on its own line
+        const t = GAL[fi].t || '', key = (mobile ? 'm' : 'd') + t;
+        if (titleEl.dataset.k !== key) {
+          titleEl.dataset.k = key;
+          const esc = (s) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+          if (mobile) titleEl.innerHTML = `<span class="gv-mq">${esc(t)}</span>`;
+          else {
+            const lines = [];
+            t.split(' :: ').forEach((seg, i) => seg.split(' x ').forEach((part, j) => {
+              if (j) lines.push('x');
+              lines.push((i && !j ? ':: ' : '') + part);
+            }));
+            titleEl.innerHTML = lines.map(l => `<span>${esc(l)}</span>`).join('');
+          }
+        }
+        let x, y, tx, ty;
+        if (mobile) {   // under the picture, one line: caption on the left (shrinks to fit), counter on the right
+          const room = iw - countEl.offsetWidth - 14;
+          const fitKey = key + '|' + Math.round(room);
+          if (titleEl.dataset.fit !== fitKey) {
+            titleEl.dataset.fit = fitKey;
+            titleEl.classList.remove('scroll');
+            Object.assign(titleEl.style, { whiteSpace: 'nowrap', maxWidth: 'none', fontSize: '12px', overflow: 'visible', textOverflow: 'clip', textAlign: 'left' });
+            const w = titleEl.scrollWidth;
+            const fs = w > room ? Math.max(10.5, 12 * room / w) : 12;   // shrink a little, never below readable
+            titleEl.style.fontSize = fs.toFixed(2) + 'px';
+            const over = titleEl.scrollWidth - room;
+            if (over > 1) {   // still too long: scroll it across and back so the whole caption can be read
+              Object.assign(titleEl.style, { maxWidth: room + 'px', overflow: 'hidden' });
+              titleEl.style.setProperty('--dx', (-over - 4).toFixed(1) + 'px');
+              titleEl.style.setProperty('--dur', (3.2 + 2 * (over + 4) / 28).toFixed(2) + 's');   // ~28px/s, with pauses at each end
+              titleEl.classList.add('scroll');
+            }
+          }
+          y = L.h / 2 + ih / 2 + 12; ty = y + (countEl.offsetHeight - titleEl.offsetHeight) / 2;
+          tx = L.w / 2 - iw / 2; x = L.w / 2 + iw / 2 - countEl.offsetWidth;
+        } else {        // either side of the picture, vertically centred
+          Object.assign(titleEl.style, { whiteSpace: 'normal', fontSize: '', overflow: 'visible', textOverflow: 'clip' }); titleEl.dataset.fit = '';
+          titleEl.style.maxWidth = Math.max(80, Math.min(165, L.w / 2 - iw / 2 - 40)) + 'px'; titleEl.style.textAlign = 'right';
+          y = L.h / 2 - 6; ty = L.h / 2 - titleEl.offsetHeight / 2 + 1;
+          x = L.w / 2 + iw / 2 + 20; tx = L.w / 2 - iw / 2 - 20 - titleEl.offsetWidth;
+        }
+        const op = (gE * clamp01(1 - Math.abs(V.f - Math.round(V.f)) * 3)).toFixed(3);
+        countEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        titleEl.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
+        countEl.style.opacity = titleEl.style.opacity = op;
+        hintEl.style.transform = `translate(${(L.w / 2 - hintEl.offsetWidth / 2).toFixed(1)}px, ${(L.h / 2 + ih / 2 - hintEl.offsetHeight - 14).toFixed(1)}px)`;
+        hintEl.style.opacity = hint ? op : 0;
+        vr.render(vs, vc);
+        if (!V.open && V.g <= 0) {
+          el.classList.remove('open');
+          document.body.classList.remove('lb-open');
+          ringVideos(true);
+          const cb = V.onClose; V.onClose = null; cb && cb();
+          return;
+        }
+        if (V.open && (V.g < 1 || V.f !== V.target || V.drag || vid)) tick();   // (videos need every frame)
+        else if (!V.open) tick();
+      }
+      // input
+      const clipPx = () => V.L.maxH * 1.18 * V.L.px;
+      let settleT = 0;
+      const settle = (bias) => { clearTimeout(settleT); settleT = setTimeout(() => { if (!V.drag) { V.target = Math.round(V.target + (bias || 0)); tick(); } }, bias === undefined ? 180 : 0); };
+      cv.addEventListener('wheel', (e) => {
+        e.preventDefault(); if (!V.open) return;
+        V.target += (e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY) / clipPx(); tick(); settle();
+      }, { passive: false });
+      const vray = new THREE.Raycaster(), vndc = new THREE.Vector2();
+      const hitAt = (e) => {
+        vndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+        vray.setFromCamera(vndc, vc);
+        const h = vray.intersectObjects(V.items.filter(it => it.pivot.visible).map(it => it.mesh))[0];
+        return h ? h.object.userData.i : null;
+      };
+      cv.addEventListener('pointerdown', (e) => {
+        if (!V.open) return;
+        cv.setPointerCapture(e.pointerId);
+        V.drag = { y: e.clientY, x: e.clientX, t0: V.target, ly: e.clientY, lt: performance.now(), v: 0, moved: false };
+      });
+      cv.addEventListener('pointermove', (e) => {
+        if (!V.drag) { if (e.pointerType !== 'touch') cv.classList.toggle('on-image', hitAt(e) !== null); return; }
+        const now = performance.now();
+        if (!V.drag.moved && Math.abs(e.clientY - V.drag.y) < 6) return;
+        V.drag.moved = true;
+        V.drag.v = (V.drag.ly - e.clientY) / Math.max(8, now - V.drag.lt);
+        V.drag.ly = e.clientY; V.drag.lt = now;
+        V.target = V.drag.t0 + (V.drag.y - e.clientY) / clipPx(); tick();
+      });
+      cv.addEventListener('pointerup', (e) => {
+        const D = V.drag; V.drag = null; if (!D) return;
+        if (D.moved) { settle(Math.max(-1.5, Math.min(1.5, D.v * 220 / clipPx()))); return; }
+        const i = hitAt(e);
+        if (i === null) close();                               // click on the dark background
+        else {
+          const d = wrap(i - V.f);
+          if (Math.abs(d) > 0.5) step(Math.round(d));
+          else {                                               // tap the front video: sound on → pause → play
+            const v = V.items[i].video;
+            if (v) {
+              if (v.paused) { V.items[i].userPaused = false; v.play().catch(() => {}); }
+              else if (v.muted) v.muted = false;
+              else { v.pause(); V.items[i].userPaused = true; }
+              tick();
+            }
+          }
+        }
+      });
+      cv.addEventListener('pointercancel', () => { V.drag = null; settle(); });
+      el.querySelector('.gv-close').addEventListener('click', close);
+      addEventListener('keydown', (e) => {
+        if (!V.open) return;
+        const k = e.key;
+        if (k === 'Escape') close();
+        else if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'PageDown' || k === ' ') step(1);
+        else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'PageUp') step(-1);
+        else return;
+        e.preventDefault(); e.stopImmediatePropagation();
+      }, true);
+      return { open, close };
+    })();
+    if (dbg.has('debug')) window.__dm = { G, Viewer, pickAt: (x, y) => { const h = pick({ clientX: x, clientY: y }, cardMeshes()); return h ? h.object.userData.card.img : null; } };
+
+    // ===== GLITCH TEST ==================================================
+    // A display-only pass over the finished frame (busts + ring). Clicking and
+    // picking still go through the 3D scene, so nothing here gets in the way.
+    // Long quiet stretches, then a burst blooms in: slices tear sideways, RGB
+    // splits, neon bands, glow, the odd ASCII / heat-map flash, and HUD tags
+    // that lock onto points on the bust and the gallery cards.
+    const gxMat = new THREE.ShaderMaterial({
+      blending: THREE.NoBlending, depthTest: false, depthWrite: false,
+      uniforms: {
+        tex: { value: rtC.texture }, amt: { value: 0 }, seed: { value: 0 }, dpr: { value: 1 },
+        ascii: { value: 0 }, thermal: { value: 0 }, cut: { value: .5 }, res: { value: new THREE.Vector2(1, 1) }
+      },
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
+      fragmentShader: `
+        uniform sampler2D tex; uniform float amt, seed, dpr, ascii, thermal, cut; uniform vec2 res; varying vec2 vUv;
+        float h(vec2 q, float s){ return fract(sin(dot(q, vec2(127.1, 311.7)) + s * 43.17) * 43758.5453); }
+        vec4 S(vec2 u){ return (u.x < 0. || u.x > 1. || u.y < 0. || u.y > 1.) ? vec4(0.) : texture2D(tex, u); }
+        float lum(vec3 c){ return dot(c, vec3(.299, .587, .114)); }
+        vec3 heat(float l){
+          vec3 a = vec3(.22, .02, .55), b = vec3(.95, .1, .65), c = vec3(1., .55, .08), d = vec3(1., .97, .6);
+          return l < .33 ? mix(a, b, l / .33) : l < .66 ? mix(b, c, (l - .33) / .33) : mix(c, d, (l - .66) / .34);
+        }
+        void main(){
+          float a = amt;
+          vec2 px = vUv * res, uv = vUv;
+          // horizontal slices whose height changes with every re-roll
+          float bh = mix(3., 46., h(vec2(floor(seed), 9.), 3.)) * dpr;
+          float row = floor(px.y / bh);
+          float r1 = h(vec2(row, 1.), seed), r2 = h(vec2(row, 2.), seed), r3 = h(vec2(row, 3.), seed);
+          float tear = step(1. - a * .16, r1);
+          uv.x += tear * (r2 - .5) * .09 * a;
+          // a few rows smear one column of colour across (stretched streaks)
+          if (r3 > 1. - a * .025) uv.x = r2 + (uv.x - r2) * .06;
+          // the odd block knocked out of place
+          vec2 cell = floor(px / (vec2(110., 30.) * dpr));
+          if (h(cell, seed + 5.) > 1. - a * .04) uv += (vec2(h(cell, seed + 6.), h(cell, seed + 7.)) - .5) * vec2(.07, .02);
+          // chunky pixels in some rows
+          if (h(vec2(row, 4.), seed) > 1. - a * .06) { float bs = mix(4., 12., r2) * dpr; uv = (floor(uv * res / bs) + .5) * bs / res; }
+
+          // RGB split, stronger in torn rows
+          float ca = (.0035 + tear * .008) * a;
+          vec4 cr = S(uv + vec2(ca, 0.)), cg = S(uv), cb = S(uv - vec2(ca * .7, 0.));
+          vec4 c = vec4(cr.r, cg.g, cb.b, max(cg.a, max(cr.a, cb.a)));
+
+          // neon bands across the content
+          float nb = h(vec2(row, 5.), seed);
+          if (nb > 1. - a * .035) {
+            float k = h(vec2(row, 6.), seed);
+            vec3 neon = k < .4 ? vec3(.2, 1., .35) : k < .75 ? vec3(1., .12, .85) : vec3(.15, .9, 1.);
+            float m = smoothstep(.05, .4, c.a);
+            c.rgb = mix(c.rgb, neon * (.55 + .7 * lum(c.rgb)) * c.a, .85 * m);
+          }
+          // heat-map flash, below a random cut
+          if (thermal > 0. && vUv.y < cut) c.rgb = mix(c.rgb, heat(clamp(lum(c.rgb) / max(c.a, 1e-3), 0., 1.)) * c.a, thermal);
+
+          // glow blooming off the bright parts
+          if (a > .01) {
+            vec3 g = vec3(0.); float R = (4. + 6. * a) * dpr;
+            for (int i = 0; i < 8; i++) {
+              float an = float(i) * .785 + seed;
+              g += S(uv + vec2(cos(an), sin(an)) * R / res).rgb;
+              g += S(uv + vec2(cos(an + .4), sin(an + .4)) * R * 2.2 / res).rgb * .6;
+            }
+            g /= 12.8;
+            c.rgb += g * .28 * a;
+            c.a = max(c.a, clamp(lum(g) * .28 * a, 0., 1.));
+          }
+
+          // ASCII flash: the picture rebuilt from little glyphs
+          if (ascii > 0.) {
+            float cs = 7. * dpr; vec2 cc = floor(px / cs), f = fract(px / cs);
+            vec4 s = S((cc + .5) * cs / res);
+            float l = clamp(lum(s.rgb) * 1.6, 0., 1.);
+            vec2 gp = floor(f * vec2(5., 7.));
+            float gid = floor(l * 5.) + floor(h(cc, 1.) * 4.) * 7.;
+            float on = step(1. - (.25 + .6 * l), h(gp, gid)) * step(gp.x, 3.) * step(gp.y, 5.) * step(.08, l);
+            c = mix(c, vec4(vec3(.88) * on, on), ascii);
+          }
+          // faint scanlines while it's busy
+          c.rgb *= 1. - .1 * a * step(.5, fract(px.y / (2. * dpr)));
+          gl_FragColor = c;
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`
+    });
+    const gxQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), gxMat); gxQuad.frustumCulled = false;
+    const gxScene = new THREE.Scene(); gxScene.add(gxQuad);
+
+    const GX = (() => {
+      const U = gxMat.uniforms, Q = new URLSearchParams(location.search);
+      const demo = Q.has('gx');                 // ?gx → short gaps, for testing
+      const force = Q.has('gxamt') ? +Q.get('gxamt') : null;   // ?gxamt=0.8 → hold one level (screenshots)
+      const R = Math.random;
+      let phase = 'quiet', start = 0, dur = 0, until = performance.now() + (demo ? 600 : 2500 + R() * 2500);
+      let peak = 1, flick = 1, nextRoll = 0, ascUntil = 0, thUntil = 0, microUntil = 0, env = 0, hudEnd = 0;
+
+      // HUD layer: plain 2D canvas over everything, never takes a click
+      const hud = document.createElement('canvas');
+      hud.setAttribute('aria-hidden', 'true');
+      hud.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40';
+      document.body.appendChild(hud);
+      const ctx = hud.getContext('2d');
+      let hudDpr = 1, hudOn = false;
+      function sizeHud() { hudDpr = Math.min(devicePixelRatio, 2); hud.width = innerWidth * hudDpr; hud.height = innerHeight * hudDpr; }
+      sizeHud(); addEventListener('resize', sizeHud);
+
+      const BODY = ['CRANIUM', 'BROW', 'ORBIT', 'NASION', 'ZYGOMA', 'MANDIBLE', 'TEMPLE', 'SEPTUM', 'PHILTRUM', 'CHIN'];
+      const FILM = ['FRAME', 'REEL', 'GATE', 'SHUTTER', 'APERTURE', 'SPROCKET', 'LENS', 'CUT', 'TAKE', 'SPLICE'];
+      const tag = (list) => list[Math.floor(R() * list.length)] + '-' + String(100 + Math.floor(R() * 900));
+      const vtx = new Map();        // per bust: a handful of points on its front face
+      function bustPoints(wrap) {
+        if (vtx.has(wrap)) return vtx.get(wrap);
+        const pts = [];
+        wrap.traverse(o => {
+          if (!o.isMesh) return;
+          const pos = o.geometry.attributes.position; if (!pos) return;
+          o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox;
+          const zMin = bb.min.z + (bb.max.z - bb.min.z) * .6;
+          for (let i = 0, tries = 0; i < 60 && tries < 3000; tries++) {
+            const v = new THREE.Vector3().fromBufferAttribute(pos, Math.floor(R() * pos.count));
+            if (v.z < zMin) continue;
+            pts.push({ mesh: o, v }); i++;
+          }
+        });
+        vtx.set(wrap, pts); return pts;
+      }
+      let anchors = [];
+      function pickAnchors() {
+        anchors = [];
+        const wrap = slots[current];
+        const galleryOn = G.state === 'on';
+        if (wrap) {
+          const pts = bustPoints(wrap);
+          const n = galleryOn ? 14 : 24;
+          for (let i = 0; i < n && pts.length; i++) anchors.push({ src: pts[Math.floor(R() * pts.length)], name: tag(BODY) });
+        }
+        if (galleryOn) {
+          const cams = cardMeshes().map(m => ({ m, d: m.getWorldPosition(new THREE.Vector3()).distanceTo(camera.position) }))
+            .sort((a, b) => a.d - b.d).slice(0, 8);
+          for (let i = 0; i < 6 && cams.length; i++) anchors.push({ mesh: cams.splice(Math.floor(R() * cams.length), 1)[0].m, name: tag(FILM) });
+        }
+        // keep them spread out on screen so the tags don't pile up
+        const rect = canvas.getBoundingClientRect(), kept = [];
+        for (const a of anchors) {
+          const p = project(a, rect); if (!p) continue;
+          if (kept.every(k => Math.hypot(k.p.x - p.x, k.p.y - p.y) > 120)) { a.p0 = p; kept.push({ a, p }); }
+        }
+        anchors = kept.map(k => k.a).slice(0, 3 + Math.floor(R() * 3));
+        anchors.forEach((a, i) => {
+          a.delay = i * (60 + R() * 90);                      // tags pop in one after another
+          a.box = R() < .6 ? 18 + R() * 26 : 0;              // corner-bracket box size (0 = just a node)
+          a.lx = (R() < .5 ? -1 : 1) * (10 + R() * 30); a.ly = -(14 + R() * 26);
+        });
+      }
+      const tmp = new THREE.Vector3();
+      function project(a, rect) {
+        if (a.mesh) a.mesh.getWorldPosition(tmp);
+        else tmp.copy(a.src.v).applyMatrix4(a.src.mesh.matrixWorld);
+        tmp.project(camera);
+        if (tmp.z > 1 || tmp.z < -1) return null;
+        return { x: rect.left + (tmp.x * .5 + .5) * rect.width, y: rect.top + (-tmp.y * .5 + .5) * rect.height };
+      }
+      function drawHud(now) {
+        const show = (phase === 'burst' || now < hudEnd) && anchors.length && force !== 0;
+        if (!show) { if (hudOn) { ctx.clearRect(0, 0, hud.width, hud.height); hudOn = false; } return; }
+        hudOn = true;
+        ctx.setTransform(hudDpr, 0, 0, hudDpr, 0, 0);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        const cl = document.documentElement.classList, ink = (cl.contains('light') || cl.contains('gold')) ? '#000' : '#fff', paper = ink === '#fff' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.55)';
+        const rect = canvas.getBoundingClientRect();
+        const t = now - start, fade = phase === 'burst' ? 1 : Math.max(0, (hudEnd - now) / 220);
+        const pts = [];
+        anchors.forEach(a => {
+          if (t < a.delay) return;
+          const p = project(a, rect); if (!p) return;
+          // jitter while the frame is tearing
+          if (R() < .25 * env) p.x += (R() - .5) * 14 * env;
+          pts.push({ a, p });
+        });
+        ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.lineWidth = 1;
+        // thin lines chaining the tags together
+        ctx.globalAlpha = .55 * fade;
+        ctx.beginPath(); pts.forEach(({ p }, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+        pts.forEach(({ a, p }) => {
+          if (R() < .06) return;                     // the odd frame drops out
+          ctx.globalAlpha = .95 * fade;
+          ctx.strokeRect(p.x - 3.5, p.y - 3.5, 7, 7);
+          ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+          if (a.box) {                                // corner brackets
+            const s = a.box / 2, c = 6;
+            ctx.beginPath();
+            [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
+              ctx.moveTo(p.x + sx * s, p.y + sy * (s - c)); ctx.lineTo(p.x + sx * s, p.y + sy * s); ctx.lineTo(p.x + sx * (s - c), p.y + sy * s);
+            });
+            ctx.stroke();
+          }
+          const lx = p.x + a.lx, ly = p.y + a.ly;
+          ctx.globalAlpha = .45 * fade;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(lx, ly + 3); ctx.stroke();
+          ctx.globalAlpha = fade;
+          ctx.font = '700 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+          ctx.textBaseline = 'alphabetic';
+          const al = a.lx < 0 ? 'right' : 'left'; ctx.textAlign = al;
+          ctx.fillText(a.name, lx, ly);
+          const sub = 'X0 ' + Math.round(p.x) + '  Y0 ' + Math.round(p.y);
+          ctx.font = '500 9px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+          const sw = ctx.measureText(sub).width;
+          ctx.fillStyle = paper; ctx.fillRect(al === 'left' ? lx - 2 : lx - sw - 2, ly + 3, sw + 4, 11);
+          ctx.fillStyle = ink; ctx.globalAlpha = .8 * fade;
+          ctx.fillText(sub, lx, ly + 12);
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      function update(now) {
+        if (force !== null) {
+          if (!anchors.length || now > nextRoll + 2000) pickAnchors();
+          phase = force > 0 ? 'burst' : 'quiet'; env = force;
+          if (now >= nextRoll) { nextRoll = now + 90; U.seed.value = R() * 97; U.cut.value = .3 + R() * .5; }
+          U.amt.value = force; U.ascii.value = Q.has('gxascii') ? 1 : 0; U.thermal.value = Q.has('gxheat') ? .85 : 0;
+          return force;
+        }
+        if (now >= until) {
+          if (phase === 'quiet') {
+            phase = 'burst'; start = now; dur = 900 + R() * 2600; until = now + dur; peak = .55 + R() * .45;
+            pickAnchors();
+          } else {
+            phase = 'quiet'; hudEnd = now + 220;
+            until = now + (demo ? 1500 + R() * 1500 : 5000 + R() * 8000);   // the quiet stretch
+          }
+        }
+        if (phase === 'burst') {
+          const x = (now - start) / dur;
+          let e = Math.min(1, x / .2) * Math.min(1, (1 - x) / .3);   // bloom in, hang, fall away
+          e = e * e * (3 - 2 * e);
+          if (now >= nextRoll) {                                       // re-roll ~12x a second so it stutters
+            nextRoll = now + 50 + R() * 100;
+            U.seed.value = R() * 97; U.cut.value = .25 + R() * .55;
+            flick = .3 + .7 * R();
+            if (R() < .06 * peak) ascUntil = now + 140 + R() * 260;
+            if (R() < .07 * peak) thUntil = now + 160 + R() * 360;
+          }
+          env = e * peak;
+          U.amt.value = env * flick;
+        } else {
+          // almost nothing: very rarely a split-second flicker
+          if (now > microUntil + 400 && R() < .0025) microUntil = now + 50 + R() * 90;
+          env = 0;
+          U.amt.value = now < microUntil ? .14 : 0;
+        }
+        U.ascii.value = now < ascUntil ? 1 : 0;
+        U.thermal.value = now < thUntil ? .85 : 0;
+        return Math.max(U.amt.value, U.ascii.value, U.thermal.value);
+      }
+      function hide() { if (hudOn) { ctx.clearRect(0, 0, hud.width, hud.height); hudOn = false; } }
+      return { update, drawHud, hide, resize(w, h, d) { U.res.value.set(w, h); U.dpr.value = d; } };
+    })();
+    window.__gx = GX;
+    { const r = rtC; GX.resize(r.width, r.height, Math.min(devicePixelRatio, 2)); }
+    // ===== /GLITCH TEST =================================================
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const clock = new THREE.Clock();
+    const look = { x: 0, y: 0 };      // eased cursor / idle-sway rotation
+    let introFade = 0, lastFrame = 0, tagTick = 0;
+    renderer.setAnimationLoop(() => {
+      if (document.body.classList.contains('lb-open')) { GX.hide(); return; }   // hidden behind a lightbox
+      const t = clock.getElapsedTime();
+      const idle = performance.now() - lastMove > 2500;
+      const tx = idle ? Math.sin(t * 0.4) * 0.45 : target.x * 0.6;
+      const ty = idle ? Math.sin(t * 0.3) * 0.06 : target.y * 0.25;
+      const k = reduced ? 0 : 0.05;
+      look.y += (tx - look.y) * k;
+      look.x += (ty - look.x) * k;
+      if (FX === 'glitch') { pivot.rotation.y = look.y; pivot.rotation.x = look.x; }
+
+      if (introStart !== null) {
+        const x = reduced ? 1 : Math.min(1, (performance.now() - introStart) / INTRO_MS);
+        const e = easeOut(x);
+        intro.visible = true;
+        intro.rotation.y = (1 - e) * -Math.PI * 0.75;   // swings round to face you
+        intro.position.y = (1 - e) * -0.9;              // rises into place
+        intro.scale.setScalar(0.82 + 0.18 * e);
+        introFade = Math.min(1, x * 2.2);
+        if (FX === 'glitch') slots.forEach(w => { if (w) { w.userData.mat.opacity = introFade; w.userData.mat.transparent = introFade < 1; } });
+        if (x >= 1) introStart = null;
+      }
+      if (!reduced) { updateEnv(t); redLights.forEach(f => f(t)); }
+      const now = performance.now(), dt = Math.min(0.1, (now - (lastFrame || now)) / 1000); lastFrame = now;
+      updateGallery(now, dt);
+      placeCamera();
+      if (FX === 'wheel') {
+        if (introStart === null && introFade < 1) introFade = 1;
+        updateWheel(now, dt, look.y, look.x);
+        post.material.uniforms.p.value = 0;
+        renderAll(rtA);
+      } else {
+        let sp = updateSwap(now), from = current, to = swapTo;
+        if (dbg.has('glitch') && slots[1]) { sp = +dbg.get('glitch'); from = 0; to = 1; post.material.uniforms.seed.value = 7; }
+        post.material.uniforms.p.value = sp;
+        if (slots[from]) renderBust(from, rtA);
+        if (sp > 0) renderBust(to, rtB);
+      }
+      const gxOn = GX.update(now) > 0.001;
+      if (gxOn) {
+        renderer.setRenderTarget(rtC);
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        renderer.render(postScene, postCam);
+        renderer.setRenderTarget(null);
+        renderer.render(gxScene, postCam);
+      } else {
+        renderer.setRenderTarget(null);
+        renderer.render(postScene, postCam);
+      }
+      GX.drawHud(now);
+      if (introFade > .99 && (++tagTick % 15 === 0 || tagY < 0)) placeTagline();
+    });
+  </script>
+</body>
+</html>
