@@ -2229,7 +2229,10 @@
       const tmp = new THREE.Vector3();
       function project(a, rect) {
         if (a.screen) return { x: a.screen.x, y: a.screen.y };
-        if (a.mesh) a.mesh.getWorldPosition(tmp);
+        if (a.mesh) {                              // the card's own centre (its mesh origin is the ring's centre)
+          const g = a.mesh.geometry; if (!g.boundingSphere) g.computeBoundingSphere();
+          tmp.copy(g.boundingSphere.center).applyMatrix4(a.mesh.matrixWorld);
+        }
         else tmp.copy(a.src.v).applyMatrix4(a.src.mesh.matrixWorld);
         tmp.project(camera);
         if (tmp.z > 1 || tmp.z < -1) return null;
@@ -2278,14 +2281,17 @@
           ctx.globalAlpha = fade;
           ctx.font = '700 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
           ctx.textBaseline = 'alphabetic';
-          const al = a.lx < 0 ? 'right' : 'left'; ctx.textAlign = al;
-          ctx.fillText(a.name, lx, ly);
+          // keep the tag on screen: left edge of the text, clamped to the viewport
+          ctx.textAlign = 'left';
+          const nw = ctx.measureText(a.name).width;
           const sub = 'X0 ' + Math.round(p.x) + '  Y0 ' + Math.round(p.y) + (a.code ? '  ' + a.code : '');
+          const clampX = (w) => Math.max(8, Math.min(innerWidth - 8 - w, a.lx < 0 ? lx - w : lx));
+          ctx.fillText(a.name, clampX(nw), ly);
           ctx.font = '500 9px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
-          const sw = ctx.measureText(sub).width;
-          ctx.fillStyle = paper; ctx.fillRect(al === 'left' ? lx - 2 : lx - sw - 2, ly + 3, sw + 4, 11);
+          const sw = ctx.measureText(sub).width, sx = clampX(sw);
+          ctx.fillStyle = paper; ctx.fillRect(sx - 2, ly + 3, sw + 4, 11);
           ctx.fillStyle = ink; ctx.globalAlpha = .8 * fade;
-          ctx.fillText(sub, lx, ly + 12);
+          ctx.fillText(sub, sx, ly + 12);
         });
         ctx.globalAlpha = 1;
       }
