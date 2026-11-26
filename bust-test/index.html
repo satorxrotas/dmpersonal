@@ -1927,7 +1927,10 @@
         }
         let x, y, tx, ty;
         if (mobile) {   // under the picture, one line: caption on the left (shrinks to fit), counter on the right
-          const room = iw - countEl.offsetWidth - 14;
+          // always the full width a picture can take (a wide landscape's), so the caption and counter sit in
+          // the same place for every item, even portrait / slim ones
+          const rw = L.maxW * L.px;
+          const room = rw - countEl.offsetWidth - 14;
           const fitKey = key + '|' + Math.round(room);
           if (titleEl.dataset.fit !== fitKey) {
             titleEl.dataset.fit = fitKey;
@@ -1945,7 +1948,7 @@
             }
           }
           y = L.h / 2 + ih / 2 + 12; ty = y + (countEl.offsetHeight - titleEl.offsetHeight) / 2;
-          tx = L.w / 2 - iw / 2; x = L.w / 2 + iw / 2 - countEl.offsetWidth;
+          tx = L.w / 2 - rw / 2; x = L.w / 2 + rw / 2 - countEl.offsetWidth;
         } else {        // either side of the picture, vertically centred
           Object.assign(titleEl.style, { whiteSpace: 'normal', fontSize: '', overflow: 'visible', textOverflow: 'clip' }); titleEl.dataset.fit = '';
           titleEl.style.maxWidth = Math.max(80, Math.min(165, L.w / 2 - iw / 2 - 40)) + 'px'; titleEl.style.textAlign = 'right';
